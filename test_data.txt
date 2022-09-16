@@ -1,0 +1,29 @@
+Prepared test constraints strings:
+
+# EXAMPLE 1
+constraints = '([0] == [1]),([2] == [3])'
+input_qubits = 4
+N = 16
+k = 4
+solutions = ['0000', '1100', '0011', '1111']
+
+# EXAMPLE 2
+constraints = '([0] == [1]),([2] == [3]),([1][0] != [3][2])'
+input_qubits = 4
+N = 16
+k = 2
+solutions = ['1100', '0011']
+
+# EXAMPLE 3
+constraints = '([4][3][2] != [0]),([2] == [3]),([3] == [4]),([0] != [1])'
+input_qubits = 5
+N = 32
+k = 3
+solutions = ['11110', '00001', '11101']
+
+# EXAMPLE 4
+constraints = '([2][1][0] == [5][4][3]), ([4][3] == [1][0]), ([1] != [7]), ([3][2] != [7][6]), ([3] == [4]), ([5] != [6])'
+input_qubits = 8
+N = 256
+k = 4
+solutions = ['11000000', '10100100', '01011011', '00111111']
