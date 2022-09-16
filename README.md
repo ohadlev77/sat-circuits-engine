@@ -20,10 +20,10 @@ This program is a proof-of-concept for automatic quantum program synthesis. Whil
 
 ### User's Input:
 
- 1. The total amount of input qubits ($n$ qubits create a $2^n$ solution space).
+ 1. The total amount of input qubits - $n$ qubits create a $2^n$ solution space.
  2. A string of boolean arithmetic constraints involving the input qubits (see more [here](https://github.com/ohadlev77/SAT_Circuits_Engine/blob/main/constraints_format.txt "constraints_format.txt")).
 3. The expected amount of results.
-	a. NOTE: This of course feels pointless, however it is a necessary detail that affects the amount of iterations over the algorithm. This caveat can be solved by classical means and it will be updated in the next versions.
+	a. NOTE: This of course feels pointless, however it is a necessary detail that affects the amount of iterations over the algorithm. This issue can be solved by classical means and it will be updated in the next versions.
 
 ### The Program's output:
 1. A `QuantumCircuit` object that solves the SAT problem.
