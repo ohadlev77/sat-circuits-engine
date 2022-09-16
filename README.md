@@ -35,3 +35,4 @@ This program is a proof-of-concept for automatic quantum program synthesis. Whil
 2. Further optimizing  of $MCX$ gates cost.
 3. Adding more supported constraints (addition operators between qubits, comparison of qubits and integers, etc).
 4. Adding more optimization parameters - Such as maximum amount of qubits available, maximum desired circuit depth, maximum allowed amount of $CX$ gates, etc.
+5. Implementing a more informative and gradual form of circuits representation method. For now only the high-level circuit (in the building block resolution) is being presented to the user.
