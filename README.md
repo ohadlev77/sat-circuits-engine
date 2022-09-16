@@ -13,7 +13,7 @@ This program is a proof-of-concept for automatic quantum program synthesis. Whil
 ## Instructions
 1. All the necessary files are in the main folder.
 2. I would recommend downloading the entire directory ('Code -> Download ZIP' on the main page) and then running it on a Jupyter Notebook. Run the main file (ipynb file) and further instructions are included within it. No need to run anything but the main file.
-3. In the file [test_data.txt](https://github.com/ohadlev77/SAT_Circuits_Engine/blob/main/test_data.txt) there are few tested examples, for convenience.
+3. In the file [test_data.txt](https://github.com/ohadlev77/SAT_Circuits_Engine/blob/main/test_data.txt) there are few tested examples that can be used easily, for convenience.
 
 
 ## Key Features
