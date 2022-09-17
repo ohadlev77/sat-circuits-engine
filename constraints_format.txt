@@ -2,8 +2,7 @@ The format of the constraints string we use is of the form: '(__CONSTRAINT 1__),
 Each '(__CONSTRAINT x__)' block is of the format: '(__LEFT_OPERAND__ __OPERATOR__ __RIGHT_OPERAND__)'.
 The currently supported operators are: "==" and "!=".
 The currently supported operands are bundles of qubits indexes (1 qubit or more) - Each qubit index should be written within a '[]'.
-If the amount of qubits in both operands are equal, then the qubit numbering convention doesn't matter.
-In the case of comparing two bundles of qubits of different lengths, then the convention matters and we use Little-Endian (the MSB is on the left side and the LSB is on the right side).
+The qubit numbering convention we use is Little-Endian (the MSB is on the left side and the LSB is on the right side).
 
 An example for a valid constraints string (3 constraints in that single string): '([0] == [5]),([3][2] != [5][4]),([6][5][4] == [1])'.
 Examples of invalid strings: '1 == [5]', '([3] = [2]),(3 != 2)',...
