@@ -16,14 +16,14 @@ This program is a proof-of-concept for automatic quantum program synthesis. Whil
 3. In the file [test_data.txt](https://github.com/ohadlev77/SAT_Circuits_Engine/blob/main/test_data.txt) there are few tested examples that can be used easily, for convenience.
 
 
-## Key Features
+## Functionality
 
 ### User's Input:
 
- 1. The total amount of input qubits - $n$ qubits create a $2^n$ solution space.
+ 1. The total amount of input qubits - $n$ qubits create a $2^n$ solutions space.
  2. A string of boolean arithmetic constraints involving the input qubits (see more [here](https://github.com/ohadlev77/SAT_Circuits_Engine/blob/main/constraints_format.txt "constraints_format.txt")).
 3. The expected amount of results.
-	a. NOTE: This of course feels pointless, however it is a necessary detail that affects the amount of iterations over the algorithm. This issue can be solved by classical means and it will be updated in the next versions.
+	a. NOTE: This of course feels pointless, but it is a necessary detail that affects the amount of iterations over the algorithm. However, this issue can be solved (with some computational cost) by several means (weak measurements technique, quantm counting or randomized sampling) and it will be updated in the next versions.
 
 ### The Program's output:
 1. A `QuantumCircuit` object that solves the SAT problem.
@@ -31,7 +31,7 @@ This program is a proof-of-concept for automatic quantum program synthesis. Whil
 
 ## Future Improvements Needed
 
-1. Adding a classical layer that solves the issue of the expected amount of results.
+1. Solving the expected amount of results issue.
 2. Further optimizing  of $MCX$ gates cost.
 3. Adding more supported constraints (addition operators between qubits, comparison of qubits and integers, etc).
 4. Adding more optimization parameters - Such as maximum amount of qubits available, maximum desired circuit depth, maximum allowed amount of $CX$ gates, etc.
