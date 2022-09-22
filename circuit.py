@@ -124,7 +124,7 @@ def Grover_SAT_Operator(input_qubits, data, aux_qubits_list):
             # Format: [left, right, aux, out]
         
         qc.append(instruction = c_circuit, qargs = qargs)
-        qc.barrier() # TODO DO WE REALLY WANT IT?
+        qc.barrier()
     
     # Saving all actions until now for uncomputation
     qc_dagger = qc.inverse()
