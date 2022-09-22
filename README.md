@@ -22,7 +22,7 @@ This program is a proof-of-concept for automatic quantum program synthesis. Whil
 
  1. The total amount of input qubits - $n$ qubits create a $2^n$ search space.
  2. A string of boolean arithmetic constraints involving the input qubits (see more [here](https://github.com/ohadlev77/SAT_Circuits_Engine/blob/main/constraints_format.txt "constraints_format.txt")).
-3. The expected amount of results. If the expected amount of results is unknown, the program can handle this using a variation of the method described in [1](https://arxiv.org/abs/quant-ph/9605034) (section 4). According to the original method once a single marked value is obtained then we halt, with a possibility to repeat the process many times. We chose to run a given circuit that yields a marked state X times, such that if we get marked values in all X times then this circuit might be the optimal circuit or near optimal. Then we run the circuit many times (according to user's input) in hope to reveal all the marked values.
+3. The expected amount of results. If the expected amount of results is unknown, the program can handle this using a variation of the method described in [this paper](https://arxiv.org/abs/quant-ph/9605034) (section 4). According to the original method once a single marked value is obtained then we halt, with a possibility to repeat the process many times. We chose to run a given circuit that yields a marked state X times, such that if we get marked values in all X times then this circuit might be the optimal circuit or near optimal. Then we run the circuit many times (according to user's input) in hope to reveal all the marked values.
 
 ### The Program's output:
 1. A `QuantumCircuit` object that solves the SAT problem.
