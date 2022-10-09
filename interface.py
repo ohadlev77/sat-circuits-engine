@@ -91,31 +91,37 @@ def RunProgram():
     # Printing the circuit
     print()
     print('\033[1mThe high level circuit: \033[0m')
-    display(qc.draw('mpl'))
+    display(qc.draw(output = 'mpl', fold = -1))
     
     # Printing the operator's circuit
     op_qc = circuit_data['sat_op']
     print()
     print('\033[1mThe operator: \033[0m')
-    display(op_qc.draw('mpl'))
+    display(op_qc.draw(output = 'mpl', fold = -1))
 
     # Preparing the decomposed version of the operator's circuit
     gates = list(dict(op_qc.count_ops()).keys())
     remove_list = ['x', 'h', 'mcx', 'ccx', 'mcx_gray']
-    for r in remove_list:
-        try:
-            gates.remove(r)
-        except:
-            pass
-    de_op_qc = op_qc.decompose(gates_to_decompose = gates)
+    gates_to_decompose = GatesDecompositionSort(circuit_gates = gates, do_not_decompose_gates = remove_list)
+    de_op_qc = op_qc.decompose(gates_to_decompose = gates_to_decompose)
     gates = list(dict(de_op_qc.count_ops()).keys())
-    for r in remove_list:
-        try:
-            gates.remove(r)
-        except:
-            pass
+    gates_to_decompose = GatesDecompositionSort(circuit_gates = gates, do_not_decompose_gates = remove_list)
 
     # Printing the decomposed version of the operator's circuit
     print()
     print('\033[1mThe operator - one level down: \033[0m')
-    display(de_op_qc.decompose(gates_to_decompose = gates).draw('mpl'))
+    display(de_op_qc.decompose(gates_to_decompose = gates_to_decompose).draw(output = 'mpl', fold = -1))
+    
+def GatesDecompositionSort(circuit_gates, do_not_decompose_gates):
+    '''
+        Functionality:
+            TODO COMPLETE
+    '''
+    
+    for g in do_not_decompose_gates:
+        try:
+            circuit_gates.remove(g)
+        except:
+            pass
+        
+    return circuit_gates

@@ -8,13 +8,13 @@ Today's current quantum software stack is pretty thin. Quantum programming is be
 
 ## Intention
 
-This program is a proof-of-concept for automatic quantum program synthesis. While it provides a layer of automation, still there are many aspects that are not covered (yet) by the engine - Such as extensive circuit depth optimization, hardware specifications, etc.
+This program is a proof-of-concept for automatic quantum program synthesis. While it provides a layer of automation, still there are many aspects that are not covered (yet) by the engine - Such as extensive circuit depth optimization, hardware specifications awareness, etc.
 
 ## Instructions
 1. All the necessary files are in the main folder.
-2. I would recommend downloading the entire directory ('Code -> Download ZIP' on the main page) and then running it on a Jupyter Notebook. Run the main.ipynb file and further instructions are included within it. No need to run anything but the main file.
-3. In the file [test_data.txt](https://github.com/ohadlev77/SAT_Circuits_Engine/blob/main/test_data.txt) there are few tested examples that can be used easily, for convenience.
-
+2. 2. `git clone https://github.com/ohadlev77/SAT_Circuits_Engine.git`.
+3. Run `main.ipynb` (a Jupyter Notebook) - Further instructions are included within it. No need to run anything but the main file.
+4. In the file [test_data.txt](https://github.com/ohadlev77/SAT_Circuits_Engine/blob/main/test_data.txt) there are few tested examples that can be used easily, for convenience.
 
 ## Functionality
 
