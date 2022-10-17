@@ -54,10 +54,6 @@ def RunProgram():
         Functionality:
             First line to the user.
             Running the circuit and presenting the results to the user.
-        Parameters:
-            None.
-        Returns:
-            None.
     '''
     
     # User's inputs
@@ -65,8 +61,7 @@ def RunProgram():
     
     # Obtaining the desired quantum circuit
     if inputs['k'] == -1:
-        print()
-        print('Please wait while the system checks various solutions..')
+        print('\nPlease wait while the system checks various solutions..')
         iterations = handle_solutions.FindIterationsUnknown_k(n = inputs['input_qubits'], constraints = inputs['constraints'], x = 10)
         print(f'\033[1mAn adequate number of iterations found = {iterations}\033[0m')
     else:
@@ -75,28 +70,24 @@ def RunProgram():
     qc = circuit_data['sat_qc']
 
     # Running the program on a local simulator
-    print()
-    print(f'The system is running the circuit {inputs["shots"]} times, please wait..')
+    print(f'\nThe system is running the circuit {inputs["shots"]} times, please wait..')
     job = settings.backend.run(transpile(qc, settings.backend, optimization_level = 3), shots = inputs['shots'])
     results = job.result()
     counts = results.get_counts()
     counts_sorted = sorted(counts.items(), key =  lambda x: x[1]) # Sorting results in an ascending order
 
     # Output the results
-    print()
-    print(f'\033[1mThe results for {inputs["shots"]} shots are: \033[0m')
+    print(f'\n\033[1mThe results for {inputs["shots"]} shots are: \033[0m')
     display(plot_histogram(counts, sort = 'value', figsize = (20,5)))
     print(counts_sorted)
     
     # Printing the circuit
-    print()
-    print('\033[1mThe high level circuit: \033[0m')
+    print('\n\033[1mThe high level circuit: \033[0m')
     display(qc.draw(output = 'mpl', fold = -1))
     
     # Printing the operator's circuit
     op_qc = circuit_data['sat_op']
-    print()
-    print('\033[1mThe operator: \033[0m')
+    print('\n\033[1mThe operator: \033[0m')
     display(op_qc.draw(output = 'mpl', fold = -1))
 
     # Preparing the decomposed version of the operator's circuit
@@ -115,7 +106,12 @@ def RunProgram():
 def GatesDecompositionSort(circuit_gates, do_not_decompose_gates):
     '''
         Functionality:
-            TODO COMPLETE
+            Removes chosen gates from a list of gate types.
+        Parameters:
+            circuit_gates (list) - A list gate types.
+            do_not_decompose_gates (list) - A list of gate types to remove from `circuit_gates`.
+        Returns:
+            Altered `circuit_gates` list.
     '''
     
     for g in do_not_decompose_gates:

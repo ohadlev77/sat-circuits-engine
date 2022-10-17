@@ -107,20 +107,20 @@ def Grover_SAT_Operator(input_qubits, data, aux_qubits_list):
     
     # Handling constraints
     for c in data:
-        i = c['c_index'] # Constraint's index
+        i = c.c_index # Constraint's index
         
         # Generating the constraint circuit block
-        c_circuit = ComputeConstraint(left_qubits_amount = len(c['left_side']), right_qubits_amount = len(c['right_side']), aux_qubits_amount = c['aux_qubits_amount'], operator = c['operator'])
-        c_circuit.name = 'Constraint ' + str(i) + ': \n' + c['constraint']
+        c_circuit = ComputeConstraint(left_qubits_amount = len(c.left_side), right_qubits_amount = len(c.right_side), aux_qubits_amount = c.aux_qubits_needed, operator = c.operator)
+        c_circuit.name = 'Constraint ' + str(i) + ': \n' + c.c_eq
                 
         # Defining the qargs before appending c_circuit to qc
-        if c['aux_qubits_amount'] == 0:
-            qargs = input_reg[c['left_side']] + input_reg[c['right_side']] + [out_reg[i]]
+        if c.aux_qubits_needed == 0:
+            qargs = input_reg[c.left_side] + input_reg[c.right_side] + [out_reg[i]]
             # Format: [left, right, out]
         else:
             aux_bottom = sum(aux_qubits_list[0:i])
             aux_top = aux_bottom + aux_qubits_list[i]
-            qargs = input_reg[c['left_side']] + input_reg[c['right_side']] + aux_reg[aux_bottom : aux_top] + [out_reg[i]] 
+            qargs = input_reg[c.left_side] + input_reg[c.right_side] + aux_reg[aux_bottom : aux_top] + [out_reg[i]] 
             # Format: [left, right, aux, out]
         
         qc.append(instruction = c_circuit, qargs = qargs)
@@ -179,14 +179,16 @@ def Overall_SAT_Circuit(input_qubits, constraints, iterations):
     # Parsing contstraints string
     # We should get a list of dictioneris (a single dict for each constraint) of the form:
     # {c_index, constraint, operator, left_side, right_side, aux_qubits_amount}
-    data = parse.ParseConstraints(constraints = constraints)
+    
+    #data = parse.ParseConstraints(constraints = constraints) # TODO NEED TO EDIT
+    data = parse.Constraints(constraints).constraints
     
     N = 2 ** input_qubits # Total amount of options
     
     # Creating aux_qubits_list
     aux_qubits_list = []
     for d in data:
-        aux_qubits_list.append(d['aux_qubits_amount'])
+        aux_qubits_list.append(d.aux_qubits_needed)
     
     # Building blocks
     sat_op = Grover_SAT_Operator(input_qubits = input_qubits, data = data, aux_qubits_list = aux_qubits_list)

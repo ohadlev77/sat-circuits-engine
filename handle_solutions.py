@@ -27,9 +27,9 @@ def CheckSolution(solution, data):
     
     # Going over the constraints
     for c in data:
-        l = c['left_side']
-        r = c['right_side']
-        op = c['operator']
+        l = c.left_side
+        r = c.right_side
+        op = c.operator
         
         l_len = len(l)
         r_len = len(r)
@@ -116,7 +116,7 @@ def FindIterationsUnknown_k(n, constraints, x = 1):
     
     # Basic settings
     N = 2 ** n
-    data = parse.ParseConstraints(constraints)
+    data = parse.Constraints(constraints).constraints # TODO NEED TO MERGE DUPLICATION WITH circuit.py
     
     # Initial conditions setting
     lamda = 6 / 5 # Each time we increment m such that m *= lamda
