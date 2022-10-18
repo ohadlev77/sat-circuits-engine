@@ -116,7 +116,7 @@ def FindIterationsUnknown_k(n, constraints, x = 1):
     
     # Basic settings
     N = 2 ** n
-    data = parse.Constraints(constraints).constraints # TODO NEED TO MERGE DUPLICATION WITH circuit.py
+    data = parse.Constraints(constraints, n).constraints # TODO NEED TO MERGE DUPLICATION WITH circuit.py
     
     # Initial conditions setting
     lamda = 6 / 5 # Each time we increment m such that m *= lamda

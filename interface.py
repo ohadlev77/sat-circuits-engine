@@ -71,7 +71,7 @@ def RunProgram():
 
     # Running the program on a local simulator
     print(f'\nThe system is running the circuit {inputs["shots"]} times, please wait..')
-    job = settings.backend.run(transpile(qc, settings.backend, optimization_level = 3), shots = inputs['shots'])
+    job = settings.backend.run(transpile(qc, settings.backend, optimization_level = 0), shots = inputs['shots'])
     results = job.result()
     counts = results.get_counts()
     counts_sorted = sorted(counts.items(), key =  lambda x: x[1]) # Sorting results in an ascending order
