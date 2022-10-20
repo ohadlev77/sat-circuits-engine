@@ -59,15 +59,18 @@ def RunProgram():
     # User's inputs
     inputs = HandleInputs()
     
+    # TODO NEED TO EXPLAIN
+    constraints = parse.Constraints(inputs['constraints'], inputs['input_qubits'])
+
     # Obtaining the desired quantum circuit
     if inputs['k'] == -1:
         print('\nPlease wait while the system checks various solutions..')
-        iterations = handle_solutions.FindIterationsUnknown_k(n = inputs['input_qubits'], constraints = inputs['constraints'], x = 10)
+        iterations = handle_solutions.FindIterationsUnknown_k(n = inputs['input_qubits'], constraints = constraints, x = 10)
         print(f'\033[1mAn adequate number of iterations found = {iterations}\033[0m')
     else:
         iterations = handle_solutions.CalcIterationsKnown_k(N = 2 ** inputs['input_qubits'], k = inputs['k'])
-    circuit_data = circuit.Overall_SAT_Circuit(input_qubits = inputs['input_qubits'], constraints = inputs['constraints'], iterations = iterations)
-    qc = circuit_data['sat_qc']
+    qc = circuit.SAT_Circuit(inputs['input_qubits'], constraints, iterations)
+    qc.add_input_reg_measurement() # TODO NEED TO HANDLE THE CASE OF UNKNOWN NUMBER OF ITERATIONS
 
     # Running the program on a local simulator
     print(f'\nThe system is running the circuit {inputs["shots"]} times, please wait..')
@@ -86,7 +89,7 @@ def RunProgram():
     display(qc.draw(output = 'mpl', fold = -1))
     
     # Printing the operator's circuit
-    op_qc = circuit_data['sat_op']
+    op_qc = qc.sat_op
     print('\n\033[1mThe operator: \033[0m')
     display(op_qc.draw(output = 'mpl', fold = -1))
 

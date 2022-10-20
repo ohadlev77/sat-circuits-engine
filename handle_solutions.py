@@ -116,7 +116,7 @@ def FindIterationsUnknown_k(n, constraints, x = 1):
     
     # Basic settings
     N = 2 ** n
-    data = parse.Constraints(constraints, n).constraints # TODO NEED TO MERGE DUPLICATION WITH circuit.py
+    data = constraints.constraints # TODO NEED TO MERGE DUPLICATION WITH circuit.py
     
     # Initial conditions setting
     lamda = 6 / 5 # Each time we increment m such that m *= lamda
@@ -129,7 +129,8 @@ def FindIterationsUnknown_k(n, constraints, x = 1):
             next_m = lamda * m
             iterations = random.randint(0, int(next_m))
 
-            qc = circuit.Overall_SAT_Circuit(input_qubits = n, constraints = constraints, iterations = iterations)['sat_qc']
+            qc = circuit.SAT_Circuit(n, constraints, iterations = iterations)
+            qc.add_input_reg_measurement()
             job = settings.backend.run(transpile(qc, settings.backend), shots = x, memory = True)
             outcomes = job.result().get_memory()
 
