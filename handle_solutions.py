@@ -4,6 +4,7 @@
 
 import numpy as np
 import random
+import copy
 from qiskit import transpile
 
 import interface
@@ -93,62 +94,59 @@ def CalcIterationsKnown_k(N, k):
     '''
     
     iterations = int((np.pi / 4) * np.sqrt(N / k))
-    return iterations
+    return iterations     
+        
+def FindIterationsUnknown_k(n, constraints_ob, precision = 10):
 
-def FindIterationsUnknown_k(n, constraints, x = 1):
-    '''
-        Functionality:
-            Finding an adequate (optimal or near optimal) number of iterations suitable for a given SAT problem when `k` is unknown.
-            The method being used is described in https://arxiv.org/pdf/quant-ph/9605034.pdf (section 4).
-                # The method isn't exactly the same - we intentionally iterate over the described method.
-                # We could have halt after finding one solution.
-                # Using the iterative method we can build a circuit that amplifies all solutions - in excahnge for computational cost.
-                # We demand `x` good answers for any possible amount of iterations being checked.
-                # If we can't find `x` good answers - we reduce `x` and iterate over the process again.
-                # `x` can be thought as the degree of accuracy - for large values of `x` more optimal results will be obtained.
-        Parameters:
-            n (int) - amount of input qubits.
-            contraints (str) - string of constraints.
-            x (int) - amount of "good answers" we demand.
-        Returns:
-            iterations - the calculated amount of iterations for the given SAT problem.
-    '''
-    
-    # Basic settings
     N = 2 ** n
-    data = constraints.constraints # TODO NEED TO MERGE DUPLICATION WITH circuit.py
-    
-    # Initial conditions setting
-    lamda = 6 / 5 # Each time we increment m such that m *= lamda
-    
-    # Going over through the possible options
-    while x > 0:
+    lamda = 6 / 5
+    qc_storage = {}
+
+    while precision > 0:
         m = 1
-        while m <= np.sqrt(N): # If there is one solution only, that is the case with maximum iterations needed
+        exclude_list = []
+        while m <= np.sqrt(N):
+            
+            iterations = False
+            while iterations == False:
+                m = lamda * m
+                iterations = randint_exclude(start = 0, end = int(m), exclude = set(exclude_list))
 
-            next_m = lamda * m
-            iterations = random.randint(0, int(next_m))
+            print(f"iterations = {iterations}, precision = {precision}") # TODO REMOVE THIS FLAG
 
-            qc = circuit.SAT_Circuit(n, constraints, iterations = iterations)
-            qc.add_input_reg_measurement()
-            job = settings.backend.run(transpile(qc, settings.backend), shots = x, memory = True)
+            try:
+                qc = qc_storage[iterations]
+            except KeyError:
+                exclude_list.append(iterations)
+                qc = circuit.SAT_Circuit(n, constraints_ob, iterations)
+                qc.add_input_reg_measurement()
+                qc_storage[iterations] = copy.deepcopy(qc)
+
+            job = settings.backend.run(transpile(qc, settings.backend), shots = precision, memory = True)
             outcomes = job.result().get_memory()
 
             match = True
             for o in outcomes:
-                match = CheckSolution(solution = o, data = data)
+                match = CheckSolution(o, constraints_ob.constraints)
                 if not match:
                     break
 
             if match:
-                return iterations
+                return {'qc': qc, 'iterations': iterations}
+        
+        precision -= 2 # Degrading precision if failed to find an adequate number of iterations
+        if precision <= 0:
+            raise Exception("Didn't find any solution. Probably the entered SAT problem has no solution.")
 
-            m = next_m
-        
-        x -= 2 # Degrading precision if didn't found the amount of iterations
-        
-        
     
-    
-    
-    
+def randint_exclude(start, end, exclude):
+
+    randint = random.randint(start, end)
+    count = 0
+    while randint in exclude:
+        randint = random.randint(start, end)
+        count += 1
+        if count >= 100:
+            return False
+
+    return randint

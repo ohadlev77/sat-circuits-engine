@@ -65,14 +65,15 @@ def RunProgram():
     # Obtaining the desired quantum circuit
     if inputs['k'] == -1:
         print('\nPlease wait while the system checks various solutions..')
-        iterations = handle_solutions.FindIterationsUnknown_k(n = inputs['input_qubits'], constraints = constraints, x = 10)
-        print(f'\033[1mAn adequate number of iterations found = {iterations}\033[0m')
+        data = handle_solutions.FindIterationsUnknown_k(n = inputs['input_qubits'], constraints_ob = constraints, precision = 10)
+        print(f"\033[1mAn adequate number of iterations found = {data['iterations']}\033[0m")
+        qc = data['qc']
     else:
         iterations = handle_solutions.CalcIterationsKnown_k(N = 2 ** inputs['input_qubits'], k = inputs['k'])
-    qc = circuit.SAT_Circuit(inputs['input_qubits'], constraints, iterations)
-    qc.add_input_reg_measurement() # TODO NEED TO HANDLE THE CASE OF UNKNOWN NUMBER OF ITERATIONS
+        qc = circuit.SAT_Circuit(inputs['input_qubits'], constraints, iterations)
+        qc.add_input_reg_measurement() # TODO NEED TO HANDLE THE CASE OF UNKNOWN NUMBER OF ITERATIONS
 
-    # Running the program on a local simulator
+    # Running the circuit
     print(f'\nThe system is running the circuit {inputs["shots"]} times, please wait..')
     job = settings.backend.run(transpile(qc, settings.backend, optimization_level = 0), shots = inputs['shots'])
     results = job.result()
