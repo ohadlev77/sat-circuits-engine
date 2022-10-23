@@ -5,6 +5,7 @@
 import numpy as np
 from qiskit import QuantumCircuit, transpile, Aer, QuantumRegister, ClassicalRegister
 from qiskit.visualization import plot_histogram
+import matplotlib.pyplot as plt # TODO REMOVE?
 
 import circuit
 import parse
@@ -28,27 +29,24 @@ def HandleInputs():
     print('The program assumes naviely valid user inputs - invalid input formats would probably result in an error.')
     
     # Taking amount of input qubits
-    print()
-    input_qubits = int(input('\033[1mPlease enter the desired amount of input qubits: \033[0m'))
+    n = int(input('\nPlease enter the desired amount of input qubits:'))
     
     # Taking string of constraints
     print()
     with open('constraints_format.txt') as cf:
         print(cf.read())
-    constraints = str(input('\033[1mPlease enter a string of constraints: \033[0m'))
+    constraints_string = str(input('Please enter a string of constraints:'))
     
     # Taking desired amount of shots
-    print()
-    shots = int(input('\033[1mPlease enter the amount of shots desired: \033[0m'))
+    shots = int(input('\nPlease enter the amount of shots desired:'))
     
     # Taking expected amount of solutions
-    print()
-    print('\033[1mIf the expected amount of solutions is known, please enter it (it is the easiest and optimal case).\033[1m')
-    k = int(input('\033[1mIf the expected amount of solutions is unknown, please enter the value -1.\033[0m In this case the program will look for an adequate (optimal or near optimal) number of iterations suited for the constraints (it is possible to halt after finding one solution, but in order to find a circuit that amplifies all solutions an iterative process is being implemented, it might take some time): '))
+    print('\nIf the expected amount of solutions is known, please enter it (it is the easiest and optimal case).')
+    solutions_num = int(input('If the expected amount of solutions is unknown, please enter the value -1.\033[0m In this case the program will look for an adequate (optimal or near optimal) number of iterations suited for the constraints (it is possible to halt after finding one solution, but in order to find a circuit that amplifies all solutions an iterative process is being implemented, it might take some time): '))
     
-    return {'input_qubits': input_qubits, 'constraints': constraints, 'shots': shots, 'k': k}
+    return {'n': n, 'constraints_string': constraints_string, 'shots': shots, 'solutions_num': solutions_num}
 
-def RunProgram():
+def RunProgram(n = None, constraints_string = None, shots = None, solutions_num = None):
     
     '''
         Functionality:
@@ -56,56 +54,79 @@ def RunProgram():
             Running the circuit and presenting the results to the user.
     '''
     
-    # User's inputs
-    inputs = HandleInputs()
+    # If the parameters aren't stated when calling the function (even one of them) - calling HandleInputs() to take care of user inputs
+    if n is None or constraints_string is None or shots is None or solutions_num is None:
+        inputs = HandleInputs()
+        n = inputs['n']
+        constraints_string = inputs['constraints_string']
+        shots = inputs['shots']
+        solutions_num = inputs['solutions_num']
     
     # TODO NEED TO EXPLAIN
-    constraints = parse.Constraints(inputs['constraints'], inputs['input_qubits'])
+    constraints_ob = parse.Constraints(constraints_string, n)
 
     # Obtaining the desired quantum circuit
-    if inputs['k'] == -1:
+    if solutions_num == -1:
         print('\nPlease wait while the system checks various solutions..')
-        data = handle_solutions.FindIterationsUnknown_k(n = inputs['input_qubits'], constraints_ob = constraints, precision = 10)
-        print(f"\033[1mAn adequate number of iterations found = {data['iterations']}\033[0m")
+        data = handle_solutions.FindIterationsUnknown_k(n, constraints_ob, precision = 10)
+        print(f"An adequate number of iterations found = {data['iterations']}\033[0m")
         qc = data['qc']
     else:
-        iterations = handle_solutions.CalcIterationsKnown_k(N = 2 ** inputs['input_qubits'], k = inputs['k'])
-        qc = circuit.SAT_Circuit(inputs['input_qubits'], constraints, iterations)
+        iterations = handle_solutions.CalcIterationsKnown_k(2 ** n, solutions_num)
+        qc = circuit.SAT_Circuit(n, constraints_ob, iterations)
         qc.add_input_reg_measurement() # TODO NEED TO HANDLE THE CASE OF UNKNOWN NUMBER OF ITERATIONS
 
     # Running the circuit
-    print(f'\nThe system is running the circuit {inputs["shots"]} times, please wait..')
-    job = settings.backend.run(transpile(qc, settings.backend, optimization_level = 0), shots = inputs['shots'])
+    print(f'\nThe system is running the circuit {shots} times, please wait..')
+    job = settings.backend.run(transpile(qc, settings.backend, optimization_level = 0), shots = shots)
     results = job.result()
     counts = results.get_counts()
     counts_sorted = sorted(counts.items(), key =  lambda x: x[1]) # Sorting results in an ascending order
 
+    #Identifying user's IDE
+    try: # Jupyter Notebbok case
+        IDE = get_ipython().__class__.__name__
+    except NameError:
+        IDE = 'Unknown'
+    jupyter = False
+    if IDE == 'ZMQInteractiveShell':
+        jupyter = True
+
     # Output the results
-    print(f'\n\033[1mThe results for {inputs["shots"]} shots are: \033[0m')
-    display(plot_histogram(counts, sort = 'value', figsize = (20,5)))
+    print(f'\nThe results for {shots} shots are:')
+    if jupyter:
+        display(plot_histogram(counts, sort = 'value', figsize = (20,5)))
     print(counts_sorted)
     
     # Printing the circuit
-    print('\n\033[1mThe high level circuit: \033[0m')
-    display(qc.draw(output = 'mpl', fold = -1))
+    print('\nThe high level circuit:')
+    if jupyter:
+        display(qc.draw(output = 'mpl', fold = -1))
+    else:
+        print(qc.draw('text'))
     
     # Printing the operator's circuit
-    op_qc = qc.sat_op
-    print('\n\033[1mThe operator: \033[0m')
-    display(op_qc.draw(output = 'mpl', fold = -1))
+    print('\nThe operator:')
+    if jupyter:
+        display(constraints_ob.draw(output = 'mpl', fold = -1))
+    else:
+        print(constraints_ob.draw('text'))
 
     # Preparing the decomposed version of the operator's circuit
-    gates = list(dict(op_qc.count_ops()).keys())
+    gates = list(dict(constraints_ob.count_ops()).keys())
     remove_list = ['x', 'h', 'mcx', 'ccx', 'mcx_gray']
     gates_to_decompose = GatesDecompositionSort(circuit_gates = gates, do_not_decompose_gates = remove_list)
-    de_op_qc = op_qc.decompose(gates_to_decompose = gates_to_decompose)
+    de_op_qc = constraints_ob.decompose(gates_to_decompose = gates_to_decompose)
     gates = list(dict(de_op_qc.count_ops()).keys())
     gates_to_decompose = GatesDecompositionSort(circuit_gates = gates, do_not_decompose_gates = remove_list)
 
     # Printing the decomposed version of the operator's circuit
-    print()
-    print('\033[1mThe operator - one level down: \033[0m')
-    display(de_op_qc.decompose(gates_to_decompose = gates_to_decompose).draw(output = 'mpl', fold = -1))
+    print('\nThe operator - one level down:')
+    final_de_op = de_op_qc.decompose(gates_to_decompose = gates_to_decompose)
+    if jupyter:
+        display(final_de_op.draw(output = 'mpl', fold = -1))
+    else:
+        print(final_de_op.draw('text'))
     
 def GatesDecompositionSort(circuit_gates, do_not_decompose_gates):
     '''
