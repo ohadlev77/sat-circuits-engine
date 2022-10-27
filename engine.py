@@ -9,7 +9,7 @@ class Constraints(QuantumCircuit):
     """
     Constraints object - turns constraints_string to a QuantumCircuit.
     """
-    def __init__(self, constraints_string, n):
+    def __init__(self, constraints_string, n, mpl=True):
         """
         Parameters:
             constraints(str) - a string that describes a set of boolean arithmetic constraints written in a specific format.
@@ -20,12 +20,13 @@ class Constraints(QuantumCircuit):
         self.n = n
         self.constraints_string = constraints_string
         self.constraints_list = constraints_string.split(",")
+        self.mpl = mpl
         
         self.constraints = []
         self.total_aux_qubits_needed = 0
         self.aux_qubits_needed_list = []
         for c_index, c in enumerate(self.constraints_list):
-            self.constraints.append(Constraint(c_index = c_index, c_eq = c))
+            self.constraints.append(Constraint(c_index = c_index, c_eq = c, mpl=mpl))
             self.total_aux_qubits_needed += self.constraints[c_index].aux_qubits_needed
             self.aux_qubits_needed_list.append(self.constraints[c_index].aux_qubits_needed)
         self.out_qubits_amount = len(self.constraints)
@@ -79,9 +80,11 @@ class Constraint(QuantumCircuit):
     """
     Constraint object - turns a single constraint equation into a QuantumCircuit (a constraint operator).
     """
-    def __init__(self, c_index, c_eq):
+    def __init__(self, c_index, c_eq, mpl=True):
         self.c_index = c_index
         self.c_eq = c_eq
+        self.mpl = mpl
+
         self.parse_operator() # Setting of self.operator
         self.parse_sides() # Setting of self.right_side, and self.left_side
         self.calc_aux_needed() # Setting of self.aux_qubits_needed
@@ -170,7 +173,10 @@ class Constraint(QuantumCircuit):
                 self.x(self.out)
             self.mcx(self.aux_reg, self.out)
 
-        self.name = f'Constraint {self.c_index}:\n{self.c_eq}'
+        if self.mpl:
+            self.name = f'Constraint {self.c_index}:\n{self.c_eq}'
+        else:
+            self.name = f'Constraint {self.c_index}'
 
 class SAT_Circuit(QuantumCircuit):
 

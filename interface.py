@@ -59,8 +59,17 @@ def SAT(n=None, constraints_string=None, shots=None, solutions_num=None):
         shots = inputs['shots']
         solutions_num = inputs['solutions_num']
     
+    # Identifying user's IDE.
+    try: # Jupyter Notebbok case.
+        IDE = get_ipython().__class__.__name__
+    except NameError:
+        IDE = 'Unknown'
+    jupyter = False
+    if IDE == 'ZMQInteractiveShell':
+        jupyter = True
+
     # Constructing Grover's operator as `constraints_ob`.
-    constraints_ob = Constraints(constraints_string, n)
+    constraints_ob = Constraints(constraints_string, n, mpl=jupyter)
 
     # Obtaining the desired quantum circuit.
     if solutions_num == -1: # Unknown number of solutions.
@@ -79,15 +88,6 @@ def SAT(n=None, constraints_string=None, shots=None, solutions_num=None):
     results = job.result()
     counts = results.get_counts()
     counts_sorted = sorted(counts.items(), key=lambda x: x[1]) # Sorting results in an ascending order.
-
-    # Identifying user's IDE.
-    try: # Jupyter Notebbok case.
-        IDE = get_ipython().__class__.__name__
-    except NameError:
-        IDE = 'Unknown'
-    jupyter = False
-    if IDE == 'ZMQInteractiveShell':
-        jupyter = True
 
     # Output the results.
     print(f'\nThe results for {shots} shots are:')
