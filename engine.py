@@ -1,15 +1,23 @@
-'''
-    This module contains all methods regarding the parsing of the constraints as defined by the user, and their derived computations.
-    #TODO from circuit: This module contains all methods regarding the actual implementation of the circuit and its building blocks.
-'''
+"""
+Contains all building blocks for constructing the overall circuit for the problem.
+"""
 
 import numpy as np
 from qiskit import QuantumCircuit, transpile, Aer, QuantumRegister, ClassicalRegister
 
 class Constraints(QuantumCircuit):
-    
+    """
+    Constraints object - turns constraints_string to a QuantumCircuit.
+    """
     def __init__(self, constraints_string, n):
-        self.n = n # Amount of input qubits
+        """
+        Parameters:
+            constraints(str) - a string that describes a set of boolean arithmetic constraints written in a specific format.
+                                # A full explanation regarding the format is provided in the file `constraints_format.txt`.
+            n(int) - number of qubits.
+        """
+
+        self.n = n
         self.constraints_string = constraints_string
         self.constraints_list = constraints_string.split(",")
         
@@ -22,7 +30,6 @@ class Constraints(QuantumCircuit):
             self.aux_qubits_needed_list.append(self.constraints[c_index].aux_qubits_needed)
         self.out_qubits_amount = len(self.constraints)
 
-        # Initializing necessary registers and circuit
         self.input_reg = QuantumRegister(self.n, 'input_reg')
         self.aux_reg = QuantumRegister(self.total_aux_qubits_needed, 'aux_reg')
         self.out_reg = QuantumRegister(self.out_qubits_amount, 'out_reg')
@@ -30,13 +37,20 @@ class Constraints(QuantumCircuit):
         super().__init__(self.input_reg, self.aux_reg, self.out_reg, self.ancilla)
             
         self.assemble()
-    
+
+    def __repr__(self):
+        return f"Constraints('{self.constraints_string}')"
+
     def assemble(self):
-        # Handling constraints
+        """
+        Assembles Grover's operator.
+        """
+
+        # Handling constraints.
         for c in self.constraints:
-            i = c.c_index # Constraint's index
+            i = c.c_index # Constraint's index.
                     
-            # Defining the qargs before appending c
+            # Defining the qargs before appending c.
             if c.aux_qubits_needed == 0:
                 qargs = self.input_reg[c.left_side] + self.input_reg[c.right_side] + [self.out_reg[i]]
                 # Format: [left, right, out]
@@ -44,28 +58,27 @@ class Constraints(QuantumCircuit):
                 aux_bottom = sum(self.aux_qubits_needed_list[0:i])
                 aux_top = aux_bottom + self.aux_qubits_needed_list[i]
                 qargs = self.input_reg[c.left_side] + self.input_reg[c.right_side] + self.aux_reg[aux_bottom : aux_top] + [self.out_reg[i]] 
-                # Format: [left, right, aux, out]
+                # Format: [left, right, aux, out].
             
             self.append(instruction = c, qargs = qargs)
             self.barrier()
         
-        # Saving all actions until now for uncomputation
+        # Saving all actions until now for uncomputation.
         qc_dagger = self.inverse()
         qc_dagger.name = 'Uncomputation'
         
-        # If all terms met, applying NOT to the ancilla (which is in the eigenstate |-> beforehand)
+        # If all terms met, applying NOT to the ancilla (which is in the eigenstate |-> beforehand).
         self.mcx(control_qubits = self.out_reg, target_qubit = self.ancilla)
         
-        # Uncomputation
+        # Uncomputation.
         self.append(instruction = qc_dagger, qargs = self.qubits)
         
         self.name = 'Operator'
 
-    def __repr__(self):
-        return f"Constraints('{self.constraints_string}')"
-
 class Constraint(QuantumCircuit):
-    
+    """
+    Constraint object - turns a single constraint equation into a QuantumCircuit (a constraint operator).
+    """
     def __init__(self, c_index, c_eq):
         self.c_index = c_index
         self.c_eq = c_eq
@@ -73,7 +86,6 @@ class Constraint(QuantumCircuit):
         self.parse_sides() # Setting of self.right_side, and self.left_side
         self.calc_aux_needed() # Setting of self.aux_qubits_needed
 
-        # Initializiang circuit
         self.left_reg = QuantumRegister(self.len_left, 'left_reg')
         self.right_reg = QuantumRegister(self.len_right, 'right_reg')
         self.aux_reg = QuantumRegister(self.aux_qubits_needed, 'aux_reg')
@@ -83,7 +95,6 @@ class Constraint(QuantumCircuit):
         self.assemble()
     
     def __repr__(self):
-        # TODO CHANGE REPR
         return f"Constraint('{self.c_eq}'): {self.__dict__}"
     
     def parse_operator(self):

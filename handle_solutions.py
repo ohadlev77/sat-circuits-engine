@@ -1,48 +1,68 @@
-'''
-    This module contains the functions handling issues arises from the role of the solutions in Grover's algorithm and its generalizations.
-    # TODO CHECK WORDING
-'''
+"""
+Contains the functions handling issues arises from the role of the solutions in Grover's algorithm and its generalizations.
+"""
 
 import numpy as np
 import random
 import copy
 from qiskit import transpile
 
-from engine import SAT_Circuit
 import settings
+from engine import SAT_Circuit
 
-def CalcIterationsKnown_k(N, k):
-    '''
-        Functionality:
-            Simple classical calculation of the amount of iterations needed when `k` (amount of solutions) is known.
-        Parameters:
-            N = 2 ** n
-            k (int) - known amount of solutions.
-        Returns:
-            iterations - the exact amount of iterations needed for the given SAT problem.
-    '''
+
+def calc_iterations_known_k(N, k):
+    """
+    Functionality:
+        Simple classical calculation of the number of iterations needed when the number of solutions is known.
+    Parameters:
+        N (int) = 2 ** n.
+        k (int) - known number of solutions.
+    Returns:
+        iterations - the exact number of iterations needed for the given SAT problem.
+    """
     
-    iterations = int((np.pi / 4) * np.sqrt(N / k))
+    iterations = int((np.pi/4) * np.sqrt(N/k))
     return iterations     
         
-def FindIterationsUnknown_k(n, constraints_ob, precision = 10):
-
+def find_iterations_unknown_k(n, constraints_ob, precision=10):
+    """
+    Functionality:
+        Finding an adequate (optimal or near optimal) number of iterations suitable for a given SAT problem when `k` is unknown.
+        The method being used is described in https://arxiv.org/pdf/quant-ph/9605034.pdf (section 4).
+            # The method isn't exactly the same - we intentionally iterate over the described method.
+            # We could have halt after finding one solution.
+            # Using the iterative method we can build a circuit that amplifies all solutions - in excahnge for computational cost.
+            # We demand `precision` good answers for any possible amount of iterations being checked.
+            # If we can't find `precision` good answers - we reduce `precision` and iterate over the process again.
+            # `precision` can be thought as the degree of accuracy - for large values of `precision` more optimal results will be obtained.
+    Parameters:
+        n (int) - amount of input qubits.
+        contraints (str) - string of constraints.
+        precision (int) - amount of 'good answers' we demand.
+    Returns: {'qc': qc, 'iterations': iterations}
+        qc (SAT_Circuit object) - The overall SAT circuit obtained after optimizing the iterations.
+        iterations (int) - the calculated amount of iterations for the given SAT problem.
+    """
     N = 2 ** n
-    lamda = 6 / 5
+    lamda = 6 / 5 # In each attempt to find `iterations` we increment by a multiply of `lamda`.
     qc_storage = {}
 
+    # If precision == 0 then probably there is no solution.
     while precision > 0:
         m = 1
         exclude_list = []
+        # For each level of precision we are looking for an adequate number of iterations.
         while m <= np.sqrt(N):
             
+            # Figuring a guess for the number of iterations.
             iterations = False
             while iterations == False:
                 m = lamda * m
                 iterations = randint_exclude(start = 0, end = int(m), exclude = set(exclude_list))
+            print(f"Checking iterations = {iterations}, precision = {precision}")
 
-            print(f"iterations = {iterations}, precision = {precision}") # TODO REMOVE THIS FLAG
-
+            # Obtaining the necessary SAT_Circuit object (preferably from the `qc_storage`)
             try:
                 qc = qc_storage[iterations]
             except KeyError:
@@ -54,42 +74,47 @@ def FindIterationsUnknown_k(n, constraints_ob, precision = 10):
             job = settings.backend.run(transpile(qc, settings.backend), shots = precision, memory = True)
             outcomes = job.result().get_memory()
 
+            # In `outcomes` we have `precision` results - If all of them are solutions, we have a match.
             match = True
             for o in outcomes:
-                match = CheckSolution(o, constraints_ob.constraints)
+                match = check_solution(o, constraints_ob.constraints)
                 if not match:
                     break
 
             if match:
                 return {'qc': qc, 'iterations': iterations}
         
-        precision -= 2 # Degrading precision if failed to find an adequate number of iterations
+        # Degrading precision if failed to find an adequate number of iterations.
+        precision -= 2
         if precision <= 0:
             raise Exception("Didn't find any solution. Probably the entered SAT problem has no solution.")
-
-    
+  
 def randint_exclude(start, end, exclude):
+    """
+    Guessing a number of iterations which haven't been tried yet.
+    if it fails (`count >= 50`), returns Fasle.
+    """
 
     randint = random.randint(start, end)
     count = 0
     while randint in exclude:
         randint = random.randint(start, end)
         count += 1
-        if count >= 100:
+        if count >= 50:
             return False
 
     return randint
 
-def CheckSolution(solution, data):
-    '''
-        Functionality:
-            Classical check of a single solution correctness.
-        Parameters:
-            solution (str) - a possible solution bit-string.
-            data (list of dict) - a parsed constraints data.
-        Returns:
-            True - if `solution` is indeed a solution to the given SAT problem. False otherwise.
-    '''
+def check_solution(solution, data):
+    """
+    Functionality:
+        Classical check of a single solution correctness.
+    Parameters:
+        solution (str) - a possible solution bit-string.
+        data (list of dict) - a parsed constraints data.
+    Returns:
+        True - if `solution` is indeed a solution to the given SAT problem. False otherwise.
+    """
     
     solution = solution[::-1] # Reversing oreder for conveniency
     match = True
