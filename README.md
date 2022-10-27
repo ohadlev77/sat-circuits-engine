@@ -14,7 +14,7 @@ it becomes infeasible to design quantum programs for increasing amounts of qubit
 Some adequate layers of abstraction are needed to really exploit the power of future's quantum computers.
 
 Exploiting Grover's and the amplitude-amplification algorithms for SAT-problems solving offers a quadratic speed-up compared to the classical case, assuming the problem has no unique structure (which is analogous to an unsorted database, in the simple database-search problem).
-A time complexity of $O(\sqrt{N}$ *up to an oracle* (i.e, $O(\sqrt{N}$ calls to Grover's operator, that is the oracle) is offered by the program, while $N$ is the possible dimension of the solution space (analogous to the size of the database in a simple database-search problem).
+A time complexity of $O(\sqrt{N})$ *up to an oracle* (i.e, $O(\sqrt{N})$ calls to Grover's operator, that is the oracle) is offered by the program, while $N$ is the possible dimension of the solution space (analogous to the size of the database in a simple database-search problem).
 The classical solution offers a time complexity of $O(N)$.
 
 ## Intention
