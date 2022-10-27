@@ -1,5 +1,6 @@
 '''
-    This module contains the methods handling issues arises from the role of the solutions in Grover's algorithm and its generalizations.
+    This module contains the functions handling issues arises from the role of the solutions in Grover's algorithm and its generalizations.
+    # TODO CHECK WORDING
 '''
 
 import numpy as np
@@ -7,10 +8,77 @@ import random
 import copy
 from qiskit import transpile
 
-import interface
-import parse
-import circuit
+from engine import SAT_Circuit
 import settings
+
+def CalcIterationsKnown_k(N, k):
+    '''
+        Functionality:
+            Simple classical calculation of the amount of iterations needed when `k` (amount of solutions) is known.
+        Parameters:
+            N = 2 ** n
+            k (int) - known amount of solutions.
+        Returns:
+            iterations - the exact amount of iterations needed for the given SAT problem.
+    '''
+    
+    iterations = int((np.pi / 4) * np.sqrt(N / k))
+    return iterations     
+        
+def FindIterationsUnknown_k(n, constraints_ob, precision = 10):
+
+    N = 2 ** n
+    lamda = 6 / 5
+    qc_storage = {}
+
+    while precision > 0:
+        m = 1
+        exclude_list = []
+        while m <= np.sqrt(N):
+            
+            iterations = False
+            while iterations == False:
+                m = lamda * m
+                iterations = randint_exclude(start = 0, end = int(m), exclude = set(exclude_list))
+
+            print(f"iterations = {iterations}, precision = {precision}") # TODO REMOVE THIS FLAG
+
+            try:
+                qc = qc_storage[iterations]
+            except KeyError:
+                exclude_list.append(iterations)
+                qc = SAT_Circuit(n, constraints_ob, iterations)
+                qc.add_input_reg_measurement()
+                qc_storage[iterations] = copy.deepcopy(qc)
+
+            job = settings.backend.run(transpile(qc, settings.backend), shots = precision, memory = True)
+            outcomes = job.result().get_memory()
+
+            match = True
+            for o in outcomes:
+                match = CheckSolution(o, constraints_ob.constraints)
+                if not match:
+                    break
+
+            if match:
+                return {'qc': qc, 'iterations': iterations}
+        
+        precision -= 2 # Degrading precision if failed to find an adequate number of iterations
+        if precision <= 0:
+            raise Exception("Didn't find any solution. Probably the entered SAT problem has no solution.")
+
+    
+def randint_exclude(start, end, exclude):
+
+    randint = random.randint(start, end)
+    count = 0
+    while randint in exclude:
+        randint = random.randint(start, end)
+        count += 1
+        if count >= 100:
+            return False
+
+    return randint
 
 def CheckSolution(solution, data):
     '''
@@ -81,72 +149,3 @@ def CheckSolution(solution, data):
         
     # If we got this far then match = True and the string being checked is indeed a solution
     return match
-    
-def CalcIterationsKnown_k(N, k):
-    '''
-        Functionality:
-            Simple classical calculation of the amount of iterations needed when `k` (amount of solutions) is known.
-        Parameters:
-            N = 2 ** n
-            k (int) - known amount of solutions.
-        Returns:
-            iterations - the exact amount of iterations needed for the given SAT problem.
-    '''
-    
-    iterations = int((np.pi / 4) * np.sqrt(N / k))
-    return iterations     
-        
-def FindIterationsUnknown_k(n, constraints_ob, precision = 10):
-
-    N = 2 ** n
-    lamda = 6 / 5
-    qc_storage = {}
-
-    while precision > 0:
-        m = 1
-        exclude_list = []
-        while m <= np.sqrt(N):
-            
-            iterations = False
-            while iterations == False:
-                m = lamda * m
-                iterations = randint_exclude(start = 0, end = int(m), exclude = set(exclude_list))
-
-            print(f"iterations = {iterations}, precision = {precision}") # TODO REMOVE THIS FLAG
-
-            try:
-                qc = qc_storage[iterations]
-            except KeyError:
-                exclude_list.append(iterations)
-                qc = circuit.SAT_Circuit(n, constraints_ob, iterations)
-                qc.add_input_reg_measurement()
-                qc_storage[iterations] = copy.deepcopy(qc)
-
-            job = settings.backend.run(transpile(qc, settings.backend), shots = precision, memory = True)
-            outcomes = job.result().get_memory()
-
-            match = True
-            for o in outcomes:
-                match = CheckSolution(o, constraints_ob.constraints)
-                if not match:
-                    break
-
-            if match:
-                return {'qc': qc, 'iterations': iterations}
-        
-        precision -= 2 # Degrading precision if failed to find an adequate number of iterations
-        if precision <= 0:
-            raise Exception("Didn't find any solution. Probably the entered SAT problem has no solution.")
-
-    
-def randint_exclude(start, end, exclude):
-
-    randint = random.randint(start, end)
-    count = 0
-    while randint in exclude:
-        randint = random.randint(start, end)
-        count += 1
-        if count >= 100:
-            return False
-
-    return randint

@@ -5,10 +5,8 @@
 import numpy as np
 from qiskit import QuantumCircuit, transpile, Aer, QuantumRegister, ClassicalRegister
 from qiskit.visualization import plot_histogram
-import matplotlib.pyplot as plt # TODO REMOVE?
 
-import circuit
-import parse
+from engine import Constraint, Constraints, SAT_Circuit, DiffuserOp
 import handle_solutions
 import settings
 
@@ -24,12 +22,8 @@ def HandleInputs():
             A dictionary object containing the inputs.
     '''
     
-    # Annoucements
-    print('This program builds and runs quantum circuits for SAT problems.')
-    print('The program assumes naviely valid user inputs - invalid input formats would probably result in an error.')
-    
     # Taking amount of input qubits
-    n = int(input('\nPlease enter the desired amount of input qubits:'))
+    n = int(input('Please enter the desired amount of input qubits:'))
     
     # Taking string of constraints
     print()
@@ -46,7 +40,7 @@ def HandleInputs():
     
     return {'n': n, 'constraints_string': constraints_string, 'shots': shots, 'solutions_num': solutions_num}
 
-def RunProgram(n = None, constraints_string = None, shots = None, solutions_num = None):
+def SAT(n = None, constraints_string = None, shots = None, solutions_num = None):
     
     '''
         Functionality:
@@ -63,7 +57,7 @@ def RunProgram(n = None, constraints_string = None, shots = None, solutions_num 
         solutions_num = inputs['solutions_num']
     
     # TODO NEED TO EXPLAIN
-    constraints_ob = parse.Constraints(constraints_string, n)
+    constraints_ob = Constraints(constraints_string, n)
 
     # Obtaining the desired quantum circuit
     if solutions_num == -1:
@@ -73,7 +67,7 @@ def RunProgram(n = None, constraints_string = None, shots = None, solutions_num 
         qc = data['qc']
     else:
         iterations = handle_solutions.CalcIterationsKnown_k(2 ** n, solutions_num)
-        qc = circuit.SAT_Circuit(n, constraints_ob, iterations)
+        qc = SAT_Circuit(n, constraints_ob, iterations)
         qc.add_input_reg_measurement() # TODO NEED TO HANDLE THE CASE OF UNKNOWN NUMBER OF ITERATIONS
 
     # Running the circuit
