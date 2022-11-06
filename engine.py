@@ -7,14 +7,18 @@ from qiskit import QuantumCircuit, transpile, Aer, QuantumRegister, ClassicalReg
 
 class Constraints(QuantumCircuit):
     """
-    Constraints object - turns constraints_string to a QuantumCircuit.
+    Constraints object - a circuit implementation of Grover's operator constructed
+    for a specific string of constraints entered by a user.
     """
+
     def __init__(self, constraints_string, n, mpl=True):
         """
-        Parameters:
-            constraints(str) - a string that describes a set of boolean arithmetic constraints written in a specific format.
-                                # A full explanation regarding the format is provided in the file `constraints_format.txt`.
-            n(int) - number of qubits.
+        Args:
+            constraints_string(str):
+                # A string that describes a set of boolean arithmetic constraints written in a specific format.
+                # A full explanation regarding the format is provided in the file `constraints_format.txt`.
+            n(int) - number of input qubits.
+            mpl(bool) - `True` for matplotlib circuit diagrams output, `False` for text output
         """
 
         self.n = n
@@ -44,7 +48,7 @@ class Constraints(QuantumCircuit):
 
     def assemble(self):
         """
-        Assembles Grover's operator.
+        Assembles all `Constraint` objects (self.constraints) into a unified Grover's operator.
         """
 
         # Handling constraints.
@@ -58,7 +62,7 @@ class Constraints(QuantumCircuit):
             else:
                 aux_bottom = sum(self.aux_qubits_needed_list[0:i])
                 aux_top = aux_bottom + self.aux_qubits_needed_list[i]
-                qargs = self.input_reg[c.left_side] + self.input_reg[c.right_side] + self.aux_reg[aux_bottom : aux_top] + [self.out_reg[i]] 
+                qargs = self.input_reg[c.left_side] + self.input_reg[c.right_side] + self.aux_reg[aux_bottom:aux_top] + [self.out_reg[i]] 
                 # Format: [left, right, aux, out].
             
             self.append(instruction = c, qargs = qargs)
@@ -78,9 +82,17 @@ class Constraints(QuantumCircuit):
 
 class Constraint(QuantumCircuit):
     """
-    Constraint object - turns a single constraint equation into a QuantumCircuit (a constraint operator).
+    Constraint object - a circuit implementation of a single constraint equation.
     """
+
     def __init__(self, c_index, c_eq, mpl=True):
+        """
+        Args:
+            c_index(int) - ID of constraint.
+            c_qe(str) - Single constraint equation (see `constraints_format.txt` for format details).
+            mpl(bool) - `True` for matplotlib circuit diagrams output, `False` for text output.
+        """
+        
         self.c_index = c_index
         self.c_eq = c_eq
         self.mpl = mpl
@@ -101,6 +113,10 @@ class Constraint(QuantumCircuit):
         return f"Constraint('{self.c_eq}'): {self.__dict__}"
     
     def parse_operator(self):
+        """
+        Given a single constraint equation, this method parses its operator.
+        """
+        
         try:
             self.c_eq.index('==')
             self.operator = '=='
@@ -112,6 +128,11 @@ class Constraint(QuantumCircuit):
                 raise ValueError('Only == and != operators are supported for now')
     
     def parse_sides(self):
+        """
+         Given a single constraint equation, this method parses the two sides of the equation
+         according to the format (constraints_format.txt).
+        """
+                
         LR = self.c_eq.split(self.operator)
         self.left_side = []
         self.right_side = []
@@ -130,6 +151,10 @@ class Constraint(QuantumCircuit):
                     self.right_side.append(q_i)
                     
     def calc_aux_needed(self):
+        """
+        Computes how many auxiliary qubits are needed to implement the given constraint equation.
+        """
+        
         self.len_left = len(self.left_side)
         self.len_right = len(self.right_side)
         self.min_len = min(self.len_left, self.len_right)
@@ -145,6 +170,11 @@ class Constraint(QuantumCircuit):
                 self.aux_qubits_needed += 1
 
     def assemble(self):
+        """
+        Assembles all the data gathered using the other methods of this class into a circuit implementation.
+        Computes the specific setting of gates needed to implement the given constraint.
+        """
+                
         # Case 1 - no auxiliary qubits
         if self.aux_qubits_needed == 0:
             self.cx(self.left_reg, self.out)
@@ -179,8 +209,24 @@ class Constraint(QuantumCircuit):
             self.name = f'Constraint {self.c_index}'
 
 class SAT_Circuit(QuantumCircuit):
+    """
+    Assembles an overall circuit for the given SAT problem from the building blocks:
+        # Input state preparation.
+        # Grover's iterator - consists of:
+            * `Constraints` object (Grover's operator).
+            * `DiffuserOp` object (Grover's diffuser).
+        # Measurement.
+    """
 
     def __init__(self, n, constraints, iterations):
+        """
+        Args:
+            n(int) - the number of qubits in the input register.
+            constraints(`Constraints` object) - a child object of `QuantumCircuit` which is Grover's operator implementation
+            for the specific constraints entered by the user.
+            iterations(int) - number of required iterations over Grover's iterator.
+        """
+
         # Building blocks
         self.sat_op = constraints
         self.diffuser = DiffuserOp(n)
@@ -200,26 +246,49 @@ class SAT_Circuit(QuantumCircuit):
         for i in range(iterations):
             self.add_iteration()
         
-        # NOTE: We are not adding measurements now, in oreder to leave the number of iterations flexible
+        # NOTE: We are not adding measurements now, in order to leave the number of iterations flexible
 
     def set_init_state(self):
-        # Setting the input register to 2^n = N equal superposition of states
-        # and the ancilla to an eigenstate of the NOT gate: |->
+        """
+        Setting the input register to 2^n = N equal superposition of states
+        and the ancilla to an eigenstate of the NOT gate: |->.
+        """
+
         self.h(self.input_reg)
         self.x(self.ancilla)
         self.h(self.ancilla)
         self.barrier()
     
     def add_iteration(self):
+        """
+        Appends an iteration over Grover's iterator (`sat_op` + `diffuser`) to `self`.
+        """
+
         self.append(self.sat_op, qargs = self.qubits)
         self.append(self.diffuser, qargs = self.input_reg)
         self.barrier()
 
     def add_input_reg_measurement(self):
+        """
+        Appends a final measurement of the input register to `self`.
+        """
+
         self.measure(self.input_reg, self.results)
 
 class DiffuserOp(QuantumCircuit):
+    """
+    Implementation of Grover's diffuser operator.
+    """
+
     def __init__(self, n):
+        """
+        Initializes a `QuantumCircuit` object.
+        Implements the gate-combination needed for Grover's diffuser operator.
+
+        Args:
+            n(int) - number of input qubits
+        """
+
         super().__init__(n)
         
         self.h(self.qubits)

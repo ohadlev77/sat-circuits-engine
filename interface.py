@@ -10,14 +10,14 @@ from engine import Constraint, Constraints, SAT_Circuit, DiffuserOp
 import handle_solutions
 import settings
 
-def handle_inputs():
-    
+def handle_inputs():  
     """
-    Functionality:
-        Taking inputs from the user.
-        In general, a naive assumption of the program is that the user enters valid inputs only.
-    Parameters:
+    Taking inputs from the user.
+    In general, a naive assumption of the program is that the user enters valid inputs only.
+
+    Args:
         None.
+
     Returns:
         A dictionary object containing the inputs.
     """
@@ -45,7 +45,6 @@ def handle_inputs():
     return {'n': n, 'constraints_string': constraints_string, 'shots': shots, 'solutions_num': solutions_num}
 
 def SAT(n=None, constraints_string=None, shots=None, solutions_num=None):
-    
     """
     Runs the program and updates the user step-by-step.
     """
@@ -127,11 +126,12 @@ def SAT(n=None, constraints_string=None, shots=None, solutions_num=None):
     
 def GatesDecompositionSort(circuit_gates, do_not_decompose_gates):
     """
-    Functionality:
-        Removes chosen gates from a list of gate types.
-    Parameters:
+    Removes chosen gates from a list of gate types.
+
+    Args:
         circuit_gates (list) - A list gate types.
         do_not_decompose_gates (list) - A list of gate types to remove from `circuit_gates`.
+        
     Returns:
         Altered `circuit_gates` list.
     """
