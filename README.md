@@ -40,8 +40,8 @@ Full dependencies can be found in [pip_freeze.txt](pip_freeze.txt).
 2. If needed - run `pip install -r requirements.txt`.
 3. I highly recommend running the program through the `main.ipynb` Jupyter Notebook (`jupyter notebook main.ipynb`) - you'll find there detailed instructions and examples.
 4. Running the program through a terminal is possible (though not recommended! graphics are degenerated). By running the following 2 commands an interactive interface will guide you through:
-`from interface import SAT`\
-`SAT()`
+```from interface import SAT
+SAT()```
 * For more options please run `main.ipynb`.
 5. In [test_data.txt](test_data.txt) there are some tested examples that can be used easily, for convenience.
     
