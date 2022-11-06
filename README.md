@@ -25,7 +25,7 @@ Grover's algorithm (much like all the other "pure" quantum algorithms - by "pure
 
 ## Requirements
 
-As detailed in [requirements.txt](requirements.txt):\
+As detailed in [requirements.txt](requirements.txt):
 ```
 matplotlib==3.6.1
 notebook==6.5.1
