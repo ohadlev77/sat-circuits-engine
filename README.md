@@ -25,11 +25,13 @@ Grover's algorithm (much like all the other "pure" quantum algorithms - by "pure
 
 ## Requirements
 
-As detailed in [requirements.txt](requirements.txt):\
-`matplotlib==3.6.1`\
-`notebook==6.5.1`\
-`pylatexenc==2.10`\
-`qiskit==0.39.0`
+As detailed in [requirements.txt](requirements.txt):
+```
+matplotlib==3.6.1
+notebook==6.5.1
+pylatexenc==2.10
+qiskit==0.39.0
+```
 
 Full dependencies can be found in [pip_freeze.txt](pip_freeze.txt).
 
