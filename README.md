@@ -38,7 +38,7 @@ Full dependencies can be found in [pip_freeze.txt](pip_freeze.txt).
 
 ## Instructions
 
-1. `git clone https://github.com/ohadlev77/SAT_Circuits_Engine.git.` -> `cd SAT_Circuits_Engine`.
+1. `git clone https://github.com/ohadlev77/SAT_Circuits_Engine.git` -> `cd SAT_Circuits_Engine`.
 2. If needed - run `pip install -r requirements.txt`.
 3. I highly recommend running the program through the `main.ipynb` Jupyter Notebook (`jupyter notebook main.ipynb`) - you'll find there detailed instructions and examples.
 4. Running the program through a terminal is possible (though not recommended! graphics are degenerated). By running the following 2 commands an interactive interface will guide you through:
