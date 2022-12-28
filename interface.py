@@ -77,7 +77,7 @@ def SAT(n=None, constraints_string=None, shots=None, solutions_num=None):
         print(f"An adequate number of iterations found = {data['iterations']}\033[0m")
         qc = data['qc']
     else: # Known number of solutions.
-        iterations = handle_solutions.calc_iterations_known_k(2 ** n, solutions_num)
+        iterations = handle_solutions.calc_iterations(n, solutions_num)
         qc = SAT_Circuit(n, constraints_ob, iterations)
         qc.add_input_reg_measurement()
 

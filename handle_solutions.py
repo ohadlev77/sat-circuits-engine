@@ -5,25 +5,29 @@ Contains the functions handling issues arises from the role of the solutions in 
 import numpy as np
 import random
 import copy
+
 from qiskit import transpile
 
 import settings
 from engine import SAT_Circuit
 
 
-def calc_iterations_known_k(N, k):
+def calc_iterations(num_qubits, num_solutions):
     """
-    Simple classical calculation of the number of iterations needed when the number of solutions is known.
+    Simple classical calculation of the number of iterations when the number of solutions is known.
 
     Args:
-        N (int) = 2 ** n.
-        k (int) - known number of solutions.
+        num_qubits (int): number of qubits.
+        num_solutions (int): known number of solutions.
 
     Returns:
-        iterations - the exact number of iterations needed for the given SAT problem.
+        (int): the exact number of iterations needed for the given SAT problem.
     """
     
-    iterations = int((np.pi/4) * np.sqrt(N/k))
+    # N is the dimension of the Hilbert space spanned by `num_qubits`
+    N = 2 ** num_qubits
+
+    iterations = int((np.pi / 4) * np.sqrt(N / num_solutions))
     return iterations     
         
 def find_iterations_unknown_k(n, constraints_ob, precision=10):
@@ -38,13 +42,13 @@ def find_iterations_unknown_k(n, constraints_ob, precision=10):
         # `precision` can be thought as the degree of accuracy - for large values of `precision` more optimal results will be obtained.
 
     Args:
-        n (int) - amount of input qubits.
-        contraints (str) - string of constraints.
-        precision (int) - amount of 'good answers' we demand.
+        n (int): amount of input qubits.
+        contraints (str): string of constraints.
+        precision (int): amount of 'good answers' we demand.
 
-    Returns: {'qc': qc, 'iterations': iterations}
-        qc (SAT_Circuit object) - The overall SAT circuit obtained after optimizing the iterations.
-        iterations (int) - the calculated amount of iterations for the given SAT problem.
+    Returns: {'qc': (SAT_Circuit object), 'iterations': (int)}
+        (SAT_Circuit object): the overall SAT circuit obtained after optimizing the iterations.
+        (int): the calculated amount of iterations for the given SAT problem.
     """
 
     N = 2 ** n
