@@ -2,13 +2,22 @@
 Contains the methods regarding the user's interface.
 """
 
+import sys
+import os
+
+# TODO IMPROVE? UNITE?
+abspath = os.path.abspath(__file__)
+main_name = "SAT_Circuits_Engine"
+main_dir = f"{abspath.split(main_name)[0]}/{main_name}/"
+sys.path.append(main_dir)
+
 import numpy as np
 from qiskit import QuantumCircuit, transpile, Aer, QuantumRegister, ClassicalRegister
 from qiskit.visualization import plot_histogram
 
-from engine import Constraint, Constraints, SAT_Circuit, DiffuserOp
-import handle_solutions
-import settings
+from util import backend
+from circuit import Constraint, Constraints, SAT_Circuit, DiffuserOp
+from classical_processing import find_iterations_unknown, calc_iterations
 
 def handle_inputs():  
     """
@@ -23,37 +32,40 @@ def handle_inputs():
     """
     
     # Taking amount of input qubits.
-    n = int(input('Please enter the desired amount of input qubits:'))
+    num_qubits = int(input('Please enter the desired amount of input qubits: '))
     
     # Taking string of constraints.
-    print()
-    with open('constraints_format.txt') as cf:
+    with open("interface/constraints_format.txt", "r") as cf:
+        print() # TODO FORMAT?
         print(cf.read())
-    constraints_string = str(input('Please enter a string of constraints:'))
+    constraints_string = str(input('Please enter a string of constraints: '))
     
     # Taking desired amount of shots.
-    shots = int(input('\nPlease enter the amount of shots desired:'))
+    shots = int(input('\nPlease enter the amount of shots desired: '))
     
     # Taking expected amount of solutions.
+    # TODO FORMAT?
     print('\nIf the expected amount of solutions is known, please enter it (it is the easiest and optimal case).')
-    solutions_num = int(input('If the expected amount of solutions is unknown,\
-                             please enter the value -1. In this case the program will look for an adequate\
-                             (optimal or near optimal) number of iterations suited for the constraints\
-                             (it is possible to halt after finding one solution, but in order to find a circuit that\
-                             amplifies all solutions an iterative process is being implemented, it might take some time): '))
+    solutions_num = int(input(f"""If the expected amount of solutions is unknown,\
+ please enter the value -1.
+In this case the program will look for an adequate (optimal or near optimal) number of iterations\
+ suited for the constraints.
+It is possible to halt after finding one solution, but in order to find a circuit that\
+ amplifies all solutions an iterative process is being implemented.
+It might take some time. Your input: """))
     
-    return {'n': n, 'constraints_string': constraints_string, 'shots': shots, 'solutions_num': solutions_num}
+    return {'num_qubits': num_qubits, 'constraints_string': constraints_string, 'shots': shots, 'solutions_num': solutions_num}
 
-def SAT(n=None, constraints_string=None, shots=None, solutions_num=None):
+def SAT(num_qubits=None, constraints_string=None, shots=None, solutions_num=None):
     """
     Runs the program and updates the user step-by-step.
     """
     
     # If the parameters aren't stated when calling the function (even one of them):
     # calling handle_inputs() to take care of user inputs.
-    if n is None or constraints_string is None or shots is None or solutions_num is None:
+    if num_qubits is None or constraints_string is None or shots is None or solutions_num is None:
         inputs = handle_inputs()
-        n = inputs['n']
+        num_qubits = inputs['num_qubits']
         constraints_string = inputs['constraints_string']
         shots = inputs['shots']
         solutions_num = inputs['solutions_num']
@@ -68,22 +80,22 @@ def SAT(n=None, constraints_string=None, shots=None, solutions_num=None):
         jupyter = True
 
     # Constructing Grover's operator as `constraints_ob`.
-    constraints_ob = Constraints(constraints_string, n, mpl=jupyter)
+    constraints_ob = Constraints(constraints_string, num_qubits, mpl=jupyter)
 
     # Obtaining the desired quantum circuit.
     if solutions_num == -1: # Unknown number of solutions.
         print('\nPlease wait while the system checks various solutions..')
-        data = handle_solutions.find_iterations_unknown_k(n, constraints_ob, precision = 10)
-        print(f"An adequate number of iterations found = {data['iterations']}\033[0m")
+        data = find_iterations_unknown(num_qubits, constraints_ob, precision = 10)
+        print(f"\nAn adequate number of iterations found = {data['iterations']}\033[0m")
         qc = data['qc']
     else: # Known number of solutions.
-        iterations = handle_solutions.calc_iterations(n, solutions_num)
-        qc = SAT_Circuit(n, constraints_ob, iterations)
+        iterations = calc_iterations(num_qubits, solutions_num)
+        qc = SAT_Circuit(num_qubits, constraints_ob, iterations)
         qc.add_input_reg_measurement()
 
     # Running the circuit.
     print(f'\nThe system is running the circuit {shots} times, please wait..')
-    job = settings.backend.run(transpile(qc, settings.backend, optimization_level = 0), shots = shots)
+    job = backend.run(transpile(qc, backend, optimization_level = 0), shots = shots)
     results = job.result()
     counts = results.get_counts()
     counts_sorted = sorted(counts.items(), key=lambda x: x[1]) # Sorting results in an ascending order.
