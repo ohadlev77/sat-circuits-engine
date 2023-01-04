@@ -7,7 +7,7 @@ from qiskit import transpile
 from qiskit.visualization import plot_histogram
 
 from sat_circuits_engine.util import backend
-from sat_circuits_engine.circuit import Constraints, SAT_Circuit
+from sat_circuits_engine.circuit import GroverConstraintsOperator, SAT_Circuit
 from sat_circuits_engine.classical_processing import find_iterations_unknown, calc_iterations
 
 def handle_inputs():  
@@ -74,27 +74,27 @@ def SAT(num_qubits=None, constraints_string=None, shots=None, solutions_num=None
         jupyter = True
 
     # Constructing Grover's operator as `constraints_ob`.
-    constraints_ob = Constraints(constraints_string, num_qubits, mpl=jupyter)
+    constraints_ob = GroverConstraintsOperator(constraints_string, num_qubits, mpl=jupyter)
 
     # Obtaining the desired quantum circuit.
     if solutions_num == -1: # Unknown number of solutions.
 
-        # FLAG - TODO REMOVE
+        # TODO REMOVE
         check_m = input('For MULTIPROCESSING enter "YES", otherwise enter "NO": ')
         if check_m == 'NO':
             multiprocessing = False
         else:
             multiprocessing = True
-        print(f"MUTLIPROCESSING BOOL CHECK: {multiprocessing}")
 
         print('\nPlease wait while the system checks various solutions..')
         data = find_iterations_unknown(num_qubits, constraints_ob, precision = 10,
         multiprocessing=multiprocessing)
         
-        print(f"\nAn adequate number of iterations found = {data['iterations']}\033[0m")
+        print(f"\nAn adequate number of iterations found = {data['iterations']}")
         qc = data['qc']
     else: # Known number of solutions.
         iterations = calc_iterations(num_qubits, solutions_num)
+        print(f"\nFor {solutions_num} solutions, {iterations} iterations needed.")
         qc = SAT_Circuit(num_qubits, constraints_ob, iterations)
         qc.add_input_reg_measurement()
 

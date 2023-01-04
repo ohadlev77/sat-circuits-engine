@@ -117,8 +117,8 @@
         "num_total_qubits": 23,
         "constraints_string": "([9][8][7] == [2][1][0]), ([4][3] != [2][1]), ([6] == [5]), ([5] == [4]), ([4] != [3]), ([4] == [2])",
         "num_solutions": 8,
-        "num_iterations": TODO COMPLETE,
-        "solutions": TODO COMPLETE,
+        "num_iterations": 12,
+        "solutions": ["11101110110", "00010001001", "10010001001", "00000001000", "11111110111", "01101110110", "01111110111", "10000001000"],
         "perform_test": false
     }
 }

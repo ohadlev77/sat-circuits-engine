@@ -140,7 +140,8 @@ def find_iterations_unknown(num_qubits, constraints_ob, precision=10, multiproce
                     tasks.clear()
                     start_time = time.time() # TODO REMOVE FLAG
             else:
-                match = is_qc_x_iterations_a_match({'qc': qc, 'precision': precision, 'constraints_data': constraints_ob.constraints})
+                match = is_qc_x_iterations_a_match({'qc': qc, 'precision': precision,
+                'constraints_data': constraints_ob.single_constraints_objects})
                 if match:
                     return {'qc': qc, 'iterations': iterations}
         
