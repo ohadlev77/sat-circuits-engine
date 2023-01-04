@@ -1,3 +1,7 @@
 *.pyc
 .ipynb_checkpoints/
 classical_algorithm.ipynb
+build/
+dist/
+*.egg
+*.egg-info/

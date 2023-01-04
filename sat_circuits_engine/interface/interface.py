@@ -1,23 +1,14 @@
 """
+TODO CHANGE?
 Contains the methods regarding the user's interface.
 """
 
-import sys
-import os
-
-# TODO IMPROVE? UNITE?
-abspath = os.path.abspath(__file__)
-main_name = "SAT_Circuits_Engine"
-main_dir = f"{abspath.split(main_name)[0]}/{main_name}/"
-sys.path.append(main_dir)
-
-import numpy as np
-from qiskit import QuantumCircuit, transpile, Aer, QuantumRegister, ClassicalRegister
+from qiskit import transpile
 from qiskit.visualization import plot_histogram
 
-from util import backend
-from circuit import Constraint, Constraints, SAT_Circuit, DiffuserOp
-from classical_processing import find_iterations_unknown, calc_iterations
+from sat_circuits_engine.util import backend
+from sat_circuits_engine.circuit import Constraints, SAT_Circuit
+from sat_circuits_engine.classical_processing import find_iterations_unknown, calc_iterations
 
 def handle_inputs():  
     """
@@ -31,16 +22,17 @@ def handle_inputs():
         A dictionary object containing the inputs.
     """
     
-    # Taking amount of input qubits.
+    # Taking amount of input qubits
     num_qubits = int(input('Please enter the desired amount of input qubits: '))
     
-    # Taking string of constraints.
-    with open("interface/constraints_format.txt", "r") as cf:
-        print() # TODO FORMAT?
-        print(cf.read())
+    # Taking string of constraints
+    with open("interface/constraints_format.txt", "r") as constraints_format:
+        print() # TODO IMPROVE?
+        print(constraints_format.read())
     constraints_string = str(input('Please enter a string of constraints: '))
     
-    # Taking desired amount of shots.
+    # Taking desired amount of shots
+    # TODO is it really useful?
     shots = int(input('\nPlease enter the amount of shots desired: '))
     
     # Taking expected amount of solutions.
@@ -54,11 +46,13 @@ It is possible to halt after finding one solution, but in order to find a circui
  amplifies all solutions an iterative process is being implemented.
 It might take some time. Your input: """))
     
-    return {'num_qubits': num_qubits, 'constraints_string': constraints_string, 'shots': shots, 'solutions_num': solutions_num}
+    return {'num_qubits': num_qubits, 'constraints_string': constraints_string,
+    'shots': shots, 'solutions_num': solutions_num}
 
 def SAT(num_qubits=None, constraints_string=None, shots=None, solutions_num=None):
     """
     Runs the program and updates the user step-by-step.
+    TODO IMPROVE
     """
     
     # If the parameters aren't stated when calling the function (even one of them):
@@ -84,8 +78,19 @@ def SAT(num_qubits=None, constraints_string=None, shots=None, solutions_num=None
 
     # Obtaining the desired quantum circuit.
     if solutions_num == -1: # Unknown number of solutions.
+
+        # FLAG - TODO REMOVE
+        check_m = input('For MULTIPROCESSING enter "YES", otherwise enter "NO": ')
+        if check_m == 'NO':
+            multiprocessing = False
+        else:
+            multiprocessing = True
+        print(f"MUTLIPROCESSING BOOL CHECK: {multiprocessing}")
+
         print('\nPlease wait while the system checks various solutions..')
-        data = find_iterations_unknown(num_qubits, constraints_ob, precision = 10)
+        data = find_iterations_unknown(num_qubits, constraints_ob, precision = 10,
+        multiprocessing=multiprocessing)
+        
         print(f"\nAn adequate number of iterations found = {data['iterations']}\033[0m")
         qc = data['qc']
     else: # Known number of solutions.

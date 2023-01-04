@@ -3,7 +3,7 @@ Contains all building blocks for constructing the overall circuit for the proble
 """
 
 import numpy as np
-from qiskit import QuantumCircuit, transpile, Aer, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
 class Constraints(QuantumCircuit):
     """
@@ -30,7 +30,7 @@ class Constraints(QuantumCircuit):
         self.total_aux_qubits_needed = 0
         self.aux_qubits_needed_list = []
         for c_index, c in enumerate(self.constraints_list):
-            self.constraints.append(Constraint(c_index = c_index, c_eq = c, mpl=mpl))
+            self.constraints.append(Constraint(c_index=c_index, c_eq=c, mpl=mpl))
             self.total_aux_qubits_needed += self.constraints[c_index].aux_qubits_needed
             self.aux_qubits_needed_list.append(self.constraints[c_index].aux_qubits_needed)
         self.out_qubits_amount = len(self.constraints)
@@ -65,7 +65,7 @@ class Constraints(QuantumCircuit):
                 qargs = self.input_reg[c.left_side] + self.input_reg[c.right_side] + self.aux_reg[aux_bottom:aux_top] + [self.out_reg[i]] 
                 # Format: [left, right, aux, out].
             
-            self.append(instruction = c, qargs = qargs)
+            self.append(instruction=c, qargs=qargs)
             self.barrier()
         
         # Saving all actions until now for uncomputation.
@@ -73,10 +73,10 @@ class Constraints(QuantumCircuit):
         qc_dagger.name = 'Uncomputation'
         
         # If all terms met, applying NOT to the ancilla (which is in the eigenstate |-> beforehand).
-        self.mcx(control_qubits = self.out_reg, target_qubit = self.ancilla)
+        self.mcx(control_qubits=self.out_reg, target_qubit=self.ancilla)
         
         # Uncomputation.
-        self.append(instruction = qc_dagger, qargs = self.qubits)
+        self.append(instruction=qc_dagger, qargs=self.qubits)
         
         self.name = 'Operator'
 
@@ -139,9 +139,9 @@ class Constraint(QuantumCircuit):
         
         for side_num, side in enumerate(LR):
             i = 0
-            while side.find('[',i) != -1:
-                i = side.find('[',i) + 1
-                ie = side.find(']',i)
+            while side.find('[', i) != -1:
+                i = side.find('[', i) + 1
+                ie = side.find(']', i)
                 q_i = int(side[i:ie])
                 
                 # Isolating and appending the qubit index
@@ -264,8 +264,8 @@ class SAT_Circuit(QuantumCircuit):
         Appends an iteration over Grover's iterator (`sat_op` + `diffuser`) to `self`.
         """
 
-        self.append(self.sat_op, qargs = self.qubits)
-        self.append(self.diffuser, qargs = self.input_reg)
+        self.append(self.sat_op, qargs=self.qubits)
+        self.append(self.diffuser, qargs=self.input_reg)
         self.barrier()
 
     def add_input_reg_measurement(self):
@@ -293,7 +293,7 @@ class DiffuserOp(QuantumCircuit):
         
         self.h(self.qubits)
         self.x(self.qubits)
-        self.mcp(np.pi, control_qubits = [q for q in range(n - 1)], target_qubit = n - 1)    
+        self.mcp(np.pi, control_qubits=[q for q in range(n - 1)], target_qubit=n - 1)    
         self.x(self.qubits)
         self.h(self.qubits)
         
