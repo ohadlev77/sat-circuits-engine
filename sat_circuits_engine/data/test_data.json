@@ -120,6 +120,16 @@
         "num_iterations": 12,
         "solutions": ["11101110110", "00010001001", "10010001001", "00000001000", "11111110111", "01101110110", "01111110111", "10000001000"],
         "perform_test": false
+    },
+
+    "example_13": {
+        "num_input_qubits": TODO COMPLETE,
+        "num_total_qubits": TODO COMPLETE,
+        "constraints_string": TODO COMPLETE,
+        "num_solutions": TODO COMPLETE,
+        "num_iterations": TODO COMPLETE,
+        "solutions": TODO COMPLETE,
+        "perform_test": false
     }
 }
 

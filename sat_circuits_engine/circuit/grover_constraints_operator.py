@@ -12,7 +12,13 @@ class GroverConstraintsOperator(QuantumCircuit):
     for a specific string of constraints entered by a user.
     """
 
-    def __init__(self, constraints_string: str, num_input_qubits: int, mpl: bool=True) -> None:
+    def __init__(
+        self,
+        constraints_string: str,
+        num_input_qubits: int,
+        probe: bool=True,
+        mpl: bool=True
+    ) -> None:
         """
         Args:
             constraints_string (str):
@@ -22,6 +28,7 @@ class GroverConstraintsOperator(QuantumCircuit):
                 `/interface/constraints_format.txt`.
             num_input_qubits (int): number of qubits in the input register.
             mpl (bool): `True` for matplotlib circuit diagrams output, `False` for text output. # TODO CONSIDER TO REMOVE
+            # TODO COMPLETE probe
         """
 
         # Assigning the basic instance variables

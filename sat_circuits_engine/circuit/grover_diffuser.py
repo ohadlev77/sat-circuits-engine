@@ -34,4 +34,4 @@ class GroverDiffuser(QuantumCircuit):
         self.h(self.qubits)
         
         self.name = 'Diffuser'
-        self.to_gate()
+        self.to_gate() # TODO DECIDE

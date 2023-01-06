@@ -1,3 +1,3 @@
-from qiskit import Aer
+from qiskit_aer import AerSimulator
 
-backend = Aer.get_backend('aer_simulator')
+backend = AerSimulator()

@@ -3,10 +3,13 @@ TODO CHANGE?
 Contains the methods regarding the user's interface.
 """
 
-from qiskit import transpile
-from qiskit.visualization import plot_histogram
+from typing import List, Tuple, Union
 
-from sat_circuits_engine.util import backend
+from qiskit import transpile, QuantumCircuit
+from qiskit.visualization import plot_histogram
+from qiskit.result.counts import Counts
+
+from sat_circuits_engine.util import backend, timer_dec
 from sat_circuits_engine.circuit import GroverConstraintsOperator, SAT_Circuit
 from sat_circuits_engine.classical_processing import find_iterations_unknown, calc_iterations
 
@@ -76,34 +79,33 @@ def SAT(num_qubits=None, constraints_string=None, shots=None, solutions_num=None
     # Constructing Grover's operator as `constraints_ob`.
     constraints_ob = GroverConstraintsOperator(constraints_string, num_qubits, mpl=jupyter)
 
-    # Obtaining the desired quantum circuit.
-    if solutions_num == -1: # Unknown number of solutions.
+    # Obtaining the desired quantum circuit
+    # Unknown number of solutions - compute classically
+    if solutions_num == -1:
 
-        # TODO REMOVE
-        check_m = input('For MULTIPROCESSING enter "YES", otherwise enter "NO": ')
-        if check_m == 'NO':
-            multiprocessing = False
-        else:
-            multiprocessing = True
-
+        # TODO REMOVE MULTIPROCESSING
         print('\nPlease wait while the system checks various solutions..')
         data = find_iterations_unknown(num_qubits, constraints_ob, precision = 10,
-        multiprocessing=multiprocessing)
+        multiprocessing=False)
         
         print(f"\nAn adequate number of iterations found = {data['iterations']}")
         qc = data['qc']
+    
+    # Unknown number of solutions - dynamic circuit
+    elif solutions_num == -2:
+        print('\nThe system builds a dynamic circuit..')
+        qc = SAT_Circuit(num_qubits, constraints_ob, iterations=None)
+        qc.add_input_reg_measurement() # TODO WHY, consider change
+
     else: # Known number of solutions.
         iterations = calc_iterations(num_qubits, solutions_num)
         print(f"\nFor {solutions_num} solutions, {iterations} iterations needed.")
         qc = SAT_Circuit(num_qubits, constraints_ob, iterations)
-        qc.add_input_reg_measurement()
-
+        qc.add_input_reg_measurement() # TODO WHY, consider change
+    
     # Running the circuit.
     print(f'\nThe system is running the circuit {shots} times, please wait..')
-    job = backend.run(transpile(qc, backend, optimization_level = 0), shots = shots)
-    results = job.result()
-    counts = results.get_counts()
-    counts_sorted = sorted(counts.items(), key=lambda x: x[1]) # Sorting results in an ascending order.
+    counts, counts_sorted = run_circuit(qc, shots)
 
     # Output the results.
     print(f'\nThe results for {shots} shots are:')
@@ -160,3 +162,18 @@ def GatesDecompositionSort(circuit_gates, do_not_decompose_gates):
             pass
         
     return circuit_gates
+
+@timer_dec
+def run_circuit(qc: QuantumCircuit, shots: int) -> Tuple[Counts, List[Tuple[Union[str, int]]]]:
+    """
+    TODO COMPLETE
+    """
+
+    job = backend.run(transpile(qc, backend, optimization_level = 0), shots = shots)
+    results = job.result()
+    counts = results.get_counts()
+    counts_sorted = sorted(counts.items(), key=lambda x: x[1]) # Sorting results in an ascending order.
+
+    return counts, counts_sorted
+
+run_circuit()
