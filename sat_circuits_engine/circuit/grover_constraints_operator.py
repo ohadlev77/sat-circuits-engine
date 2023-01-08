@@ -55,7 +55,7 @@ class GroverConstraintsOperator(QuantumCircuit):
 
     def constraints_build(self) -> None:
         """
-        Parses the `self.constraints_string` varaible and builds the defines the instance variables:
+        Parses the `self.constraints_string` varaible and defines the instance variables:
             # `self.single_constraints_list` (List[str]): a list of single constraints strings.
             # `self.single_constraints_objects` (List[SingleConstraintBlock]): a list of
             `SingleConstraintBlock` objects, each built from a single constraint string.
@@ -126,12 +126,17 @@ class GroverConstraintsOperator(QuantumCircuit):
 
                 # Defining the range of the auxiliary qubits that is allocated for each constraint -
                 # `aux_bottom` is the start qubit index, and `aux_top` is the end qubit index.
-                aux_bottom = sum(self.aux_qubits_needed_list[0:single_constraint_object.c_index])
-                aux_top = aux_bottom + self.aux_qubits_needed_list[single_constraint_object.c_index]
+                aux_bottom = sum(
+                    self.aux_qubits_needed_list[0:single_constraint_object.constraint_index]
+                )
+                aux_top = (
+                    aux_bottom +
+                    self.aux_qubits_needed_list[single_constraint_object.constraint_index]
+                )
 
                 qargs += self.aux_reg[aux_bottom:aux_top]
     
-            qargs.append(self.out_reg[single_constraint_object.c_index])
+            qargs.append(self.out_reg[single_constraint_object.constraint_index])
 
             self.append(instruction=single_constraint_object, qargs=qargs)
             self.barrier()
@@ -142,7 +147,17 @@ class GroverConstraintsOperator(QuantumCircuit):
         
         # If all terms met, applying NOT to the ancilla (which is in the eigenstate |-> beforehand).
         # This is the basic operation of Grover's operator which marks the desired states.
+
+        # OPTION 1 - DEFAULT
         self.mcx(control_qubits=self.out_reg, target_qubit=self.ancilla)
+
+        # OPTION 2 - TODO - TRYING TO OPTIMIZE BY AVOIDING MCX
+        # self.x(self.out_reg[1:])
+        # for index in range(self.out_reg.size - 1):
+        #     self.cx(self.out_reg[index], self.out_reg[index + 1])
+        # qc_dagger = self.inverse()
+        # qc_dagger.name = 'Uncomputation'
+        # self.cx(self.out_reg[self.out_reg.size - 1], self.ancilla)
         
         # Uncomputation
         self.append(instruction=qc_dagger, qargs=self.qubits)

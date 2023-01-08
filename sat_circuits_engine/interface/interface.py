@@ -175,5 +175,3 @@ def run_circuit(qc: QuantumCircuit, shots: int) -> Tuple[Counts, List[Tuple[Unio
     counts_sorted = sorted(counts.items(), key=lambda x: x[1]) # Sorting results in an ascending order.
 
     return counts, counts_sorted
-
-run_circuit()

@@ -48,10 +48,16 @@ class SAT_Circuit(QuantumCircuit):
         self.ancilla = QuantumRegister(1, 'ancilla')
         self.results = ClassicalRegister(num_input_qubits, 'results')
 
+        # TODO EXPLAIN
+        self.qubits_with_ancilla = self.input_reg[:] + self.aux_reg[:] + self.out_reg[:] + self.ancilla[:]
+
         # No `iterations` specified = dynamic circuit
         if iterations is None:
             self.probe = QuantumRegister(1, 'probe')
             self.probe_result = ClassicalRegister(1, 'probe_result')
+
+            # TODO EXPLAIN
+            self.qubits_with_probe = self.input_reg[:] + self.aux_reg[:] + self.out_reg[:] + self.probe[:]
 
             super().__init__(
                 self.input_reg,
@@ -94,20 +100,21 @@ class SAT_Circuit(QuantumCircuit):
         TODO COMPLETE
         """
 
+        # TODO COMPLETE / REMOVE
+        # self.append(self.diffuser, qargs=self.input_reg) # TODO REMOVE
+        # self.add_iteration()
+        # self.append(self.sat_op, qargs=self.qubits_with_probe)
+        # self.measure(self.probe, self.probe_result)
+        # print(self.draw()) # TODO REMOVE
+
         # Condition for the while loop below
         condition = (self.probe_result, 0)
 
-        # TODO CHANGE NAME
-        body = assemble_grover_iterator(self.sat_op, self.diffuser, self.num_input_qubits)
-
-        # TODO EXPLAIN
-        qubits_with_ancilla = self.input_reg[:] + self.aux_reg[:] + self.out_reg[:] + self.ancilla[:]
-        qubits_with_probe = self.input_reg[:] + self.aux_reg[:] + self.out_reg[:] + self.probe[:]
-
         # TODO EXPLAIN
         with self.while_loop(condition):
-            self.append(body, qargs=qubits_with_ancilla)
-            self.append(self.sat_op, qargs=qubits_with_probe)
+            self.append(self.diffuser, qargs=self.input_reg)
+            self.add_iteration()
+            self.append(self.sat_op, qargs=self.qubits_with_probe)
             self.measure(self.probe, self.probe_result)
 
     def set_init_state(self) -> None:
@@ -126,7 +133,7 @@ class SAT_Circuit(QuantumCircuit):
         Appends an iteration over Grover's iterator (`sat_op` + `diffuser`) to `self`.
         """
 
-        self.append(self.sat_op, qargs=self.qubits[0:self.num_qubits])
+        self.append(self.sat_op, qargs=self.qubits_with_ancilla)
         self.append(self.diffuser, qargs=self.input_reg)
         self.barrier()
 
