@@ -8,7 +8,7 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from .grover_constraints_operator import GroverConstraintsOperator
 from .grover_diffuser import GroverDiffuser
 
-class SAT_Circuit(QuantumCircuit):
+class SATCircuit(QuantumCircuit):
     """
     Assembles an overall circuit for the given SAT problem from the building blocks:
         # Input state preparation.
@@ -45,11 +45,18 @@ class SAT_Circuit(QuantumCircuit):
         self.input_reg = QuantumRegister(num_input_qubits, 'input_reg')
         self.aux_reg = QuantumRegister(self.sat_op.total_aux_qubits_needed, 'aux_reg')
         self.out_reg = QuantumRegister(self.sat_op.out_qubits_amount, 'out_reg')
+        self.out_aux_reg = QuantumRegister(1, 'out_aux_reg')
         self.ancilla = QuantumRegister(1, 'ancilla')
         self.results = ClassicalRegister(num_input_qubits, 'results')
 
         # TODO EXPLAIN
-        self.qubits_with_ancilla = self.input_reg[:] + self.aux_reg[:] + self.out_reg[:] + self.ancilla[:]
+        self.qubits_with_ancilla = (
+            self.input_reg[:] +
+            self.aux_reg[:] +
+            self.out_reg[:] +
+            self.out_aux_reg[:] +
+            self.ancilla[:]
+        )
 
         # No `iterations` specified = dynamic circuit
         if iterations is None:
@@ -57,12 +64,19 @@ class SAT_Circuit(QuantumCircuit):
             self.probe_result = ClassicalRegister(1, 'probe_result')
 
             # TODO EXPLAIN
-            self.qubits_with_probe = self.input_reg[:] + self.aux_reg[:] + self.out_reg[:] + self.probe[:]
+            self.qubits_with_probe = (
+                self.input_reg[:] +
+                self.aux_reg[:] +
+                self.out_reg[:] +
+                self.out_aux_reg[:] +
+                self.probe[:]
+            )
 
             super().__init__(
                 self.input_reg,
                 self.aux_reg,
                 self.out_reg,
+                self.out_aux_reg,
                 self.ancilla,
                 self.probe,
                 self.results,
@@ -81,6 +95,7 @@ class SAT_Circuit(QuantumCircuit):
                 self.input_reg,
                 self.aux_reg,
                 self.out_reg,
+                self.out_aux_reg,
                 self.ancilla,
                 self.results,
             )

@@ -15,7 +15,7 @@ class SingleConstraintBlock(QuantumCircuit):
         Args:
             constraint_index (int): the index number of the constraint.
             constraint_equation (str): single constraint equation string.
-                # See `interface/constraints_format.txt` for format details.
+                # See `/interface/constraints_format.txt` for format details.
             mpl (bool): `True` for matplotlib circuit diagrams output, `False` for text output.
         """
         
@@ -124,12 +124,10 @@ class SingleConstraintBlock(QuantumCircuit):
                 
         # Case 1 - no auxiliary qubits
         if self.aux_qubits_needed == 0:
-            self.cx(self.left_reg, self.out)
-            self.cx(self.right_reg, self.out)
-            if self.operator == '==':
-                self.x(self.out)
+            self.two_qubits_equality()
                    
         # Case 2 - with auxiliary qubits
+        # TODO MODULE THIS TO ANOTHER METHOD
         else:
             for i in range(self.min_len):
                 self.cx(self.left_reg[i], self.aux_reg[i])
@@ -139,19 +137,41 @@ class SingleConstraintBlock(QuantumCircuit):
             #Case 2A - Different amount of qubits in left and right regs
             if self.len_left != self.len_right:
                 if self.len_left > self.len_right:
-                    diff = self.left_reg[self.min_len : self.max_len]
+                    diff = self.left_reg[self.min_len:self.max_len]
                 else:
-                    diff = self.right_reg[self.min_len : self.max_len]
+                    diff = self.right_reg[self.min_len:self.max_len]
+
                 self.x(diff)
-                self.mcx(diff, self.aux_reg[self.aux_qubits_needed - 1])
+                # TODO HANDLE THIS FLAG
+                if len(diff) == 2:
+                    self.rccx(diff[0], diff[1], self.aux_reg[self.aux_qubits_needed - 1])
+                else:
+                    self.mcx(diff, self.aux_reg[self.aux_qubits_needed - 1])
                 self.x(diff)
             
             # Writing the overall combined result to the out qubit
             if self.operator == '!=':
                 self.x(self.out)
-            self.mcx(self.aux_reg, self.out)
+            
+            # TODO HANDLE THIS FLAG
+            if len(self.aux_reg) == 2:
+                self.rccx(self.aux_reg[0], self.aux_reg[1], self.out)
+            else:
+                self.mcx(self.aux_reg, self.out)
 
+        # TODO BETTER WAY?
         if self.mpl:
             self.name = f'Constraint {self.constraint_index}:\n{self.constraint_equation}'
         else:
             self.name = f'Constraint {self.constraint_index}'
+
+    def two_qubits_equality(self):
+        """
+        TODO COMPLETE
+        """
+
+        self.cx(self.left_reg, self.out)
+        self.cx(self.right_reg, self.out)
+
+        if self.operator == '==':
+            self.x(self.out)

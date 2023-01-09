@@ -7,12 +7,13 @@ import random
 import copy
 import time
 import numpy as np
-from multiprocessing import get_context
+from typing import Tuple, Optional, Union
 
 from qiskit import transpile
 
-from sat_circuits_engine.util import backend, timer_dec
-from sat_circuits_engine.circuit import SAT_Circuit
+from sat_circuits_engine.util import timer_dec
+from sat_circuits_engine.util.settings import backend
+from sat_circuits_engine.circuit import SATCircuit, GroverConstraintsOperator
 
 def calc_iterations(num_qubits, num_solutions):
     """
@@ -56,45 +57,45 @@ def is_qc_x_iterations_a_match(args_dict):
     return match
 
 @timer_dec
-def find_iterations_unknown(num_qubits, constraints_ob, precision=10, multiprocessing=True):
+def find_iterations_unknown(
+    num_input_qubits: int,
+    grover_constraints_operator: GroverConstraintsOperator,
+    precision: Optional[int] = 10
+) -> Tuple[str, Union[SATCircuit, int]]:
     """
     Finds an adequate (optimal or near optimal) number of iterations suitable for a given SAT problem
-    when the number of "solutions" or "marked states is unknown.
+    when the number of "solutions" or "marked states" is unknown.
+    # TODO IMPROVE THIS EXPLANATION AND MAYBE THE ENTIRE METHOD
     The method being used is described in https://arxiv.org/pdf/quant-ph/9605034.pdf (section 4).
-        # The method isn't exactly the same - we intentionally iterate over the described method.
-        # We could have halt after finding one solution.
-        # Using the iterative method we can build a circuit that amplifies all solutions, but in a price
+        - The method isn't exactly the same - we intentionally iterate over the described method.
+        - We could have halt after finding one solution.
+        - Using the iterative method we can build a circuit that amplifies all solutions, but in a price
         of a computational overhead.
-        # We demand `precision` good answers for any possible number of iterations being checked.
-        # If we can't find `precision` good answers - we decrement `precision`
+        - We demand `precision` good answers for any possible number of iterations being checked.
+        - If we can't find `precision` good answers - we decrement `precision`
         and iterate over the process again.
-        # `precision` can be thought as the degree of accuracy - for large values of `precision`
+        - `precision` can be thought as the degree of accuracy - for large values of `precision`
         more optimal results will be obtained.
 
     Args:
-        num_qubits (int): number of input qubits.
-        constraints_ob # TODO COMPLETE.
+        num_input_qubits (int): number of input qubits.
+        grover_constraints_operator (): # TODO COMPLETE.
         precision (int): number of "good answers" which is enough to determine the number of iterations.
-        multiprocessing (bool, optinal):
-            # `True` (default) = use multiprocessing to enhace computation's speed (with maximum cores).
-            # `False` = do not use multiprocessing.
 
-    Returns: {'qc': (SAT_Circuit object), 'iterations': (int)}
-        (SAT_Circuit object): the overall SAT circuit obtained after optimizing the iterations.
+    Returns: Tuple[Union[SATCircuit, int]]:
+        (SATCircuit): the overall SAT circuit obtained after optimizing the iterations.
         (int): the calculated amount of iterations for the given SAT problem.
+
+    Raises:
+        # TODO COMPLETE
     """
 
     # TODO COMPLETE WHAT IS THIS
-    N = 2 ** num_qubits
+    N = 2 ** num_input_qubits
     lamda = 6 / 5 # In each attempt to find `iterations` we increment by a multiply of `lamda`.
     qc_storage = {}
 
-    # Used in the case of multiprocessing
-    cores = os.cpu_count()
-    tasks = []
-    start_time = time.time() # TODO REMOVE DEBUG
-
-    # If precision == 0 then probably there is no solution.
+    # If precision == 0 then probably there is no solution
     while precision > 0:
         # TODO COMPLETE WHAT ARE THESE
         m = 1
@@ -102,7 +103,7 @@ def find_iterations_unknown(num_qubits, constraints_ob, precision=10, multiproce
 
         print(f"\nChecking iterations for precision = {precision}:")
 
-        # For each level of precision we are looking for an adequate number of iterations.
+        # For each level of precision we are looking for an adequate number of iterations
         # TODO COMPLETE WHY m <= np.sqrt(N)
         while m <= np.sqrt(N):
             
@@ -114,36 +115,23 @@ def find_iterations_unknown(num_qubits, constraints_ob, precision=10, multiproce
                 iterations = randint_exclude(start = 0, end = int(m), exclude = set(exclude_list))
             print(f"    Checking iterations = {iterations}")
 
-            # Obtaining the necessary SAT_Circuit object (preferably from the `qc_storage`)
+            # Obtaining the necessary SATCircuit object (preferably from the `qc_storage`)
             try:
                 qc = qc_storage[iterations]
             except KeyError:
                 exclude_list.append(iterations)
-                qc = SAT_Circuit(num_qubits, constraints_ob, iterations)
+                qc = SATCircuit(num_input_qubits, grover_constraints_operator, iterations)
                 qc.add_input_reg_measurement()
                 qc_storage[iterations] = copy.deepcopy(qc)
 
-            if multiprocessing == True:
-                tasks.append({'qc': qc, 'precision': precision,
-                'constraints_data': constraints_ob.constraints, 'iterations': iterations})
-                
-                if len(tasks) == cores:
-                    print(f"It took {time.time() - start_time} seconds to start multiprocessing pool") # TODO REMOVE FLAG
-                    with get_context("spawn").Pool(processes=4) as pool:
-                        results = pool.imap_unordered(is_qc_x_iterations_a_match, tasks)
-                        
-                        for index, result in enumerate(results):
-                            print(f"Checking result {index}") # TODO REMOVE
-                            if result:
-                                return {'qc': tasks[index]['qc'], 'iterations': tasks[index]['iterations']}
+            match = is_qc_x_iterations_a_match({
+                    'qc': qc,
+                    'precision': precision,
+                    'constraints_data': grover_constraints_operator.single_constraints_objects
+            })
 
-                    tasks.clear()
-                    start_time = time.time() # TODO REMOVE FLAG
-            else:
-                match = is_qc_x_iterations_a_match({'qc': qc, 'precision': precision,
-                'constraints_data': constraints_ob.single_constraints_objects})
-                if match:
-                    return {'qc': qc, 'iterations': iterations}
+            if match:
+                return qc, iterations
         
         # Degrading precision if failed to find an adequate number of iterations.
         precision -= 2

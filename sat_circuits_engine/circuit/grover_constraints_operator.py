@@ -16,8 +16,7 @@ class GroverConstraintsOperator(QuantumCircuit):
         self,
         constraints_string: str,
         num_input_qubits: int,
-        probe: bool=True,
-        mpl: bool=True
+        mpl: bool = True
     ) -> None:
         """
         Args:
@@ -28,10 +27,8 @@ class GroverConstraintsOperator(QuantumCircuit):
                 `/interface/constraints_format.txt`.
             num_input_qubits (int): number of qubits in the input register.
             mpl (bool): `True` for matplotlib circuit diagrams output, `False` for text output. # TODO CONSIDER TO REMOVE
-            # TODO COMPLETE probe
         """
 
-        # Assigning the basic instance variables
         self.num_input_qubits = num_input_qubits
         self.constraints_string = constraints_string        
         self.mpl = mpl
@@ -44,8 +41,9 @@ class GroverConstraintsOperator(QuantumCircuit):
         self.input_reg = QuantumRegister(self.num_input_qubits, 'input_reg')
         self.aux_reg = QuantumRegister(self.total_aux_qubits_needed, 'aux_reg')
         self.out_reg = QuantumRegister(self.out_qubits_amount, 'out_reg')
+        self.out_aux_reg = QuantumRegister(1, 'out_aux_reg')
         self.ancilla = QuantumRegister(1, 'ancilla')
-        super().__init__(self.input_reg, self.aux_reg, self.out_reg, self.ancilla)
+        super().__init__(self.input_reg, self.aux_reg, self.out_reg, self.out_aux_reg, self.ancilla)
         
         # Assembling `self` to a complete Grover operator
         self.assemble()
@@ -93,7 +91,6 @@ class GroverConstraintsOperator(QuantumCircuit):
                 self.single_constraints_objects[constraint_index].aux_qubits_needed
             )
 
-
         # For each constraint, one "out qubit" is needed
         self.out_qubits_amount = len(self.single_constraints_objects)
 
@@ -107,7 +104,7 @@ class GroverConstraintsOperator(QuantumCircuit):
         """
 
         # Looping over the constraints, appending one `SingleConstraintBlock` object in each iteration
-        for single_constraint_object in self.single_constraints_objects:
+        for index, single_constraint_object in enumerate(self.single_constraints_objects):
             
             # Defining the `qargs` (`qargs` is a parameter of the `QuantumCircuit.append` method)
             # before appending `single_constraint_object` to `self`. The `qargs` parameter should
@@ -135,29 +132,55 @@ class GroverConstraintsOperator(QuantumCircuit):
                 )
 
                 qargs += self.aux_reg[aux_bottom:aux_top]
-    
-            qargs.append(self.out_reg[single_constraint_object.constraint_index])
 
-            self.append(instruction=single_constraint_object, qargs=qargs)
+            # TODO BETTER WAY?
+            # TODO need to fix the bug of one constraint only produces an error
+            intermidate_flag = True
+
+            # First constraint
+            if index == 0:    
+                qargs.append(self.out_reg[index])
+                self.append(instruction=single_constraint_object, qargs=qargs)
+
+                intermidate_flag = False
+
+            # Last constraint
+            if index == len(self.single_constraints_objects) - 1:
+                qargs.append(self.out_aux_reg)
+                self.append(instruction=single_constraint_object, qargs=qargs)
+
+                self.barrier()
+                qc_dagger = self.inverse()
+                qc_dagger.name = 'Uncomputation'
+                
+                self.ccx(self.out_aux_reg, self.out_reg[index - 1], self.ancilla)
+
+                intermidate_flag = False
+                
+            # Intermidate constraints
+            if intermidate_flag:
+                qargs.append(self.out_aux_reg)
+                
+                self.append(instruction=single_constraint_object, qargs=qargs)
+                self.rccx(self.out_aux_reg, self.out_reg[index - 1], self.out_reg[index])
+                self.append(instruction=single_constraint_object.inverse(), qargs=qargs)
+
             self.barrier()
+            
+            # Appending the entire constraint block
+            # self.append(instruction=single_constraint_object, qargs=qargs)
+
+            # TODO IMPROVE using `self.out_aux_reg` to CONTROL WHATEVER
         
+        # TODO
         # Saving all actions until now for uncomputation
-        qc_dagger = self.inverse()
-        qc_dagger.name = 'Uncomputation'
+        # qc_dagger = self.inverse()
+        # qc_dagger.name = 'Uncomputation'
         
         # If all terms met, applying NOT to the ancilla (which is in the eigenstate |-> beforehand).
         # This is the basic operation of Grover's operator which marks the desired states.
-
-        # OPTION 1 - DEFAULT
-        self.mcx(control_qubits=self.out_reg, target_qubit=self.ancilla)
-
-        # OPTION 2 - TODO - TRYING TO OPTIMIZE BY AVOIDING MCX
-        # self.x(self.out_reg[1:])
-        # for index in range(self.out_reg.size - 1):
-        #     self.cx(self.out_reg[index], self.out_reg[index + 1])
-        # qc_dagger = self.inverse()
-        # qc_dagger.name = 'Uncomputation'
-        # self.cx(self.out_reg[self.out_reg.size - 1], self.ancilla)
+        # TODO - OLD GOOD WAY
+        # self.mcx(control_qubits=self.out_reg, target_qubit=self.ancilla)
         
         # Uncomputation
         self.append(instruction=qc_dagger, qargs=self.qubits)

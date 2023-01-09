@@ -3,70 +3,96 @@ TODO CHANGE?
 Contains the methods regarding the user's interface.
 """
 
-from typing import List, Tuple, Union
+import copy
+from typing import List, Tuple, Dict, Union, Optional
 
 from qiskit import transpile, QuantumCircuit
 from qiskit.visualization import plot_histogram
 from qiskit.result.counts import Counts
 
-from sat_circuits_engine.util import backend, timer_dec
-from sat_circuits_engine.circuit import GroverConstraintsOperator, SAT_Circuit
+from sat_circuits_engine.util import timer_dec
+from sat_circuits_engine.util.settings import backend, CONSTRAINTS_FORMAT_PATH
+from sat_circuits_engine.circuit import GroverConstraintsOperator, SATCircuit
 from sat_circuits_engine.classical_processing import find_iterations_unknown, calc_iterations
 
-def handle_inputs():  
-    """
+def interactive_inputs() -> Dict[str, Union[int, str]]:
+    f"""
     Taking inputs from the user.
     In general, a naive assumption of the program is that the user enters valid inputs only.
 
-    Args:
-        None.
-
     Returns:
-        A dictionary object containing the inputs.
+        (Dict[str, Union[int, str]]): A dictionary object containing the inputs:
+            'num_input_qubits' (int): number of input qubits.
+            'constraints_string' (str): a string of constraints following a specific format.
+                - The format is defined in `sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH`.
+            'shots' (int): number of shots to run the circuit.
+            'solutions_num' (int): expected number of solutions.
+                - Can take also specific negative values, that indicates that the number of solutions
+                is unknown, and:
+                    ####### TODO COMPLETE EXPLANATION #######
+                    `-1` = Solve the problem with a classical iterative process.
+                    `-2` = Solve the problen using a dynamic circuit design.
     """
     
     # Taking amount of input qubits
-    num_qubits = int(input('Please enter the desired amount of input qubits: '))
+    num_input_qubits = int(input('Please enter the desired amount of input qubits: '))
     
-    # Taking string of constraints
-    with open("interface/constraints_format.txt", "r") as constraints_format:
-        print() # TODO IMPROVE?
+    # Taking a string of constraints
+    with open(CONSTRAINTS_FORMAT_PATH, "r") as constraints_format:
+        print()
         print(constraints_format.read())
     constraints_string = str(input('Please enter a string of constraints: '))
     
     # Taking desired amount of shots
     # TODO is it really useful?
-    shots = int(input('\nPlease enter the amount of shots desired: '))
+    print()
+    shots = int(input('Please enter the amount of shots desired: '))
     
-    # Taking expected amount of solutions.
-    # TODO FORMAT?
-    print('\nIf the expected amount of solutions is known, please enter it (it is the easiest and optimal case).')
-    solutions_num = int(input(f"""If the expected amount of solutions is unknown,\
- please enter the value -1.
-In this case the program will look for an adequate (optimal or near optimal) number of iterations\
- suited for the constraints.
-It is possible to halt after finding one solution, but in order to find a circuit that\
- amplifies all solutions an iterative process is being implemented.
-It might take some time. Your input: """))
+    # Taking expected amount of solutions
+    print()
+    print(
+        "If the expected amount of solutions is known, please enter it" \
+        " (it is the easiest and optimal case)."
+    )
+    print()
+    # TODO REPHRASE THE FOLLOWING TEXT
+    solutions_num = int(input(
+        "If the expected amount of solutions is unknown, please enter the value -1.\n" \
+        "In this case the program will look for an adequate (optimal or near optimal)" \
+        " number of iterations for the given constraints.\n" \
+        "It is possible to halt after finding one solution," \
+        " but in order to find a circuit that amplifies all solutions,\n" \
+        "an iterative process is being implemented.\n" \
+        "It might take some time. Your input: "
+    ))
     
-    return {'num_qubits': num_qubits, 'constraints_string': constraints_string,
-    'shots': shots, 'solutions_num': solutions_num}
+    return {
+        'num_input_qubits': num_input_qubits,
+        'constraints_string': constraints_string,
+        'shots': shots,
+        'solutions_num': solutions_num
+    }
 
-def SAT(num_qubits=None, constraints_string=None, shots=None, solutions_num=None):
+def sat_interface(
+    num_input_qubits: Optional[int] = None,
+    constraints_string: Optional[str] = None,
+    shots: Optional[int] = None,
+    solutions_num: Optional[int] = None
+) -> None:
     """
-    Runs the program and updates the user step-by-step.
-    TODO IMPROVE
+    TODO COMPLETE
     """
     
     # If the parameters aren't stated when calling the function (even one of them):
-    # calling handle_inputs() to take care of user inputs.
-    if num_qubits is None or constraints_string is None or shots is None or solutions_num is None:
-        inputs = handle_inputs()
-        num_qubits = inputs['num_qubits']
+    # calling `interactive_inputs()`` to take care of user inputs.
+    if num_input_qubits is None or constraints_string is None or shots is None or solutions_num is None:
+        inputs = interactive_inputs()
+        num_input_qubits = inputs['num_input_qubits']
         constraints_string = inputs['constraints_string']
         shots = inputs['shots']
         solutions_num = inputs['solutions_num']
     
+    # TODO IMPROVE?
     # Identifying user's IDE.
     try: # Jupyter Notebbok case.
         IDE = get_ipython().__class__.__name__
@@ -76,74 +102,126 @@ def SAT(num_qubits=None, constraints_string=None, shots=None, solutions_num=None
     if IDE == 'ZMQInteractiveShell':
         jupyter = True
 
-    # Constructing Grover's operator as `constraints_ob`.
-    constraints_ob = GroverConstraintsOperator(constraints_string, num_qubits, mpl=jupyter)
+    # Constructing Grover's operator as `grover_constraints_operator`.
+    grover_constraints_operator = GroverConstraintsOperator(
+        constraints_string,
+        num_input_qubits,
+        mpl=jupyter
+    )
 
     # Obtaining the desired quantum circuit
-    # Unknown number of solutions - compute classically
+    # -1 = Unknown number of solutions - compute classically
+    print()
     if solutions_num == -1:
+        print('Please wait while the system checks various solutions..')
 
-        # TODO REMOVE MULTIPROCESSING
-        print('\nPlease wait while the system checks various solutions..')
-        data = find_iterations_unknown(num_qubits, constraints_ob, precision = 10,
-        multiprocessing=False)
+        qc, iterations = find_iterations_unknown(
+            num_input_qubits,
+            grover_constraints_operator,
+            precision=10
+        )
         
-        print(f"\nAn adequate number of iterations found = {data['iterations']}")
-        qc = data['qc']
+        print()
+        print(f"An adequate number of iterations found = {iterations}")
     
-    # Unknown number of solutions - dynamic circuit
+    # -2 = Unknown number of solutions - implement a dynamic circuit
     elif solutions_num == -2:
-        print('\nThe system builds a dynamic circuit..')
-        qc = SAT_Circuit(num_qubits, constraints_ob, iterations=None)
+        print('The system builds a dynamic circuit..')
+
+        qc = SATCircuit(num_input_qubits, grover_constraints_operator, iterations=None)
         qc.add_input_reg_measurement() # TODO WHY, consider change
 
-    else: # Known number of solutions.
-        iterations = calc_iterations(num_qubits, solutions_num)
+    # Known number of solutions
+    else:
+        print('The system builds the circuit..')
+
+        iterations = calc_iterations(num_input_qubits, solutions_num)
         print(f"\nFor {solutions_num} solutions, {iterations} iterations needed.")
-        qc = SAT_Circuit(num_qubits, constraints_ob, iterations)
-        qc.add_input_reg_measurement() # TODO WHY, consider change
-    
-    # Running the circuit.
-    print(f'\nThe system is running the circuit {shots} times, please wait..')
-    counts, counts_sorted = run_circuit(qc, shots)
 
-    # Output the results.
-    print(f'\nThe results for {shots} shots are:')
-    if jupyter:
-        display(plot_histogram(counts, sort='value', figsize=(20,5)))
-    print(counts_sorted)
-    
-    # Printing the circuit.
-    print('\nThe high level circuit:')
+        qc = SATCircuit(num_input_qubits, grover_constraints_operator, iterations)
+        qc.add_input_reg_measurement() # TODO WHY, consider change
+
+    # Printing the circuit
+    print()
+    print('The high level circuit:')
     if jupyter:
         display(qc.draw(output='mpl', fold=-1))
     else:
         print(qc.draw('text'))
     
-    # Printing the operator's circuit.
-    print('\nThe operator:')
+    # Printing the operator's circuit
+    print()
+    print('The operator:')
     if jupyter:
-        display(constraints_ob.draw(output='mpl', fold=-1))
+        display(grover_constraints_operator.draw(output='mpl', fold=-1))
     else:
-        print(constraints_ob.draw('text'))
+        print(grover_constraints_operator.draw('text'))
 
-    # Preparing the decomposed version of the operator's circuit.
-    gates = list(dict(constraints_ob.count_ops()).keys())
-    remove_list = ['x', 'h', 'mcx', 'ccx', 'mcx_gray']
-    gates_to_decompose = GatesDecompositionSort(circuit_gates = gates, do_not_decompose_gates = remove_list)
-    de_op_qc = constraints_ob.decompose(gates_to_decompose = gates_to_decompose)
-    gates = list(dict(de_op_qc.count_ops()).keys())
-    gates_to_decompose = GatesDecompositionSort(circuit_gates = gates, do_not_decompose_gates = remove_list)
+    # Preparing the decomposed version of the operator's circuit
+    decomposed_operator = decompose_operator(grover_constraints_operator)
 
     # Printing the decomposed version of the operator's circuit.
     print('\nThe operator - one level down:')
-    final_de_op = de_op_qc.decompose(gates_to_decompose = gates_to_decompose)
     if jupyter:
-        display(final_de_op.draw(output='mpl', fold=-1))
+        display(decomposed_operator.draw(output='mpl', fold=-1))
     else:
-        print(final_de_op.draw('text'))
+        print(decomposed_operator.draw('text'))
+
+    # Running the circuit.
+    print()
+    print(f'The system is running the circuit {shots} times, please wait..')
+    counts, counts_sorted = run_circuit(qc, shots)
+
+    # Output the results.
+    print()
+    print(f'The results for {shots} shots are:')
+    if jupyter:
+        display(plot_histogram(counts, sort='value', figsize=(20,5)))
+    print(counts_sorted)
+
+    print()
+    print(f"Operator depth: {decomposed_operator.depth()}")
+    print(f"Operator gates counts: {decomposed_operator.count_ops()}")
+    print()
+
+    deep_decomposed_operator = decomposed_operator.decompose(reps=2)
+    print(f"Decomposed operator depth: {deep_decomposed_operator.depth()}")
+    print(f"Decomposed operator gates counts: {deep_decomposed_operator.count_ops()}")
+    print()
+
+def decompose_operator(operator: GroverConstraintsOperator):
+    """
+    TODO COMPLETE
+    # Preparing the decomposed version of the operator's circuit
+    """
     
-def GatesDecompositionSort(circuit_gates, do_not_decompose_gates):
+    existing_gates = list(dict(operator.count_ops()))
+    gates_to_leave_untouched = ['x', 'h', 'mcx', 'ccx', 'rccx', 'mcx_gray', 'Uncomputation']
+
+    # TODO IMPROVE AND REMOVE DOUBLING
+    gates_to_decompose = gates_decomposition_sort(
+        circuit_gates=copy.deepcopy(existing_gates),
+        do_not_decompose_gates=gates_to_leave_untouched
+    )
+
+    while True:
+        operator = operator.decompose(gates_to_decompose)
+
+        existing_gates = list(dict(operator.count_ops()))
+        # TODO IMPROVE AND REMOVE DOUBLING
+        gates_to_decompose_1 = gates_decomposition_sort(
+            circuit_gates=copy.deepcopy(existing_gates),
+            do_not_decompose_gates=gates_to_leave_untouched
+        )
+
+        if gates_to_decompose_1 == gates_to_decompose:
+            break
+        else:
+            gates_to_decompose = gates_to_decompose_1
+
+    return operator
+
+def gates_decomposition_sort(circuit_gates, do_not_decompose_gates):
     """
     Removes chosen gates from a list of gate types.
 

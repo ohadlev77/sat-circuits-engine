@@ -1,1 +1,1 @@
-from .interface import SAT
+from .interface import sat_interface
