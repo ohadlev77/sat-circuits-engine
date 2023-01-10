@@ -1,7 +1,7 @@
-from sat_circuits_engine.interface import sat_interface
+from sat_circuits_engine.interface import SATInterface
 
 def main():
-    sat_interface()
+    SATInterface()
 
 if __name__ == "__main__":
     main()

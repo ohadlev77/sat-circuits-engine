@@ -7,7 +7,7 @@ import random
 import copy
 import time
 import numpy as np
-from typing import Tuple, Optional, Union
+from typing import Tuple, List, Optional, Union
 
 from qiskit import transpile
 
@@ -154,7 +154,7 @@ def randint_exclude(start, end, exclude):
 
     return randint
 
-def check_solution(solution, data):
+def check_solution(solution: str, data: List[str]) -> bool:
     """
     Classical check of a single solution correctness.
 

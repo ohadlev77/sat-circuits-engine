@@ -124,11 +124,11 @@
 
     "example_13": {
         "num_input_qubits": 8,
-        "num_total_qubits": TODO COMPLETE,
+        "num_total_qubits": "TODO COMPLETE",
         "constraints_string": "([0] != [1]), ([4][3] != [5]), ([1] != [4][3]), ([4][3] != [6]), ([6] != [7]), ([0] != [2]), ([1] != [6]), ([5] != [7])",
-        "num_solutions": TODO COMPLETE,
-        "num_iterations": TODO COMPLETE,
-        "solutions": TODO COMPLETE,
+        "num_solutions": "TODO COMPLETE",
+        "num_iterations": "TODO COMPLETE",
+        "solutions": "TODO COMPLETE",
         "perform_test": false
     }
 }
