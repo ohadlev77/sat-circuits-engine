@@ -4,7 +4,9 @@ TODO COMPLETE
 
 from qiskit import QuantumCircuit, QuantumRegister
 
+from sat_circuits_engine.constraints_parse import ParsedConstraints
 from .single_constraint import SingleConstraintBlock
+
 
 class GroverConstraintsOperator(QuantumCircuit):
     """
@@ -14,7 +16,7 @@ class GroverConstraintsOperator(QuantumCircuit):
 
     def __init__(
         self,
-        constraints_string: str,
+        parsed_constraints: ParsedConstraints,
         num_input_qubits: int,
         mpl: bool = True
     ) -> None:
@@ -30,12 +32,12 @@ class GroverConstraintsOperator(QuantumCircuit):
         """
 
         self.num_input_qubits = num_input_qubits
-        self.constraints_string = constraints_string        
+        self.parsed_constraints = list(parsed_constraints.values())
         self.mpl = mpl
-        
+
         # Transforming `constraints_string` into a list of `SingleConstraintBlock` objects. A few more
         # instance variables defined within `self.constraints_build`, see its docstrings for details.
-        self.constraints_build()
+        self.constraints_blocks_build()
 
         # Initializing the quantum circuit that implements the Grover operator we seek for
         self.input_reg = QuantumRegister(self.num_input_qubits, 'input_reg')
@@ -51,7 +53,7 @@ class GroverConstraintsOperator(QuantumCircuit):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}('{self.constraints_string}')"
 
-    def constraints_build(self) -> None:
+    def constraints_blocks_build(self) -> None:
         """
         Parses the `self.constraints_string` varaible and defines the instance variables:
             # `self.single_constraints_list` (List[str]): a list of single constraints strings.
@@ -65,9 +67,6 @@ class GroverConstraintsOperator(QuantumCircuit):
             satisfied, |0> otherwise).
         """
 
-        # Transforming a string with multiple constraints to a list of single constraints strings
-        self.single_constraints_list = self.constraints_string.split(",")
-
         # Initializing an empty list for appending the `SingleConstraintBlock` objects to
         self.single_constraints_objects = []
 
@@ -78,18 +77,13 @@ class GroverConstraintsOperator(QuantumCircuit):
         # For each constraint we build a `SingleConstraintBlock` object and calculate
         # the number of auxiliary qubits needed to implement it
         # (i.e, how many auxiliary qubits each `SingleConstraintBlock` object uses).
-        for constraint_index, single_constraint_string in enumerate(self.single_constraints_list):
+        for parsed_constraint in self.parsed_constraints:
             self.single_constraints_objects.append(
-                SingleConstraintBlock(constraint_index, single_constraint_string, mpl=self.mpl)
+                SingleConstraintBlock(parsed_constraint, mpl=self.mpl)
             )
 
-            self.total_aux_qubits_needed += (
-                self.single_constraints_objects[constraint_index].aux_qubits_needed
-            )
-
-            self.aux_qubits_needed_list.append(
-                self.single_constraints_objects[constraint_index].aux_qubits_needed
-            )
+            self.aux_qubits_needed_list.append(parsed_constraint.aux_qubits_needed)
+            self.total_aux_qubits_needed += parsed_constraint.aux_qubits_needed
 
         # For each constraint, one "out qubit" is needed
         self.out_qubits_amount = len(self.single_constraints_objects)
@@ -104,7 +98,8 @@ class GroverConstraintsOperator(QuantumCircuit):
         """
 
         # Looping over the constraints, appending one `SingleConstraintBlock` object in each iteration
-        for index, single_constraint_object in enumerate(self.single_constraints_objects):
+        for index, (constraint_block, parsed_constraint) in \
+            enumerate(zip(self.single_constraints_objects, self.parsed_constraints)):
             
             # Defining the `qargs` (`qargs` is a parameter of the `QuantumCircuit.append` method)
             # before appending `single_constraint_object` to `self`. The `qargs` parameter should
@@ -113,22 +108,22 @@ class GroverConstraintsOperator(QuantumCircuit):
             # the following order: [left_side qubits, right_side qubits, aux qubits, out qubit]. Note
             # that aux qubits are optional, as explained in the next comment.
             qargs = (
-                self.input_reg[single_constraint_object.left_side] +
-                self.input_reg[single_constraint_object.right_side]
+                self.input_reg[parsed_constraint.left_side] +
+                self.input_reg[parsed_constraint.right_side]
             )
 
             # Handling the case where auxiliary qubits is needed (i.e for any constraint that involves
             # with more than 2 qubits).
-            if single_constraint_object.aux_qubits_needed != 0:
+            if parsed_constraint.aux_qubits_needed != 0:
 
                 # Defining the range of the auxiliary qubits that is allocated for each constraint -
                 # `aux_bottom` is the start qubit index, and `aux_top` is the end qubit index.
                 aux_bottom = sum(
-                    self.aux_qubits_needed_list[0:single_constraint_object.constraint_index]
+                    self.aux_qubits_needed_list[0:parsed_constraint.constraint_index]
                 )
                 aux_top = (
                     aux_bottom +
-                    self.aux_qubits_needed_list[single_constraint_object.constraint_index]
+                    self.aux_qubits_needed_list[parsed_constraint.constraint_index]
                 )
 
                 qargs += self.aux_reg[aux_bottom:aux_top]
@@ -140,14 +135,14 @@ class GroverConstraintsOperator(QuantumCircuit):
             # First constraint
             if index == 0:    
                 qargs.append(self.out_reg[index])
-                self.append(instruction=single_constraint_object, qargs=qargs)
+                self.append(instruction=constraint_block, qargs=qargs)
 
                 intermidate_flag = False
 
             # Last constraint
             if index == len(self.single_constraints_objects) - 1:
                 qargs.append(self.out_aux_reg)
-                self.append(instruction=single_constraint_object, qargs=qargs)
+                self.append(instruction=constraint_block, qargs=qargs)
 
                 self.barrier()
                 qc_dagger = self.inverse()
@@ -161,9 +156,9 @@ class GroverConstraintsOperator(QuantumCircuit):
             if intermidate_flag:
                 qargs.append(self.out_aux_reg)
                 
-                self.append(instruction=single_constraint_object, qargs=qargs)
+                self.append(instruction=constraint_block, qargs=qargs)
                 self.rccx(self.out_aux_reg, self.out_reg[index - 1], self.out_reg[index])
-                self.append(instruction=single_constraint_object.inverse(), qargs=qargs)
+                self.append(instruction=constraint_block.inverse(), qargs=qargs)
 
             self.barrier()
             

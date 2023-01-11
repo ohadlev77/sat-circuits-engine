@@ -1,6 +1,6 @@
 from typing import List, Dict, Union
 
-from sat_circuits_engine.circuit import GroverConstraintsOperator, SingleConstraintBlock
+from sat_circuits_engine.constraints_parse import ParsedConstraints, SingleConstraintParsed
 
 """
 TODO COMPLETE
@@ -11,14 +11,14 @@ class ClassicalVerifier:
     Contains an interface for verifying if bitstrings satisfy a set of constraints.
     """
 
-    def __init__(self, constraints: GroverConstraintsOperator) -> None:
+    def __init__(self, constraints: ParsedConstraints) -> None:
         """
         Args:
             constraints (GroverConstraintsOperator): an object that contains the already parsed
             data from a set of constraints.
         """
 
-        self.constraints = constraints.single_constraints_objects
+        self.constraints = list(constraints.values())
 
     def verify(self, bitstring: str) -> bool:
         """
@@ -78,7 +78,7 @@ class ClassicalVerifier:
 
     def identify_constraint_balanced(
         self,
-        constraint: SingleConstraintBlock
+        constraint: SingleConstraintParsed
     ) -> Union[bool, Dict[str, Union[List[int], int]]]:
         """
         For the case of an unbalnced constraint, this method identifies and parses the imbalance.

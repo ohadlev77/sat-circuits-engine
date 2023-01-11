@@ -9,11 +9,13 @@ import time
 import numpy as np
 from typing import Tuple, List, Optional, Union
 
-from qiskit import transpile
+from qiskit import transpile, QuantumCircuit
 
 from sat_circuits_engine.util import timer_dec
 from sat_circuits_engine.util.settings import backend
-from sat_circuits_engine.circuit import SATCircuit, GroverConstraintsOperator
+from sat_circuits_engine.circuit import SATCircuit
+
+from .classical_verifier import ClassicalVerifier
 
 def calc_iterations(num_qubits, num_solutions):
     """
@@ -34,7 +36,7 @@ def calc_iterations(num_qubits, num_solutions):
     return iterations
 
 # def is_qc_x_iterations_a_match(qc, precision, constraints_data, iterations=None):
-def is_qc_x_iterations_a_match(args_dict):
+def is_qc_x_iterations_a_match(qc: QuantumCircuit, verifier: ClassicalVerifier, precision: int) -> bool:
     """
     Checks classically whether running `qc` `precision` times gives `precision` correct solutions.
     
@@ -44,13 +46,13 @@ def is_qc_x_iterations_a_match(args_dict):
         constraints_data: a list of `engine.Constraint` objects.
     """
 
-    job = backend.run(transpile(args_dict['qc'], backend), shots=args_dict['precision'], memory=True)
+    job = backend.run(transpile(qc, backend), shots=precision, memory=True)
     outcomes = job.result().get_memory()
 
     # In `outcomes` we have `precision` results - If all of them are solutions, we have a match.
     match = True
     for outcome in outcomes:
-        match = check_solution(outcome, args_dict['constraints_data'])
+        match = verifier.verify(outcome)
         if not match:
             break
 
@@ -59,7 +61,8 @@ def is_qc_x_iterations_a_match(args_dict):
 @timer_dec
 def find_iterations_unknown(
     num_input_qubits: int,
-    grover_constraints_operator: GroverConstraintsOperator,
+    grover_constraints_operator,
+    parsed_constraints,
     precision: Optional[int] = 10
 ) -> Tuple[str, Union[SATCircuit, int]]:
     """
@@ -89,6 +92,9 @@ def find_iterations_unknown(
     Raises:
         # TODO COMPLETE
     """
+
+    # TODO EXPLAIN
+    verifier = ClassicalVerifier(parsed_constraints)
 
     # TODO COMPLETE WHAT IS THIS
     N = 2 ** num_input_qubits
@@ -124,11 +130,7 @@ def find_iterations_unknown(
                 qc.add_input_reg_measurement()
                 qc_storage[iterations] = copy.deepcopy(qc)
 
-            match = is_qc_x_iterations_a_match({
-                    'qc': qc,
-                    'precision': precision,
-                    'constraints_data': grover_constraints_operator.single_constraints_objects
-            })
+            match = is_qc_x_iterations_a_match(qc, verifier, precision)
 
             if match:
                 return qc, iterations
@@ -154,73 +156,75 @@ def randint_exclude(start, end, exclude):
 
     return randint
 
-def check_solution(solution: str, data: List[str]) -> bool:
-    """
-    Classical check of a single solution correctness.
+#################### TODO REMOVE ################
 
-    Args:
-        solution (str) - a possible solution bit-string.
-        data (list of dict) - a parsed constraints data.
+# def check_solution(solution: str, data: List[str]) -> bool:
+#     """
+#     Classical check of a single solution correctness.
 
-    Returns:
-        True - if `solution` is indeed a solution to the given SAT problem. False otherwise.
-    """
+#     Args:
+#         solution (str) - a possible solution bit-string.
+#         data (list of dict) - a parsed constraints data.
+
+#     Returns:
+#         True - if `solution` is indeed a solution to the given SAT problem. False otherwise.
+#     """
     
-    solution = solution[::-1] # Reversing oreder for conveniency
-    match = True
+#     solution = solution[::-1] # Reversing oreder for conveniency
+#     match = True
     
-    # Going over the constraints
-    for c in data:
-        l = c.left_side
-        r = c.right_side
-        op = c.operator
+#     # Going over the constraints
+#     for c in data:
+#         l = c.left_side
+#         r = c.right_side
+#         op = c.operator
         
-        l_len = len(l)
-        r_len = len(r)
-        if r_len <  l_len:
-            min_len = len(r)
-            max_len = len(l)
-        else:
-            min_len = len(l)
-            max_len = len(r)
+#         l_len = len(l)
+#         r_len = len(r)
+#         if r_len <  l_len:
+#             min_len = len(r)
+#             max_len = len(l)
+#         else:
+#             min_len = len(l)
+#             max_len = len(r)
 
-        if op == '==': # The case of op = '==' is an AND case
-            for i in range(min_len):
-                if solution[l[i]] != solution[r[i]]:
-                    match = False
-                    break
+#         if op == '==': # The case of op = '==' is an AND case
+#             for i in range(min_len):
+#                 if solution[l[i]] != solution[r[i]]:
+#                     match = False
+#                     break
             
-            # Handling the case where op == '==' and an different amount of qubits are compared
-            for i in range(min_len, max_len):
-                try:
-                    if solution[l[i]] != '0':
-                        match = False
-                        break
-                except:
-                    if solution[r[i]] != '0':
-                        match = False
-                        break
+#             # Handling the case where op == '==' and an different amount of qubits are compared
+#             for i in range(min_len, max_len):
+#                 try:
+#                     if solution[l[i]] != '0':
+#                         match = False
+#                         break
+#                 except:
+#                     if solution[r[i]] != '0':
+#                         match = False
+#                         break
                 
-        else: # The case of op = '!=' is an OR case
-            count = 0
-            for i in range(min_len):
-                if solution[l[i]] == solution[r[i]]:
-                    count += 1
-            if count == min_len:
-                # Handling the case where op == '!=' and an different amount of qubits are compared
-                for i in range(min_len, max_len):
-                    try:
-                        if solution[l[i]] == '0':
-                            count += 1
-                    except:
-                        if solution[r[i]] == '0':
-                            count += 1
-                if count == max_len:
-                    match = False
+#         else: # The case of op = '!=' is an OR case
+#             count = 0
+#             for i in range(min_len):
+#                 if solution[l[i]] == solution[r[i]]:
+#                     count += 1
+#             if count == min_len:
+#                 # Handling the case where op == '!=' and an different amount of qubits are compared
+#                 for i in range(min_len, max_len):
+#                     try:
+#                         if solution[l[i]] == '0':
+#                             count += 1
+#                     except:
+#                         if solution[r[i]] == '0':
+#                             count += 1
+#                 if count == max_len:
+#                     match = False
         
-        # If at least 1 constraint is False - return False
-        if match == False:
-            return match
+#         # If at least 1 constraint is False - return False
+#         if match == False:
+#             return match
         
-    # If we got this far then match = True and the string being checked is indeed a solution
-    return match
+#     # If we got this far then match = True and the string being checked is indeed a solution
+#     return match
