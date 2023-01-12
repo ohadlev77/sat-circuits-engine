@@ -17,7 +17,7 @@ from matplotlib.figure import Figure
 from sat_circuits_engine.util import timer_dec
 from sat_circuits_engine.util.settings import backend, CONSTRAINTS_FORMAT_PATH
 from sat_circuits_engine.circuit import GroverConstraintsOperator, SATCircuit
-from sat_circuits_engine.classical_processing import find_iterations_unknown, calc_iterations
+from sat_circuits_engine.classical_processing import find_iterations_unknown, calc_iterations, ClassicalVerifier
 from sat_circuits_engine.constraints_parse import SingleConstraintParsed, ParsedConstraints
 
 from .interactive_inputs import interactive_inputs
@@ -69,8 +69,14 @@ class SATInterface:
         self.display_circuits(overall_sat_circuit)
 
         # Running `overall_sat_circuit` and displaying the results
-        counts, counts_sorted = self.run_overall_sat_circuit(overall_sat_circuit, self.shots)
-        self.display_results(overall_sat_circuit, self.shots, counts, counts_sorted)
+        counts_parsed = self.run_overall_sat_circuit(overall_sat_circuit, self.shots)
+        self.display_results(
+            overall_sat_circuit,
+            self.shots,
+            counts_parsed['counts'],
+            counts_parsed['counts_sorted'],
+            counts_parsed['distilled_solutions']
+        )
 
 
     def build_grover_constraints_operator(self):
@@ -171,10 +177,32 @@ class SATInterface:
         job = backend.run(transpile(qc, backend), shots=shots)
         results = job.result()
         counts = results.get_counts()
-        counts_sorted = sorted(counts.items(), key=lambda x: x[1]) # Sorting results in an ascending order.
+        
+        return self.parse_counts(counts)
 
-        return counts, counts_sorted
-    
+    def parse_counts(self, counts):
+        """
+        TODO COMPLETE
+        """
+
+        # Sorting results in an a descending order
+        counts_sorted = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+
+        # Generating a set of distilled verified-only solutions
+        verifier = ClassicalVerifier(self.parsed_constraints)
+        distilled_solutions = set()
+        for count_item in counts_sorted:
+            if verifier.verify(count_item[0]):
+                distilled_solutions.add(count_item[0])
+            else:
+                break
+
+        return {
+            'counts': counts,
+            'counts_sorted': counts_sorted,
+            'distilled_solutions': distilled_solutions
+        }
+
     def display_circuits(self, qc) -> None:
         """
         TODO COMPLETE
@@ -213,16 +241,17 @@ class SATInterface:
         print(f"Decomposed operator gates counts: {deep_decomposed_operator.count_ops()}")
         print()
     
-    def display_results(self, qc, shots, counts, counts_sorted) -> None:
+    def display_results(self, qc, shots, counts, counts_sorted, distilled_solutions) -> None:
         """
         TODO COMPLETE
         # Output the results.
         """
 
+        output_text = f"Distilled solutions:\n{distilled_solutions}\n\nAll counts:\n{counts_sorted}"
         self.output_to_platform(
             title=f"The results for {shots} shots are:",
-            output_terminal=counts_sorted,
-            output_jupyter=plot_histogram(counts, sort='value', figsize=(20,5)),
+            output_terminal=output_text,
+            output_jupyter=plot_histogram(counts, sort='value_desc', figsize=(20,5)),
             display_both_on_jupyter=True
         )
 

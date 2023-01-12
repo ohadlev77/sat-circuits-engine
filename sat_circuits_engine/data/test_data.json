@@ -1,4 +1,5 @@
 {
+
     "example_1": {
         "num_input_qubits": 4,
         "num_total_qubits": 7,
@@ -76,7 +77,7 @@
         "num_solutions": 8,
         "num_iterations": 8,
         "solutions": ["1010101010", "0000000010", "1010101001", "0000000001", "1111111110", "1111111101", "0101010110", "0101010101"],
-        "perform_test": false
+        "perform_test": true
     },
 
     "example_9": {
@@ -89,7 +90,7 @@
                       "01110011111", "01111011111", "10000100000", "10001100000", "10100100000", "10101100000",
                       "11010011111", "11011011111", "11110011111", "11111011111"],
         "perform_test": false,
-        "note": "*** WARNING - This example exploits 27 qubits and is heavy for a classical computer ***"
+        "note": "*** WARNING - This example exploits 27 qubits and is heavy for a classical computer (and therefore not performing tests for this as default)***"
     },
 
     "example_10": {
@@ -99,7 +100,7 @@
         "num_solutions": 2,
         "num_iterations": 8,
         "solutions": ["11000000", "00111111"],
-        "perform_test": false
+        "perform_test": true
     },
 
     "example_11": {
@@ -107,9 +108,9 @@
         "num_total_qubits": 24,
         "constraints_string": "([9][8][7][6] == [5][4][3][2]),([1] != [0]),([9][8] == [7][6]), ([3][2] == [5][4]), ([9] == [0])",
         "num_solutions": 4,
-        "num_iterations": 11,
+        "num_iterations": 12,
         "solutions": ["0101010110", "1111111101", "1010101001", "0000000010"],
-        "perform_test": false
+        "perform_test": true
     },
 
     "example_12": {
@@ -119,7 +120,7 @@
         "num_solutions": 8,
         "num_iterations": 12,
         "solutions": ["11101110110", "00010001001", "10010001001", "00000001000", "11111110111", "01101110110", "01111110111", "10000001000"],
-        "perform_test": false
+        "perform_test": true
     },
 
     "example_13": {
@@ -129,7 +130,7 @@
         "num_solutions": 4,
         "num_iterations": 6,
         "solutions": ["01110001", "01111001", "10010110", "10011110"],
-        "perform_test": false
+        "perform_test": true
     }
 }
 

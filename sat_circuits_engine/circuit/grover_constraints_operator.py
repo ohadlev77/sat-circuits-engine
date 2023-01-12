@@ -43,9 +43,8 @@ class GroverConstraintsOperator(QuantumCircuit):
         self.input_reg = QuantumRegister(self.num_input_qubits, 'input_reg')
         self.aux_reg = QuantumRegister(self.total_aux_qubits_needed, 'aux_reg')
         self.out_reg = QuantumRegister(self.out_qubits_amount, 'out_reg')
-        self.out_aux_reg = QuantumRegister(1, 'out_aux_reg')
         self.ancilla = QuantumRegister(1, 'ancilla')
-        super().__init__(self.input_reg, self.aux_reg, self.out_reg, self.out_aux_reg, self.ancilla)
+        super().__init__(self.input_reg, self.aux_reg, self.out_reg, self.ancilla)
         
         # Assembling `self` to a complete Grover operator
         self.assemble()
@@ -141,23 +140,23 @@ class GroverConstraintsOperator(QuantumCircuit):
 
             # Last constraint
             if index == len(self.single_constraints_objects) - 1:
-                qargs.append(self.out_aux_reg)
+                qargs.append(self.out_reg[index])
                 self.append(instruction=constraint_block, qargs=qargs)
 
                 self.barrier()
                 qc_dagger = self.inverse()
                 qc_dagger.name = 'Uncomputation'
                 
-                self.ccx(self.out_aux_reg, self.out_reg[index - 1], self.ancilla)
+                self.ccx(self.out_reg[index - 1], self.out_reg[index], self.ancilla)
 
                 intermidate_flag = False
                 
             # Intermidate constraints
             if intermidate_flag:
-                qargs.append(self.out_aux_reg)
+                qargs.append(self.out_reg[index + 1])
                 
                 self.append(instruction=constraint_block, qargs=qargs)
-                self.rccx(self.out_aux_reg, self.out_reg[index - 1], self.out_reg[index])
+                self.rccx(self.out_reg[index + 1], self.out_reg[index - 1], self.out_reg[index])
                 self.append(instruction=constraint_block.inverse(), qargs=qargs)
 
             self.barrier()

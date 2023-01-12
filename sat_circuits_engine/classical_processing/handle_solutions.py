@@ -32,7 +32,9 @@ def calc_iterations(num_qubits, num_solutions):
     # N is the dimension of the Hilbert space spanned by `num_qubits`
     N = 2 ** num_qubits
 
-    iterations = int((np.pi / 4) * np.sqrt(N / num_solutions))
+    iterations = int(
+        (np.pi / 4) * np.sqrt(N / num_solutions)
+    )
     return iterations
 
 # def is_qc_x_iterations_a_match(qc, precision, constraints_data, iterations=None):
