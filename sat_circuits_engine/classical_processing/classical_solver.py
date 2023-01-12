@@ -4,7 +4,7 @@ TODO COMPLETE
 
 from typing import List
 
-from sat_circuits_engine.circuit import GroverConstraintsOperator
+from sat_circuits_engine.constraints_parse import ParsedConstraints
 
 # TODO IN THE END CHANGE THIS TO A RELATIVE IMPORT
 from classical_verifier import ClassicalVerifier
@@ -26,8 +26,8 @@ def solve_classically(num_input_qubits: int, constraints_string: str) -> List[st
     N = 2 ** num_input_qubits
 
     # TODO COMPLETE
-    constraints = GroverConstraintsOperator(constraints_string, num_input_qubits)
-    verifier = ClassicalVerifier(constraints)
+    parsed_constraints = ParsedConstraints(constraints_string)
+    verifier = ClassicalVerifier(parsed_constraints)
     
     solutions = []
     for decmial_num in range(N):

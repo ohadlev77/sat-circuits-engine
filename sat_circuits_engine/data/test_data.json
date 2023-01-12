@@ -53,9 +53,9 @@
         "num_input_qubits": 7,
         "num_total_qubits": 15,
         "constraints_string": "([3][2] != [0]),([6] == [5]),([6][5][4] == [3])",
-        "num_solutions": 6,
-        "num_iterations": 3,
-        "solutions": ["0000001", "0000011", "0000100", "0000101", "0000110", "0000111"],
+        "num_solutions": 12,
+        "num_iterations": 2,
+        "solutions": ["0000001", "0000011", "0000100", "0000110", "0011000", "0011001", "0011010", "0011011", "0011100", "0011101", "0011110", "0011111"],
         "perform_test": true
     },
 
@@ -124,11 +124,11 @@
 
     "example_13": {
         "num_input_qubits": 8,
-        "num_total_qubits": "TODO COMPLETE",
+        "num_total_qubits": 22,
         "constraints_string": "([0] != [1]), ([4][3] != [5]), ([1] != [4][3]), ([4][3] != [6]), ([6] != [7]), ([0] != [2]), ([1] != [6]), ([5] != [7])",
-        "num_solutions": "TODO COMPLETE",
-        "num_iterations": "TODO COMPLETE",
-        "solutions": "TODO COMPLETE",
+        "num_solutions": 4,
+        "num_iterations": 6,
+        "solutions": ["01110001", "01111001", "10010110", "10011110"],
         "perform_test": false
     }
 }
