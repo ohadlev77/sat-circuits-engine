@@ -1,10 +1,10 @@
+"""
+`ClassicalVerifier` class.
+"""
+
 from typing import List, Dict, Union
 
 from sat_circuits_engine.constraints_parse import ParsedConstraints, SingleConstraintParsed
-
-"""
-TODO COMPLETE
-"""
 
 class ClassicalVerifier:
     """
@@ -14,7 +14,7 @@ class ClassicalVerifier:
     def __init__(self, constraints: ParsedConstraints) -> None:
         """
         Args:
-            constraints (GroverConstraintsOperator): an object that contains the already parsed
+            constraints (ParsedConstraints): an object that contains the already parsed
             data from a set of constraints.
         """
 
@@ -35,7 +35,7 @@ class ClassicalVerifier:
         # Reversing the checked `bitstring` (a bitstring) for little-endianess    
         reversed_bitstring = bitstring[::-1]
 
-        # A flag that indicates that all constraints checked so far (right now 0 constraints) are satisfied
+        # A flag that indicates that all constraints checked so far (right now 0) are satisfied
         still_satisfied = True
 
         # Going over the constraints

@@ -15,7 +15,7 @@ from qiskit.visualization.circuit.text import TextDrawing
 from matplotlib.figure import Figure
 
 from sat_circuits_engine.util import timer_dec
-from sat_circuits_engine.util.settings import backend, CONSTRAINTS_FORMAT_PATH
+from sat_circuits_engine.util.settings import BACKEND, CONSTRAINTS_FORMAT_PATH
 from sat_circuits_engine.circuit import GroverConstraintsOperator, SATCircuit
 from sat_circuits_engine.classical_processing import find_iterations_unknown, calc_iterations, ClassicalVerifier
 from sat_circuits_engine.constraints_parse import SingleConstraintParsed, ParsedConstraints
@@ -88,7 +88,6 @@ class SATInterface:
         self.grover_constraints_operator = GroverConstraintsOperator(
             self.parsed_constraints,
             self.num_input_qubits,
-            mpl=self.jupyter
         )
 
     def identify_platform(self) -> None:
@@ -174,7 +173,7 @@ class SATInterface:
         print()
         print(f"The system is running the circuit {shots} times, please wait..")
 
-        job = backend.run(transpile(qc, backend), shots=shots)
+        job = BACKEND.run(transpile(qc, BACKEND), shots=shots)
         results = job.result()
         counts = results.get_counts()
         

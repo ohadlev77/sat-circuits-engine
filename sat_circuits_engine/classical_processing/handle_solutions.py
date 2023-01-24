@@ -12,7 +12,7 @@ from typing import Tuple, List, Optional, Union
 from qiskit import transpile, QuantumCircuit
 
 from sat_circuits_engine.util import timer_dec
-from sat_circuits_engine.util.settings import backend
+from sat_circuits_engine.util.settings import BACKEND
 from sat_circuits_engine.circuit import SATCircuit
 
 from .classical_verifier import ClassicalVerifier
@@ -48,7 +48,7 @@ def is_qc_x_iterations_a_match(qc: QuantumCircuit, verifier: ClassicalVerifier, 
         constraints_data: a list of `engine.Constraint` objects.
     """
 
-    job = backend.run(transpile(qc, backend), shots=precision, memory=True)
+    job = BACKEND.run(transpile(qc, BACKEND), shots=precision, memory=True)
     outcomes = job.result().get_memory()
 
     # In `outcomes` we have `precision` results - If all of them are solutions, we have a match.
