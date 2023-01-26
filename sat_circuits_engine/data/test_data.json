@@ -89,7 +89,7 @@
         "solutions": ["00000100000", "00001100000", "00100100000", "00101100000", "01010011111", "01011011111",
                       "01110011111", "01111011111", "10000100000", "10001100000", "10100100000", "10101100000",
                       "11010011111", "11011011111", "11110011111", "11111011111"],
-        "perform_test": false,
+        "perform_test": true,
         "note": "*** WARNING - This example exploits 27 qubits and is heavy for a classical computer (and therefore not performing tests for this as default)***"
     },
 
@@ -125,12 +125,72 @@
 
     "example_13": {
         "num_input_qubits": 8,
-        "num_total_qubits": 22,
-        "constraints_string": "([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2),([2] + [5] + [4][3] == 3)",
+        "num_total_qubits": "TODO COMPLETE",
+        "constraints_string": "([0] != [1]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7])",
         "num_solutions": 4,
         "num_iterations": 6,
         "solutions": ["01110001", "01111001", "10010110", "10011110"],
+        "perform_test": true
+    },
+
+    "example_14": {
+        "num_input_qubits": 8,
+        "num_total_qubits": "TODO COMPLETE",
+        "constraints_string": "([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2),([2] + [5] + [4][3] == 3)",
+        "num_solutions": "TODO COMPLETE",
+        "num_iterations": "TODO COMPLETE",
+        "solutions": ["TODO COMPLETE"],
         "perform_test": false
+    },
+
+    "example_15": {
+        "num_input_qubits": 8,
+        "num_total_qubits": 21,
+        "constraints_string": "([0] != [1]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)",
+        "num_solutions": 2,
+        "num_iterations": 8,
+        "solutions": ["01110001", "10010110"],
+        "perform_test": true
+    },
+
+    "example_16": {
+        "num_input_qubits": 8,
+        "num_total_qubits": "TODO COMPLETE",
+        "constraints_string": "([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)",
+        "num_solutions": 1,
+        "num_iterations": 12,
+        "solutions": ["10010110"],
+        "perform_test": true
+    },
+
+    "example_17": {
+        "num_input_qubits": 5,
+        "num_total_qubits": "TODO COMPLETE",
+        "constraints_string": "([4] == [3]),([2][1][0] == 6)",
+        "num_solutions": 2,
+        "num_iterations": 3,
+        "solutions": ["00110", "11110"],
+        "perform_test": true
+    },
+
+    "example_18": {
+        "num_input_qubits": 7,
+        "num_total_qubits": "TODO COMPLETE",
+        "constraints_string": "([5] == [6]),([4][3][2][1][0] == 22)",
+        "num_solutions": 2,
+        "num_iterations": 6,
+        "solutions": ["1110110", "0010110"],
+        "perform_test": true
+    },
+
+    "example_19": {
+        "num_input_qubits": 8,
+        "num_total_qubits": 22,
+        "constraints_string": "([0] != [1]),([2] == 1),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)",
+        "num_solutions": 1,
+        "num_iterations": 12,
+        "solutions": ["10010110"],
+        "perform_test": true
     }
 }
 

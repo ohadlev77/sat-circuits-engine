@@ -41,9 +41,16 @@ class SATCircuit(QuantumCircuit):
         self.sat_op = grover_constraints_operator
         self.diffuser = GroverDiffuser(num_input_qubits)
         
+        # TOTAL AUX WIDTH EXPLAIN BETTER
+        self.total_aux_width = (
+            self.sat_op.comparison_aux_width +
+            self.sat_op.left_aux_width +
+            self.sat_op.right_aux_width
+        )
+
         # Initializing Circuit
         self.input_reg = QuantumRegister(num_input_qubits, 'input_reg')
-        self.aux_reg = QuantumRegister(self.sat_op.total_aux_qubits_needed, 'aux_reg')
+        self.aux_reg = QuantumRegister(self.total_aux_width, 'aux_reg')
         self.out_reg = QuantumRegister(self.sat_op.out_qubits_amount, 'out_reg')
         self.ancilla = QuantumRegister(1, 'ancilla')
         self.results = ClassicalRegister(num_input_qubits, 'results')
@@ -154,7 +161,11 @@ class SATCircuit(QuantumCircuit):
 
         self.measure(self.input_reg, self.results)
 
-def assemble_grover_iterator(operator: QuantumCircuit, diffuser: QuantumCircuit, num_input_qubits: int) -> QuantumCircuit:
+def assemble_grover_iterator(
+    operator: GroverConstraintsOperator,
+    diffuser: GroverDiffuser,
+    num_input_qubits: int
+) -> QuantumCircuit:
     """
     TODO COMPLETE
     """

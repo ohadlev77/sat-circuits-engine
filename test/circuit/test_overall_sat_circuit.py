@@ -34,38 +34,36 @@ class SATInterfaceTest(TestCase):
                 counts_trimmed = counts_sorted[:example['num_solutions']]
                 distilled_bitstrings = list(map(lambda x: x[0], counts_trimmed))
 
-                # print(counts)
-                # print(f"counts_sorted = {counts_sorted}")
-                # print(f"counts_trimmed = {counts_trimmed}")
-
-                # # TODO REMOVE    
+                # TODO REMOVE    
                 # print()
                 # print()
                 # print(circuit.draw())
                 # print(operator.draw())
 
                 # l = list(operator.count_ops().keys())
-                # l.remove('ccx')
-                # l.remove('rccx')
-                # l.remove('Uncomputation')
+                # try:
+                #     l.remove('ccx')
+                #     l.remove('Uncomputation')
+                #     l.remove('rccx')
+                # except ValueError:
+                #     pass
 
                 # print()
-                # print(operator.decompose(gates_to_decompose=l).draw())
+                # print(operator.decompose(gates_to_decompose=l).decompose(gates_to_decompose=['110_encoding']).draw())
                 # print()
                 # print()
 
+                print(example['constraints_string'])
+                print()
+                
                 # print(counts)
                 # print()
-                # print(f"counts_sorted = {counts_sorted}")
-                # print()
-                # print(f"counts_trimmed = {counts_trimmed}")
+                print(f"counts_sorted = {counts_sorted}")
+                print()
+                print(f"counts_trimmed = {counts_trimmed}")
 
                 # print()
                 # print(f"data_solutions = {example['solutions']}")
-
-                # print()
-                # print(example['constraints_string'])
-                # print()
 
                 for solution in example['solutions']:
                     self.assertIn(solution, distilled_bitstrings)

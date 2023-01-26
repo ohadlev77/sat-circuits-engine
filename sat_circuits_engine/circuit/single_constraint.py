@@ -2,7 +2,7 @@
 This module contains the `SingleConstraintBlock` class.
 """
 
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Tuple
 
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit import Qubit
@@ -27,14 +27,15 @@ class SingleConstraintBlock(QuantumCircuit):
         """
         
         self.parsed_data = parsed_data
+        self.constraint_index = self.parsed_data.constraint_index
 
         # Index 0 = left, 1 = right
-        self.side_contents = [self.parsed_data.left_side_content, self.parsed_data.right_side_content]
+        # self.side_contents = [self.parsed_data.left_side_content, self.parsed_data.right_side_content]
 
         # Base container for this object's registers
         self.regs = {
             'inputs': [QuantumRegister(0, 'input_left'), QuantumRegister(0, 'input_right')],
-            'sides_aux': [QuantumRegister(0, 'aux_left'), QuantumRegister(0, 'aux_right')],
+            'sides_aux': [QuantumRegister(0, f"c{self.constraint_index}_aux_left"), QuantumRegister(0, f"c{self.constraint_index}_aux_right")]
         }
 
         # Performing arithmetics in either of the constraint's equation sides, if needed
@@ -51,12 +52,6 @@ class SingleConstraintBlock(QuantumCircuit):
 
         # Assembling a circuit implementation of the given constraint
         self.assemble()
-
-        # TODO COMPLETE
-        self.num_total_aux_qubits = len(self.regs['sides_aux'][0]) + len(self.regs['sides_aux'][1])
-
-        if 'comparison_aux' in self.regs.keys():
-            self.num_total_aux_qubits += len(self.regs['comparison_aux'][0])
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}" \
@@ -71,11 +66,13 @@ class SingleConstraintBlock(QuantumCircuit):
         self.arith_blocks = [None, None]
         self.integer_flags = [False, False]
 
-        for side in [0, 1]:
+        for side, (bit_indexes, int_bitstring) in enumerate(
+            zip(self.parsed_data.sides_bit_indexes, self.parsed_data.sides_int_bitstrings)
+        ):
 
             # Arithmetics needed
-            if len(self.side_contents[side]) > 1:
-                self.arith_blocks[side] = InnerConstraintArithmetic(self.side_contents[side])
+            if (len(bit_indexes) > 1) or (len(bit_indexes) == 1 and int_bitstring is not None):
+                self.arith_blocks[side] = InnerConstraintArithmetic(bit_indexes, int_bitstring)
 
                 self.regs['inputs'][side] = QuantumRegister(
                     self.arith_blocks[side].total_operands_width,
@@ -88,9 +85,9 @@ class SingleConstraintBlock(QuantumCircuit):
                 )
 
             # Single qubits bundle
-            elif isinstance(self.side_contents[side][0], list):
+            elif len(bit_indexes) == 1 and int_bitstring is None:
                 self.regs['inputs'][side] = QuantumRegister(
-                    len(self.side_contents[side][0]),
+                    len(bit_indexes[0]),
                     self.regs['inputs'][side].name
                 )
 
@@ -107,19 +104,20 @@ class SingleConstraintBlock(QuantumCircuit):
         compare = []
 
         # Appending arithmetic blocks if needed TODO IMPROVE
-        for arith_block, input_reg, side_aux_reg, integer_flag, side_content in zip(
+        for arith_block, input_reg, side_aux_reg, integer_flag, int_bitstring in zip(
             self.arith_blocks,
             self.regs['inputs'],
             self.regs['sides_aux'],
             self.integer_flags,
-            self. side_contents
+            self.parsed_data.sides_int_bitstrings
         ):
             if arith_block is not None:
-                self.append(arith_block, qargs=input_reg[:] + side_aux_reg[:])
+                # TODO CONSIDER [::-1]
+                self.append(arith_block, qargs=input_reg[:] + side_aux_reg[::-1])
                 compare.append(side_aux_reg)
             else:
                 if integer_flag:
-                    compare.append(side_content[0])
+                    compare.append(int_bitstring)
                 else:
                     compare.append(input_reg)
 
@@ -141,7 +139,7 @@ class SingleConstraintBlock(QuantumCircuit):
     ) -> None:
         """
         NO AUX QUBITS NEEDED
-        TOOD COMPLETE
+        TODO COMPLETE
         """
 
         self.add_out_reg()
@@ -155,7 +153,7 @@ class SingleConstraintBlock(QuantumCircuit):
             int_bitstring = int_bitstring.zfill(len(qubits_bundle))
 
         flipping_zeros = QuantumCircuit(len(int_bitstring), name=f"{int_bitstring}_encoding")
-        for digit, qubit in zip(reversed(int_bitstring), flipping_zeros.qubits):
+        for digit, qubit in zip(int_bitstring, flipping_zeros.qubits):
             if digit == '0':
                 flipping_zeros.x(qubit)
 
@@ -194,6 +192,11 @@ class SingleConstraintBlock(QuantumCircuit):
             self.add_comparison_aux_reg(min(len_1, len_2))
         self.add_out_reg()
 
+        # TODO NEEDED OR NOT? SEEMS TO BE TAKEN CARE BY THE GroverConstraintsOperator class
+        # Reversing for little-endian convention
+        # qubits_bundle_1 = list(reversed(qubits_bundle_1))
+        # qubits_bundle_2 = list(reversed(qubits_bundle_2))
+
         if len_1 == 1 and len_2 == 1:
             self.two_qubits_comparison(
                 qubits_bundle_1,
@@ -202,11 +205,7 @@ class SingleConstraintBlock(QuantumCircuit):
                 operator=operator
             )
             return
-
-        # TODO NEEDED OR NOT?
-        # Reversing for little-endian convention
-        # qubits_bundle_1 = list(reversed(qubits_bundle_1))
-        # qubits_bundle_2 = list(reversed(qubits_bundle_2))
+        
 
         if len_1 > len_2:
             long = qubits_bundle_1
@@ -304,7 +303,7 @@ class SingleConstraintBlock(QuantumCircuit):
             width (int): number of qubits in the register.
         """
 
-        aux_reg = QuantumRegister(width, "aux_comparison")
+        aux_reg = QuantumRegister(width, f"c{self.constraint_index}_aux_comparison")
         self.add_register(aux_reg)
         self.regs['comparison_aux'] = [aux_reg]
 
@@ -314,7 +313,7 @@ class SingleConstraintBlock(QuantumCircuit):
         Adds it also to self.regs under the key "out" (accessible via `self.regs['out'][0]).
         """
         
-        out_reg = QuantumRegister(1, "out")
+        out_reg = QuantumRegister(1, f"c{self.constraint_index}_out")
         self.add_register(out_reg)
         self.regs['out'] = [out_reg]
 
@@ -325,29 +324,26 @@ class InnerConstraintArithmetic(QuantumCircuit):
 
     def __init__(
         self,
-        single_sided_parsed_equation: List[Union[List[int], str]],
+        single_side_bits_indexes: List[Tuple[List[int]]],
+        single_side_integer_bitstring: Optional[str] = None,
         block_name: Optional[str] = None
     ) -> None:
         """
         TODO COMPLETE
         """
 
-        self.parsed_equation = single_sided_parsed_equation
-
-        # Isolating the integer bitstring, if exists
-        try:
-            self.integer_bitstring = next(filter(lambda x: isinstance(x, str), self.parsed_equation))
-        except StopIteration:
-            self.integer_bitstring = None
+        self.bits_indexes = single_side_bits_indexes
+        self.integer_bitstring = single_side_integer_bitstring
 
         # Translating qubits bundles into a list of number of qubits in each bundle
-        self.operands_widths = list(
-            map(lambda x: len(x), filter(lambda x: isinstance(x, list), self.parsed_equation))
-        )
+        self.operands_widths = list(map(lambda x: len(x), self.bits_indexes))
         self.total_operands_width = sum(self.operands_widths)
 
         # Computing the necessary width for the results aux register
-        self.result_reg_width = self.compute_addition_result_width(self.operands_widths, self.integer_bitstring)
+        self.result_reg_width = self.compute_addition_result_width(
+            self.operands_widths,
+            self.integer_bitstring
+        )
 
         # Defining registers
         self.bundles_regs = list(
@@ -358,9 +354,12 @@ class InnerConstraintArithmetic(QuantumCircuit):
         # Initiazling circuit
         super().__init__(*self.bundles_regs, self.result_reg)
 
+        # TODO DEFAULT VALUE TRY
+        self.add_qubits_values(self.bits_indexes, self.result_reg, self.integer_bitstring)
+
         # Assigning name to this block
         if block_name is None:
-            block_name = f"Addition:{self.parsed_equation}"
+            block_name = f"Addition:{self.bits_indexes} + {self.integer_bitstring}"
         self.name = block_name
         
     def add_qubits_values(
@@ -372,25 +371,59 @@ class InnerConstraintArithmetic(QuantumCircuit):
         """
         TODO COMPLETE
         RESULTS QUBITS NEEDED AS THE MAXIMUM VALUE OF ADDING ALL BUNDLES AND DEFAULT
+        NOTE: SUPPORTS ONLY NOT-REPEATED BITS ADDITION (VALID = [3][2] + [1] + 5, NOT VALID = [3][2] + [2][1])
         """
 
         # Assigning `default_bitstring` value to `results_qubits`
-        if default_bitstring is not None:
+        if default_bitstring is None:
+            default_bitstring = ''.zfill(self.result_reg_width)
+        else:
+            default_bitstring = default_bitstring.zfill(self.result_reg_width)
             for digit, result_qubit in zip(reversed(default_bitstring), results_qubits):
                 if digit == '1':
                     self.x(result_qubit)
+
+        self.default_addition(default_bitstring)
 
         # Transforming `results_qubits` to Fourier basis TODO
         pass
         #TODO COMPLETE
         
         # Fourier addition of all bundles
-        for qubits_bundle in bundles_list:
-            self.fourier_add_single_bundle()
+        # for qubits_bundle in bundles_list:
+            # self.fourier_add_single_bundle()
         
         # Transforming `results_qubits` back to the computational basis TODO
         pass
         #TODO COMPLETE
+    
+    def default_addition(self, bitstring: str) -> None:
+        """
+        Performing in place bit-to-bit addition if possible.
+
+        TODO COMPLETE
+        """
+
+        # Counting the number of trailing zeros (i.e, number of available bits to copy values into)
+        try:
+            trailing_zeros_num = bitstring[::-1].index('1')
+        except ValueError:
+            trailing_zeros_num = self.result_reg_width
+
+        # Finding the best operand to copy its value (the longest one that shorter or equal
+        # in length to the number of trailing zeros)
+        operand_index = None
+        for num_zeros in reversed(range(1, trailing_zeros_num + 1)):
+            try:
+                operand_index = self.operands_widths.index(num_zeros)
+                trailing_zeros_num = num_zeros
+                break
+            except ValueError:
+                pass
+        
+        # If possible, performing the optimal bit-to-bit addition
+        if operand_index is not None:
+            self.cx(self.bundles_regs[operand_index], self.result_reg[:trailing_zeros_num])
 
     def fourier_add_single_bundle(
         self,
@@ -432,21 +465,26 @@ if __name__ == '__main__':
 
     from sat_circuits_engine.constraints_parse import SingleConstraintParsed
 
-    scp = SingleConstraintParsed("([7] + [4][3][2] + [1][0] + 55 != [6][5] + 6)", 1)
+    # scp = SingleConstraintParsed("([1][0] != [3][2])", 1)
     # scp = SingleConstraintParsed("([3][2] != [0])", 1)
     # scp = SingleConstraintParsed("37 == [5][4][3][2][1][0])", 1)
     # scp = SingleConstraintParsed("[3] || [2] || [1])", 1)
     # scp = SingleConstraintParsed("([19] != [0])", 1)
     # scp = SingleConstraintParsed("([2][1][0] == [5][4][3])", 1)
-    # scp = SingleConstraintParsed("([2] + 2 != [4][3])", 1)
+    # scp = SingleConstraintParsed("([2] + 2 + [4][3][2] != [4][3])", 1)
     # scp = SingleConstraintParsed("([2] + [5] + [4][3] == 3)", 1)
     # scp = SingleConstraintParsed("([917][6][4][3][2] == [1][0])", 1)
+    # scp = SingleConstraintParsed("([3][2][1] != 6)", 1)
+    # scp = SingleConstraintParsed("([2] + [6][5][4][3][2] + 8 + [4][3][2] != [4][3])", 1)
+    scp = SingleConstraintParsed("([2] + 2 != [4][3])", 1)
+
     print()
     print(scp)
-    print(scp.left_side_content)
-    print(scp.right_side_content)
+    # print(scp.left_side_content)
+    # print(scp.right_side_content)
     print()
 
     block = SingleConstraintBlock(scp)
     print(block.draw())
-    # print(block.decompose(['000_encoding']).draw())
+    print(block.decompose(["Addition:([2],) + 10"]).draw())
+    # print(block.decompose(['110_encoding']).draw())

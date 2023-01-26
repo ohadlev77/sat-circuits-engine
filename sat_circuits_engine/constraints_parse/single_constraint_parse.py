@@ -102,19 +102,35 @@ class SingleConstraintParsed:
         # Splitting the constraint into its two sides
         splitted_equation = stripped_string.split(self.operator)
 
-        # Initiating 
-        self.left_side_content = []
-        self.right_side_content = []
+        # Initiating
+        self.sides_bit_indexes = []
+        self.sides_int_bitstrings = []
         
-        for side_content, side_string in zip([self.left_side_content, self.right_side_content], splitted_equation):
+        for side_string in splitted_equation:
             
-            # Checking for internal operators in each side TODO ADD COMMENTS
-            if side_string.count('+') == 0:
-                side_content.append(self.parse_operand(side_string))
-            else:
-                for operand in side_string.split('+'):
-                    side_content.append(self.parse_operand(operand))
-    
+            operands = side_string.split('+')
+
+            self.sides_bit_indexes.append(
+                tuple(
+                    map(self.parse_operand, filter(
+                        lambda x: isinstance(self.parse_operand(x), list), operands
+                    ))
+                )
+            )
+
+            try:
+                self.sides_int_bitstrings.append(
+                    self.parse_operand(
+                        next(
+                            filter(
+                                lambda x: isinstance(self.parse_operand(x), str), operands
+                            )
+                        )
+                    )
+                )
+            except StopIteration:
+                self.sides_int_bitstrings.append(None)
+
     def parse_operand(self, operand_string: str) -> Union[List[int], str]:
         """
         Parses a single operand's string.
@@ -153,8 +169,9 @@ if __name__ == "__main__":
     # pc = SingleConstraintParsed("([4][3][2] != [0])", 1)
     # pc = SingleConstraintParsed("(~[4] || [0] || ~[2])", 1)
     # pc = SingleConstraintParsed("([2] == [0])", 1)
-    pc = SingleConstraintParsed("([33][2] + [1][0] == 4)", 1)
+    # pc = SingleConstraintParsed("([33][2] + [1][0] == 4)", 1)
+    pc = SingleConstraintParsed("([33][2] + [1][0] == 44 + [30][29][7] + [219])", 1)
 
     print(pc.constraint_string)
-    print(pc.left_side_content)
-    print(pc.right_side_content)
+    print(pc.sides_bit_indexes)
+    print(pc.sides_int_bitstrings)
