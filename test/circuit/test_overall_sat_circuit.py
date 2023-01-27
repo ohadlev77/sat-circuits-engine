@@ -61,9 +61,8 @@ class SATInterfaceTest(TestCase):
                 print(f"counts_sorted = {counts_sorted}")
                 print()
                 print(f"counts_trimmed = {counts_trimmed}")
-
-                # print()
-                # print(f"data_solutions = {example['solutions']}")
+                print()
+                print(f"data_solutions = {example['solutions']}")
 
                 for solution in example['solutions']:
                     self.assertIn(solution, distilled_bitstrings)

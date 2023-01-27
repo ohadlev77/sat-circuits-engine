@@ -3,9 +3,11 @@ This module contains the `SingleConstraintBlock` class.
 """
 
 from typing import Union, Optional, List, Tuple
+from numpy import pi
 
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit import Qubit
+from qiskit.circuit.library import QFT
 
 from sat_circuits_engine.constraints_parse import SingleConstraintParsed
 
@@ -355,7 +357,7 @@ class InnerConstraintArithmetic(QuantumCircuit):
         super().__init__(*self.bundles_regs, self.result_reg)
 
         # TODO DEFAULT VALUE TRY
-        self.add_qubits_values(self.bits_indexes, self.result_reg, self.integer_bitstring)
+        self.add_qubits_values(self.result_reg, self.integer_bitstring)
 
         # Assigning name to this block
         if block_name is None:
@@ -364,7 +366,6 @@ class InnerConstraintArithmetic(QuantumCircuit):
         
     def add_qubits_values(
         self,
-        bundles_list: List[List[Qubit]],
         results_qubits: Union[List[Union[Qubit, QuantumRegister]], QuantumRegister],
         default_bitstring: Optional[str] = None
     ) -> None:
@@ -383,25 +384,29 @@ class InnerConstraintArithmetic(QuantumCircuit):
                 if digit == '1':
                     self.x(result_qubit)
 
-        self.default_addition(default_bitstring)
+        default_added_operand_index = self.default_addition(default_bitstring)
+        if default_added_operand_index is not None:
+            self.bundles_regs.pop(default_added_operand_index)
 
-        # Transforming `results_qubits` to Fourier basis TODO
-        pass
-        #TODO COMPLETE
-        
-        # Fourier addition of all bundles
-        # for qubits_bundle in bundles_list:
-            # self.fourier_add_single_bundle()
-        
-        # Transforming `results_qubits` back to the computational basis TODO
-        pass
-        #TODO COMPLETE
+        if self.bundles_regs:
+            # Transforming `results_qubits` to Fourier basis TODO
+            self.append(QFT(self.result_reg_width), qargs=self.result_reg)
+            
+            # Fourier addition of all bundles
+            for reg in self.bundles_regs:
+                self.fourier_add_single_bundle(reg, self.result_reg)
+            
+            # Transforming `results_qubits` back to the computational basis TODO
+            self.append(QFT(self.result_reg_width, inverse=True), qargs=self.result_reg)
     
-    def default_addition(self, bitstring: str) -> None:
+    def default_addition(self, bitstring: str) -> int:
         """
         Performing in place bit-to-bit addition if possible.
 
         TODO COMPLETE
+
+        Returns:
+            (int): the index of the operang that has been added.
         """
 
         # Counting the number of trailing zeros (i.e, number of available bits to copy values into)
@@ -423,7 +428,10 @@ class InnerConstraintArithmetic(QuantumCircuit):
         
         # If possible, performing the optimal bit-to-bit addition
         if operand_index is not None:
-            self.cx(self.bundles_regs[operand_index], self.result_reg[:trailing_zeros_num])
+            # TODO consider [::-1]
+            self.cx(self.bundles_regs[operand_index], self.result_reg[:trailing_zeros_num][::-1])
+
+        return operand_index
 
     def fourier_add_single_bundle(
         self,
@@ -434,8 +442,18 @@ class InnerConstraintArithmetic(QuantumCircuit):
         TODO COMPLETE
         """
 
-        pass
-        #TODO COMPLETE
+        # TODO ORGANIZE AND FIX
+        for control_index, control_q in enumerate(qubits_to_add):
+            for target_index, target_q in enumerate(target_qubits):
+
+                k = len(target_qubits) - target_index
+                phase = (2 * pi * (2 ** control_index)) / (2 ** k)
+
+                # Phase shifts of 2pi multiples are indistinguishable = Breaking from the inner loop
+                if phase == 2 * pi:
+                    break
+
+                self.cp(theta=phase, control_qubit=control_q, target_qubit=target_q)
 
     @staticmethod
     def compute_addition_result_width(
@@ -476,7 +494,7 @@ if __name__ == '__main__':
     # scp = SingleConstraintParsed("([917][6][4][3][2] == [1][0])", 1)
     # scp = SingleConstraintParsed("([3][2][1] != 6)", 1)
     # scp = SingleConstraintParsed("([2] + [6][5][4][3][2] + 8 + [4][3][2] != [4][3])", 1)
-    scp = SingleConstraintParsed("([2] + 2 != [4][3])", 1)
+    scp = SingleConstraintParsed("([2] + [1][0] + 2 != [4][3])", 1)
 
     print()
     print(scp)
@@ -486,5 +504,5 @@ if __name__ == '__main__':
 
     block = SingleConstraintBlock(scp)
     print(block.draw())
-    print(block.decompose(["Addition:([2],) + 10"]).draw())
+    print(block.decompose(["Addition:([2], [1, 0]) + 10"]).draw())
     # print(block.decompose(['110_encoding']).draw())

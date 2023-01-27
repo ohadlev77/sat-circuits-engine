@@ -8,7 +8,7 @@ from sat_circuits_engine.constraints_parse import ParsedConstraints, SingleConst
 
 class ClassicalVerifier:
     """
-    Contains an interface for verifying if bitstrings satisfy a set of constraints.
+    An interface for verifying if bitstrings satisfy a set of constraints.
     """
 
     def __init__(self, constraints: ParsedConstraints) -> None:
@@ -41,31 +41,25 @@ class ClassicalVerifier:
         # Going over the constraints
         for constraint in self.constraints:
 
-            # TODO COMPLETE
-            constraint_balance_properties = self.identify_constraint_balanced(constraint)
+############################
+            sides_sum = []
 
-            # Case 1 - a balanced constraint
-            if constraint_balance_properties and type(constraint_balance_properties) is bool:
+            for side, (bit_indexes, int_bitstring) in enumerate(
+                zip(constraint.sides_bit_indexes, constraint.sides_int_bitstrings)
+            ):
 
-                # Case 1A - operator = '=='
-                still_satisfied = self.check_balanced_constraint(
-                    reversed_bitstring,
-                    left_bits_indexes=constraint.left_side,
-                    right_bits_indexes=constraint.right_side
-                )
+                sum = 0
 
-            # Case 2 - an unbalanced constraint
-            else:
+                if int_bitstring is not None:
+                    sum += int(int_bitstring, 2)
 
-                # Case 2A - operator = '=='
-                still_satisfied = self.check_unbalanced_constraint(
-                    reversed_bitstring=reversed_bitstring,
-                    long_side_bits_indexes=constraint_balance_properties['long_side_bits_indexes'],
-                    short_side_bits_indexes=constraint_balance_properties['short_side_bits_indexes'],
-                    bits_difference=constraint_balance_properties['bits_difference']
-                )
+                for bundle in bit_indexes:
+                    bits_values = ''.join(list(map(lambda x: reversed_bitstring[x], bundle)))
+                    sum += int(bits_values, 2)
                 
-            # Case 1B and 2B - operator = '!='
+                sides_sum.append(sum)
+                
+            still_satisfied = sides_sum[0] == sides_sum[1]
             if constraint.operator == '!=':
                 still_satisfied = not still_satisfied
             
@@ -200,12 +194,11 @@ class ClassicalVerifier:
 
 # TODO REMOVE
 
-# if __name__ == '__main__':
-#     g = GroverConstraintsOperator(
-#         '([9][8][7] == [2][1][0]), ([4][3] != [2][1]), ([6] == [5]), ([5] == [4]), ([4] != [3]), ([4] == [2])',
-#         11
-#     )
+if __name__ == '__main__':
+    p = ParsedConstraints(
+        '([9][8][7] == [2][1][0]),([4][3] != [2][1]),([6] == [5]),([5] == [4]),([4] != [3]),([4] == [2])'
+    )
 
-#     v = ClassicalVerifier(g)
+    v = ClassicalVerifier(p)
 
-#     print(v.verify('11101110110'))
+    print(v.verify('11101110111'))

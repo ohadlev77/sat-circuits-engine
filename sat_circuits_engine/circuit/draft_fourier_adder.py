@@ -1,6 +1,6 @@
 import numpy as np
 
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
 from qiskit.circuit.library import QFT
 from qiskit.quantum_info import Pauli
 from qiskit_aer import AerSimulator
@@ -47,23 +47,26 @@ results = ClassicalRegister(3, "results")
 qc = QuantumCircuit(input_reg, addition_reg, results)
 
 # Setting value to input_reg
-qc.append(Pauli(bitstring_to_pauli_string('110')), qargs=input_reg)
+qc.append(Pauli(bitstring_to_pauli_string('001')), qargs=input_reg)
 
 # Transforming addition_reg to Fourier basis
+qc.append(Pauli(bitstring_to_pauli_string('011')), qargs=addition_reg)
 qc.append(QFT(3), qargs=addition_reg)
 qc.barrier()
 
 # Adding
-qc.append(fourier_add(3,3), qargs=input_reg[:] + addition_reg[:])
+qc.append(fourier_add(2,3), qargs=input_reg[:2] + addition_reg[:])
 qc.barrier()
 
 # Transforming back to the computational basis
-qc.append(QFT(3, inverse=True, qargs=addition_reg))
+qc.append(QFT(3, inverse=True), qargs=addition_reg)
 qc.barrier()
 
 qc.measure(addition_reg, results)
-counts = AerSimulator().run(qc).result().get_counts()
+backend = AerSimulator()
+counts = backend.run(transpile(qc, backend)).result().get_counts()
 
 print(counts)
-qc.draw()
-qc.decompose().draw()
+print(qc.draw())
+print(qc.decompose().draw())
+print(qc.decompose().decompose().draw())

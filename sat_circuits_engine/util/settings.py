@@ -1,10 +1,13 @@
 from qiskit_aer import AerSimulator
+from qiskit import IBMQ
 
 # Default backend for this package
 BACKEND = AerSimulator()
+# provider = IBMQ.load_account()
+# BACKEND = provider.get_backend('ibmq_qasm_simulator')
 
 # Path to a txt file contains explanation about the supported constraints input format
-CONSTRAINTS_FORMAT_PATH = "sat_circuits_engine/interface/constraints_format.txt"
+CONSTRAINTS_FORMAT_PATH = "interface/constraints_format.txt"
 
 ##### Supported operators #####
 

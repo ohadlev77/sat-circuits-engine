@@ -60,7 +60,7 @@ def is_qc_x_iterations_a_match(qc: QuantumCircuit, verifier: ClassicalVerifier, 
 
     return match
 
-@timer_dec
+@timer_dec("Found number of iterations in ")
 def find_iterations_unknown(
     num_input_qubits: int,
     grover_constraints_operator,

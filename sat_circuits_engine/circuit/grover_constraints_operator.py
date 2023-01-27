@@ -246,8 +246,8 @@ if __name__ == "__main__":
     # )
     # pc = ParsedConstraints("([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)")
     # pc = ParsedConstraints("([4][3][2] == [1][0]),([2] + 2 != [4][3])")
+    # pc = ParsedConstraints("([2] + [5] + [4][3][1] == 9),(~[0] || ~[1])")
 
-    gco = GroverConstraintsOperator(pc, 8)
 
     print(gco.draw())
     decgco = gco.decompose(["([2] + [5] + [4][3] == 3)"])

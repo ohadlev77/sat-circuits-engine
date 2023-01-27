@@ -22,6 +22,14 @@ from sat_circuits_engine.constraints_parse import SingleConstraintParsed, Parsed
 
 from .interactive_inputs import interactive_inputs
 
+# ORGINZE THIS HOOK
+# from qiskit import IBMQ
+# provider = IBMQ.load_account()
+# BACKEND_CLOUD = provider.get_backend('ibmq_qasm_simulator')
+
+from qiskit_aer import AerSimulator
+BACKEND_LOCAL = AerSimulator()
+
 class SATInterface:
     """
     TODO COMPLETE
@@ -164,7 +172,7 @@ class SATInterface:
 
         return qc
     
-    @timer_dec
+    @timer_dec("Circuit execution time = ")
     def run_overall_sat_circuit(self, qc: QuantumCircuit, shots: int) -> Tuple[Counts, List[Tuple[Union[str, int]]]]:
         """
         TODO COMPLETE
@@ -173,7 +181,7 @@ class SATInterface:
         print()
         print(f"The system is running the circuit {shots} times, please wait..")
 
-        job = BACKEND.run(transpile(qc, BACKEND), shots=shots)
+        job = BACKEND_LOCAL.run(transpile(qc, BACKEND_LOCAL), shots=shots)
         results = job.result()
         counts = results.get_counts()
         
