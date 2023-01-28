@@ -5,7 +5,7 @@ This module contains the `SingleConstraintBlock` class.
 from typing import Union, Optional, List, Tuple
 from numpy import pi
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit, QuantumRegister, transpile
 from qiskit.circuit import Qubit
 from qiskit.circuit.library import QFT
 
@@ -54,6 +54,9 @@ class SingleConstraintBlock(QuantumCircuit):
 
         # Assembling a circuit implementation of the given constraint
         self.assemble()
+
+        # Saving a transpiled version of `self`
+        self.transpiled = transpile(self, basis_gates=['u', 'cx'], optimization_level=3)
     
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}" \

@@ -78,8 +78,16 @@ class GroverConstraintsOperator(QuantumCircuit):
         # For each constraint we build a `SingleConstraintBlock` object and count
         # the number of auxiliary qubits needed to implement it
         # (i.e, how many auxiliary qubits each `SingleConstraintBlock` object uses).
-        for parsed_constraint in self.parsed_constraints:
-            constraint_block = SingleConstraintBlock(parsed_constraint)
+
+        # Sorting the constraints such that the most costly ones will be the first and last
+        # (First and last constraint are not uncomputed - only when the wholde operator is uncomputed)
+        constraints_blocks = list(map(SingleConstraintBlock, self.parsed_constraints))
+        constraints_blocks.sort(key=lambda x: x.transpiled.count_ops()['cx'], reverse=True)
+        constraints_blocks.append(constraints_blocks[0])
+        constraints_blocks.pop(0)
+
+        for constraint_block in constraints_blocks:
+            print(f"Constraint {constraint_block.constraint_index} transpiled: {constraint_block.transpiled.count_ops()}") # TODO REMOVE HOOK
             self.single_constraints_objects.append(constraint_block)
 
             if 'comparison_aux' in constraint_block.regs.keys():
@@ -108,9 +116,8 @@ class GroverConstraintsOperator(QuantumCircuit):
         """
 
         # Looping over the constraints, appending one `SingleConstraintBlock` object in each iteration
-        for index, (constraint_block, parsed_constraint) in \
-        enumerate(zip(self.single_constraints_objects, self.parsed_constraints)):
-            
+        for count, constraint_block in enumerate(self.single_constraints_objects):
+
             # Defining the `qargs` (`qargs` is a parameter of the `QuantumCircuit.append` method)
             # before appending `single_constraint_object` to `self`. The `qargs` parameter should
             # get a list of `Qubit` objects for appending the `instruction` (another parameter of the
@@ -121,26 +128,26 @@ class GroverConstraintsOperator(QuantumCircuit):
             qargs = []
 
             # TODO IMPROVE
-            left_input_qubits = list(chain(*parsed_constraint.sides_bit_indexes[0]))
+            left_input_qubits = list(chain(*constraint_block.parsed_data.sides_bit_indexes[0]))
             if left_input_qubits:
                 qargs += self.input_reg[left_input_qubits]
 
-            right_input_qubits = list(chain(*parsed_constraint.sides_bit_indexes[1]))
+            right_input_qubits = list(chain(*constraint_block.parsed_data.sides_bit_indexes[1]))
             if right_input_qubits:
                 qargs += self.input_reg[right_input_qubits]
 
             # TODO UNIFY ALL 3
             # Handling the case where left auxiliary qubits is needed
-            if self.left_aux_qubits_needed[index] != 0:
+            if self.left_aux_qubits_needed[count] != 0:
 
                 # Defining the range of the auxiliary qubits that is allocated for each constraint -
                 # `aux_bottom` is the start qubit index, and `aux_top` is the end qubit index.
                 l_aux_bottom = sum(
-                    self.left_aux_qubits_needed[0:parsed_constraint.constraint_index]
+                    self.left_aux_qubits_needed[0:count]
                 )
                 l_aux_top = (
                     l_aux_bottom +
-                    self.left_aux_qubits_needed[parsed_constraint.constraint_index]
+                    self.left_aux_qubits_needed[count]
                 )
 
                 # TODO TEST [::-1]
@@ -148,16 +155,16 @@ class GroverConstraintsOperator(QuantumCircuit):
 
             # TODO UNIFY ALL 3
             # Handling the case where left auxiliary qubits is needed
-            if self.right_aux_qubits_needed[index] != 0:
+            if self.right_aux_qubits_needed[count] != 0:
 
                 # Defining the range of the auxiliary qubits that is allocated for each constraint -
                 # `aux_bottom` is the start qubit index, and `aux_top` is the end qubit index.
                 r_aux_bottom = sum(
-                    self.right_aux_qubits_needed[0:parsed_constraint.constraint_index]
+                    self.right_aux_qubits_needed[0:count]
                 )
                 r_aux_top = (
                     r_aux_bottom +
-                    self.right_aux_qubits_needed[parsed_constraint.constraint_index]
+                    self.right_aux_qubits_needed[count]
                 )
 
                 # TODO TEST [::-1]
@@ -165,16 +172,16 @@ class GroverConstraintsOperator(QuantumCircuit):
 
             # TODO UNIFY ALL 3
             # Handling the case where comparison auxiliary qubits is needed
-            if self.comparison_aux_qubits_needed[index] != 0:
+            if self.comparison_aux_qubits_needed[count] != 0:
 
                 # Defining the range of the auxiliary qubits that is allocated for each constraint -
                 # `aux_bottom` is the start qubit index, and `aux_top` is the end qubit index.
                 a_aux_bottom = sum(
-                    self.comparison_aux_qubits_needed[0:parsed_constraint.constraint_index]
+                    self.comparison_aux_qubits_needed[0:count]
                 )
                 a_aux_top = (
                     a_aux_bottom +
-                    self.comparison_aux_qubits_needed[parsed_constraint.constraint_index]
+                    self.comparison_aux_qubits_needed[count]
                 )
 
                 # TODO TEST [::-1]
@@ -185,29 +192,29 @@ class GroverConstraintsOperator(QuantumCircuit):
             intermidate_flag = True
 
             # First constraint
-            if index == 0:    
-                qargs.append(self.out_reg[index])
+            if count == 0:    
+                qargs.append(self.out_reg[count])
                 self.append(instruction=constraint_block, qargs=qargs)
                 intermidate_flag = False
 
             # Last constraint
-            if index == len(self.single_constraints_objects) - 1:
-                qargs.append(self.out_reg[index])
+            if count == len(self.single_constraints_objects) - 1:
+                qargs.append(self.out_reg[count])
                 self.append(instruction=constraint_block, qargs=qargs)
 
                 self.barrier()
                 qc_dagger = self.inverse()
                 qc_dagger.name = 'Uncomputation'
                 
-                self.ccx(self.out_reg[index - 1], self.out_reg[index], self.ancilla)
+                self.ccx(self.out_reg[count - 1], self.out_reg[count], self.ancilla)
                 intermidate_flag = False
                 
             # Intermidate constraints
             if intermidate_flag:
-                qargs.append(self.out_reg[index + 1])
+                qargs.append(self.out_reg[count + 1])
 
                 self.append(instruction=constraint_block, qargs=qargs)
-                self.rccx(self.out_reg[index + 1], self.out_reg[index - 1], self.out_reg[index])
+                self.rccx(self.out_reg[count + 1], self.out_reg[count - 1], self.out_reg[count])
                 self.append(instruction=constraint_block.inverse(), qargs=qargs)
 
             self.barrier()
@@ -235,21 +242,21 @@ class GroverConstraintsOperator(QuantumCircuit):
 if __name__ == "__main__":
 
     # pc = ParsedConstraints("([4][3][2] != [0]),([2] == [3]),([3] == [4]),([0] != [1]),([2] + [4] + 5 != 11 + [3]")
-    # pc = ParsedConstraints("([0] != [1]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)")
-    pc = ParsedConstraints(
-        "([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6])," \
-        "([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2),([2] + [5] + [4][3] == 3)"
-    )
+    # # pc = ParsedConstraints("([0] != [1]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)")
+    # pc = ParsedConstraints(
+    #     "([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6])," \
+    #     "([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2),([2] + [5] + [4][3] == 3)"
+    # )
     # pc = ParsedConstraints(
     #     "([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6])," \
     #     "([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)"
     # )
-    # pc = ParsedConstraints("([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)")
+    pc = ParsedConstraints("([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)")
     # pc = ParsedConstraints("([4][3][2] == [1][0]),([2] + 2 != [4][3])")
     # pc = ParsedConstraints("([2] + [5] + [4][3][1] == 9),(~[0] || ~[1])")
 
-
+    gco = GroverConstraintsOperator(pc, 8)
     print(gco.draw())
-    decgco = gco.decompose(["([2] + [5] + [4][3] == 3)"])
-    print(decgco.draw())
-    print(decgco.decompose(["Addition:([2], [5], [4, 3]) + None"]).draw())
+    # decgco = gco.decompose(["([2] + [5] + [4][3] == 3)"])
+    # print(decgco.draw())
+    # print(decgco.decompose(["Addition:([2], [5], [4, 3]) + None"]).draw())

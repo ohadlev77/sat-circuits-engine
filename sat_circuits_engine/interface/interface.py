@@ -243,9 +243,9 @@ class SATInterface:
         print(f"Operator gates counts: {decomposed_operator.count_ops()}")
         print()
 
-        deep_decomposed_operator = decomposed_operator.decompose(reps=2)
-        print(f"Decomposed operator depth: {deep_decomposed_operator.depth()}")
-        print(f"Decomposed operator gates counts: {deep_decomposed_operator.count_ops()}")
+        transpiled_operator = transpile(decomposed_operator, basis_gates=['u', 'cx'], optimization_level=3)
+        print(f"Decomposed operator depth: {transpiled_operator.depth()}")
+        print(f"Decomposed operator gates counts: {transpiled_operator.count_ops()}")
         print()
     
     def display_results(self, qc, shots, counts, counts_sorted, distilled_solutions) -> None:
