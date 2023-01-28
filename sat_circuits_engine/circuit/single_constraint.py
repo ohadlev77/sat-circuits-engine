@@ -164,8 +164,11 @@ class SingleConstraintBlock(QuantumCircuit):
 
         self.append(flipping_zeros, qargs=qubits_bundle)
 
-        # TODO IMPROVE MCX
-        self.mcx(qubits_bundle, self.regs['out'][0])
+        # TODO IMPROVE MCX anc rccx hook
+        if len(qubits_bundle) == 2:
+            self.rccx(qubits_bundle[0], qubits_bundle[1], self.regs['out'][0])
+        else:
+            self.mcx(qubits_bundle, self.regs['out'][0])
 
         # Flipping for !=
         if operator == "!=":
@@ -228,14 +231,17 @@ class SingleConstraintBlock(QuantumCircuit):
         # Comparing the rightmost bits in the longer bundle to the bits of the shorter bundle
         self.balanced_qubits_comparison(short, right_trimmed_long, self.regs['comparison_aux'][0][:len_short])
         
-        # TODO MCX
         # Checking the left bits in the longer bundle
         if left_trimmed_long:
             self.x(left_trimmed_long)
 
+        # TODO MCX and RCCX HOOK
         # TODO ORGANIZE
         q = left_trimmed_long + self.regs['comparison_aux'][0][:]
-        self.mcx(q, self.regs['out'][0])
+        if len(q) == 2:
+            self.rccx(q[0], q[1], self.regs['out'][0])
+        else:
+            self.mcx(q, self.regs['out'][0])
 
         # Flipping for !=
         if operator == "!=":
@@ -271,7 +277,10 @@ class SingleConstraintBlock(QuantumCircuit):
         # TODO IMPROVE MCX IMPLEMENTATION
         # Writing overall result to out_qubit if not None
         if out_qubit is not None:
-            self.mcx(aux, out_qubit)
+            if len(aux) == 2:
+                self.rccx(aux[0], aux[1], out_qubit)
+            else:
+                self.mcx(aux, out_qubit)
         
         # Fliiping out qubit for implementation of: qubits_bundle_1 != qubits_bundle_2
         if operator == "!=":
