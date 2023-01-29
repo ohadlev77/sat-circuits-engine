@@ -271,7 +271,9 @@ def decompose_operator(operator: GroverConstraintsOperator):
     """
     
     existing_gates = list(dict(operator.count_ops()))
-    gates_to_leave_untouched = ['x', 'h', 'mcx', 'ccx', 'rccx', 'mcx_gray', 'Uncomputation']
+    gates_to_leave_untouched = [
+        'x', 'h', 'mcx', 'ccx', 'rccx', 'mcx_gray', 'Uncomputation', 'QFT', 'IQFT_dg'
+    ]
 
     # TODO IMPROVE AND REMOVE DOUBLING
     gates_to_decompose = gates_decomposition_sort(
