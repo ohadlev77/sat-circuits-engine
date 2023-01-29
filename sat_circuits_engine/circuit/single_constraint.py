@@ -77,7 +77,13 @@ class SingleConstraintBlock(QuantumCircuit):
 
             # Arithmetics needed
             if (len(bit_indexes) > 1) or (len(bit_indexes) == 1 and int_bitstring is not None):
-                self.arith_blocks[side] = InnerConstraintArithmetic(bit_indexes, int_bitstring)
+
+                # TODO EXPLAIN
+                compared_value = None
+                if not self.parsed_data.sides_bit_indexes[side ^ 1] and self.parsed_data.sides_int_bitstrings[side ^ 1]:
+                    compared_value = int(self.parsed_data.sides_int_bitstrings[side ^ 1], 2)
+
+                self.arith_blocks[side] = InnerConstraintArithmetic(bit_indexes, int_bitstring, compared_value=compared_value)
 
                 self.regs['inputs'][side] = QuantumRegister(
                     self.arith_blocks[side].total_operands_width,
@@ -151,7 +157,8 @@ class SingleConstraintBlock(QuantumCircuit):
 
         # Catching non-logical input
         assert len(int_bitstring) <= len(qubits_bundle), \
-        "The integer length is longer than compared qubits, no solution."
+        f"The integer ({int_bitstring}) length is longer than compared" \
+        f"qubits ({qubits_bundle}), no solution."
 
         # In the case the equation is unbalanced, filling the integer with zeros from the left
         if len(int_bitstring) < len(qubits_bundle):
@@ -338,12 +345,21 @@ class InnerConstraintArithmetic(QuantumCircuit):
 
     def __init__(
         self,
-        single_side_bits_indexes: List[Tuple[List[int]]],
+        single_side_bits_indexes: List[List[int]],
         single_side_integer_bitstring: Optional[str] = None,
+        compared_value: int = None,
         block_name: Optional[str] = None
     ) -> None:
         """
-        TODO COMPLETE
+        Args:
+            single_side_bits_indexes (List[List[int]]): A list of lists, each list contains bit
+            indexes that form a single bundle.
+            single_side_integer_bitstring (Optional[str] = None): If exists, the binary string
+            of the integer in an arithmetic expression.
+            compared_value (int = None): if defined - this class will try to reduce the width of the
+            results register using modular addition, after negating collisions possibilities.
+            block_name (Optional[str] = None): a name for this circuit block. If None, a meaningful
+            name is given by this class automatically.
         """
 
         self.bits_indexes = single_side_bits_indexes
@@ -356,7 +372,8 @@ class InnerConstraintArithmetic(QuantumCircuit):
         # Computing the necessary width for the results aux register
         self.result_reg_width = self.compute_addition_result_width(
             self.operands_widths,
-            self.integer_bitstring
+            self.integer_bitstring,
+            compared_value
         )
 
         # Defining registers
@@ -371,7 +388,7 @@ class InnerConstraintArithmetic(QuantumCircuit):
         # TODO DEFAULT VALUE TRY
         self.add_qubits_values(self.result_reg, self.integer_bitstring)
 
-        # Assigning name to this block
+        # Assigning name to this circuit block
         if block_name is None:
             block_name = f"Addition:{self.bits_indexes} + {self.integer_bitstring}"
         self.name = block_name
@@ -408,7 +425,7 @@ class InnerConstraintArithmetic(QuantumCircuit):
             for reg in self.bundles_regs:
                 self.fourier_add_single_bundle(reg, self.result_reg)
             
-            # Transforming `results_qubits` back to the computational basis TODO
+            # Transforming `results_qubits` back to the computational basis
             self.append(QFT(self.result_reg_width, inverse=True), qargs=self.result_reg)
     
     def default_addition(self, bitstring: str) -> int:
@@ -454,7 +471,7 @@ class InnerConstraintArithmetic(QuantumCircuit):
         TODO COMPLETE
         """
 
-        # TODO ORGANIZE AND FIX
+        # TODO ORGANIZE AND FORMAT
         for control_index, control_q in enumerate(qubits_to_add):
             for target_index, target_q in enumerate(target_qubits):
 
@@ -470,7 +487,8 @@ class InnerConstraintArithmetic(QuantumCircuit):
     @staticmethod
     def compute_addition_result_width(
         regs_widths: List[int],
-        default_bitstring: Optional[str] = None
+        default_bitstring: Optional[str] = None,
+        compared_value: Optional[int] = None
     ) -> int:
         """
         TODO COMPLETE
@@ -485,9 +503,20 @@ class InnerConstraintArithmetic(QuantumCircuit):
 
         # The maximum possible sum integer value
         max_sum = sum(map(lambda x: (2 ** x) - 1, regs_widths)) + int(default_bitstring, 2)
+        print(f"max_sum = {max_sum}") # TODO REMOVE
 
-        # Returning the bitstring length of that sum
-        return len(bin(max_sum)[2:])
+        # The bitstring length of the maximum possible sum
+        width = len(bin(max_sum)[2:])
+        print(f"width original = {width}") # TODO REMOVE
+
+        # Trying to reduce width if modular addition can't cause collisions w.r.t to the compared value
+        print(f"compared_value = {compared_value}") # TODO REMOVE
+        if compared_value is not None:
+            if max_sum - compared_value < compared_value and width > len(bin(compared_value)[2:]):
+                width -= 1
+
+        print(f"width reduced = {width}") # TODO REMOVE
+        return width
 
 
 # TODO REMOVE
@@ -502,11 +531,11 @@ if __name__ == '__main__':
     # scp = SingleConstraintParsed("([19] != [0])", 1)
     # scp = SingleConstraintParsed("([2][1][0] == [5][4][3])", 1)
     # scp = SingleConstraintParsed("([2] + 2 + [4][3][2] != [4][3])", 1)
-    # scp = SingleConstraintParsed("([2] + [5] + [4][3] == 3)", 1)
+    scp = SingleConstraintParsed("([2] + [5] + [4][3] == 3)", 1)
     # scp = SingleConstraintParsed("([917][6][4][3][2] == [1][0])", 1)
     # scp = SingleConstraintParsed("([3][2][1] != 6)", 1)
     # scp = SingleConstraintParsed("([2] + [6][5][4][3][2] + 8 + [4][3][2] != [4][3])", 1)
-    scp = SingleConstraintParsed("([2] + [1][0] + 2 != [4][3])", 1)
+    # scp = SingleConstraintParsed("([2] + [1][0] + 2 != [4][3])", 1)
 
     print()
     print(scp)
@@ -516,5 +545,5 @@ if __name__ == '__main__':
 
     block = SingleConstraintBlock(scp)
     print(block.draw())
-    print(block.decompose(["Addition:([2], [1, 0]) + 10"]).draw())
-    # print(block.decompose(['110_encoding']).draw())
+    print(block.decompose(["Addition:([2], [5], [4, 3]) + None"]).draw())
+    # print(block.decompose(['11_encoding']).draw())
