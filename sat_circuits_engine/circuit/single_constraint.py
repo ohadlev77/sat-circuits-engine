@@ -50,7 +50,7 @@ class SingleConstraintBlock(QuantumCircuit):
             regs_list.extend(item)
 
         # Initializing circuit
-        super().__init__(*regs_list, name=parsed_data.constraint_string)
+        super().__init__(*regs_list, name=parsed_data.string_to_show)
 
         # Assembling a circuit implementation of the given constraint
         self.assemble()

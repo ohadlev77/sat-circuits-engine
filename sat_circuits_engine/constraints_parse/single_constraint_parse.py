@@ -34,6 +34,7 @@ class SingleConstraintParsed:
         """
         
         self.constraint_string = constraint_string
+        self.string_to_show = constraint_string
         self.constraint_index = constraint_index
 
         # Parsing and setting `self.operator`
