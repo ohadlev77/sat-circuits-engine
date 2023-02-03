@@ -3,6 +3,7 @@ GroverConstraintsOperator class.
 """
 
 from itertools import chain
+from typing import Optional
 
 from qiskit import QuantumCircuit, QuantumRegister
 
@@ -19,6 +20,7 @@ class GroverConstraintsOperator(QuantumCircuit):
         self,
         parsed_constraints: ParsedConstraints,
         num_input_qubits: int,
+        barriers: Optional[bool] = True
     ) -> None:
         """
         Args:
@@ -29,6 +31,7 @@ class GroverConstraintsOperator(QuantumCircuit):
 
         self.num_input_qubits = num_input_qubits
         self.parsed_constraints = list(parsed_constraints.values())
+        self.barriers = barriers
 
         # Transforming `constraints_string` into a list of `SingleConstraintBlock` objects. A few more
         # instance variables defined within `self.constraints_build`, see its docstrings for details.
@@ -87,7 +90,6 @@ class GroverConstraintsOperator(QuantumCircuit):
         constraints_blocks.pop(0)
 
         for constraint_block in constraints_blocks:
-            print(f"Constraint {constraint_block.constraint_index} transpiled: {constraint_block.transpiled.count_ops()}") # TODO REMOVE HOOK
             self.single_constraints_objects.append(constraint_block)
 
             if 'comparison_aux' in constraint_block.regs.keys():
@@ -202,7 +204,9 @@ class GroverConstraintsOperator(QuantumCircuit):
                 qargs.append(self.out_reg[count])
                 self.append(instruction=constraint_block, qargs=qargs)
 
-                self.barrier()
+                # TODO NEED TO FIX INEFFICIENCIES IN TRANSPILATION CAUSED BY BARRIERES
+                if self.barriers:
+                    self.barrier()
                 qc_dagger = self.inverse()
                 qc_dagger.name = 'Uncomputation'
                 
@@ -217,7 +221,9 @@ class GroverConstraintsOperator(QuantumCircuit):
                 self.rccx(self.out_reg[count + 1], self.out_reg[count - 1], self.out_reg[count])
                 self.append(instruction=constraint_block.inverse(), qargs=qargs)
 
-            self.barrier()
+            # TODO NEED TO FIX INEFFICIENCIES IN TRANSPILATION CAUSED BY BARRIERES
+            if self.barriers:
+                self.barrier()
             
             # Appending the entire constraint block
             # self.append(instruction=single_constraint_object, qargs=qargs)

@@ -62,7 +62,7 @@
 
     "example_7": {
         "num_input_qubits": 9,
-        "num_total_qubits": 19,
+        "num_total_qubits": 18,
         "constraints_string": "([4][3][2] == [0]),([2] == [3]),([3] == [4]),([0] != [1]),([8][7] == [3][2])",
         "num_solutions": 4,
         "num_iterations": 8,
@@ -135,13 +135,13 @@
 
     "example_14": {
         "num_input_qubits": 8,
-        "num_total_qubits": 30,
+        "num_total_qubits": 29,
         "constraints_string": "([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2),([2] + [5] + [4][3] == 3)",
         "num_solutions": 1,
         "num_iterations": 12,
         "solutions": ["10010110"],
         "perform_test": false,
-        "note": "*** WARNING - This example exploits 30 qubits, intractable by AerSimulator (max 28 qubits) and is heavy for a classical computer (and therefore not performing tests for this as default)***"
+        "note": "*** WARNING - This example exploits 29 qubits, intractable by AerSimulator (max 28 qubits) and is heavy for a classical computer (and therefore not performing tests for this as default)***"
     },
 
     "example_15": {
@@ -222,5 +222,16 @@
         "num_iterations": 2,
         "solutions": ["1101100", "1011101", "1010110", "1100010", "1011011", "1010011", "1101001", "1000111", "1111000", "1011110", "1100100", "1100001"],
         "perform_test": true
+    },
+
+    "example_23": {
+        "num_input_qubits": 8,
+        "num_total_qubits": 23,
+        "constraints_string": "(1 == [1]),([2] == 1),(1 == [7]),([0] == 0),(0 == [6]),([5] == [0]),([4][3] == 2)",
+        "num_solutions": 1,
+        "num_iterations": "TODO COMPLETE",
+        "solutions": ["TODO COMPLETE"],
+        "perform_test": true,
+        "note": "TODO DECIDE WHAT TO DO WITH THIS"
     }
 }

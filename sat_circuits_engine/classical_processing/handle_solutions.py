@@ -2,17 +2,16 @@
 Contains the functions handling issues arises from the role of the solutions in Grover's algorithm and its generalizations.
 """
 
-import os
 import random
 import copy
-import time
 import numpy as np
-from typing import Tuple, List, Optional, Union
+from typing import Tuple, Optional, Union
 
 from qiskit import transpile, QuantumCircuit
+from qiskit.providers.backend import Backend
 
 from sat_circuits_engine.util import timer_dec
-from sat_circuits_engine.util.settings import BACKEND
+from sat_circuits_engine.util.settings import BACKENDS
 from sat_circuits_engine.circuit import SATCircuit
 
 from .classical_verifier import ClassicalVerifier
@@ -38,7 +37,12 @@ def calc_iterations(num_qubits, num_solutions):
     return iterations
 
 # def is_qc_x_iterations_a_match(qc, precision, constraints_data, iterations=None):
-def is_qc_x_iterations_a_match(qc: QuantumCircuit, verifier: ClassicalVerifier, precision: int) -> bool:
+def is_qc_x_iterations_a_match(
+    qc: QuantumCircuit,
+    verifier: ClassicalVerifier,
+    precision: int,
+    backend: Backend
+) -> bool:
     """
     Checks classically whether running `qc` `precision` times gives `precision` correct solutions.
     
@@ -48,7 +52,7 @@ def is_qc_x_iterations_a_match(qc: QuantumCircuit, verifier: ClassicalVerifier, 
         constraints_data: a list of `engine.Constraint` objects.
     """
 
-    job = BACKEND.run(transpile(qc, BACKEND), shots=precision, memory=True)
+    job = backend.run(transpile(qc, backend), shots=precision, memory=True)
     outcomes = job.result().get_memory()
 
     # In `outcomes` we have `precision` results - If all of them are solutions, we have a match.
@@ -65,7 +69,8 @@ def find_iterations_unknown(
     num_input_qubits: int,
     grover_constraints_operator,
     parsed_constraints,
-    precision: Optional[int] = 10
+    precision: Optional[int] = 10,
+    backend: Optional[Backend] = BACKENDS(0)
 ) -> Tuple[str, Union[SATCircuit, int]]:
     """
     Finds an adequate (optimal or near optimal) number of iterations suitable for a given SAT problem
@@ -120,7 +125,7 @@ def find_iterations_unknown(
             iterations = False
             while iterations == False:
                 m = lamda * m
-                iterations = randint_exclude(start = 0, end = int(m), exclude = set(exclude_list))
+                iterations = randint_exclude(start=0, end=int(m), exclude=set(exclude_list))
             print(f"    Checking iterations = {iterations}")
 
             # Obtaining the necessary SATCircuit object (preferably from the `qc_storage`)
@@ -132,7 +137,7 @@ def find_iterations_unknown(
                 qc.add_input_reg_measurement()
                 qc_storage[iterations] = copy.deepcopy(qc)
 
-            match = is_qc_x_iterations_a_match(qc, verifier, precision)
+            match = is_qc_x_iterations_a_match(qc, verifier, precision, backend)
 
             if match:
                 return qc, iterations
@@ -140,7 +145,10 @@ def find_iterations_unknown(
         # Degrading precision if failed to find an adequate number of iterations.
         precision -= 2
         if precision <= 0:
-            raise Exception("Didn't find any solution. Probably the SAT problem has no solution.")
+            raise Exception(
+                "Didn't find an suitable number of iterations." \
+                "Probably the SAT problem has no solution."
+            )
   
 def randint_exclude(start, end, exclude):
     """

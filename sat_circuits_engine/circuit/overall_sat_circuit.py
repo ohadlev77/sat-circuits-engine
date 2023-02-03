@@ -36,6 +36,7 @@ class SATCircuit(QuantumCircuit):
 
         # TODO COMPLETE
         self.num_input_qubits = num_input_qubits
+        self.iterations = iterations
 
         # Building blocks
         self.sat_op = grover_constraints_operator
@@ -161,6 +162,7 @@ class SATCircuit(QuantumCircuit):
 
         self.measure(self.input_reg, self.results)
 
+# TODO THIS SEEMS REDUNDANT AND UNUSED
 def assemble_grover_iterator(
     operator: GroverConstraintsOperator,
     diffuser: GroverDiffuser,

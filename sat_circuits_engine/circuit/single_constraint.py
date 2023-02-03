@@ -503,19 +503,15 @@ class InnerConstraintArithmetic(QuantumCircuit):
 
         # The maximum possible sum integer value
         max_sum = sum(map(lambda x: (2 ** x) - 1, regs_widths)) + int(default_bitstring, 2)
-        print(f"max_sum = {max_sum}") # TODO REMOVE
 
         # The bitstring length of the maximum possible sum
         width = len(bin(max_sum)[2:])
-        print(f"width original = {width}") # TODO REMOVE
 
         # Trying to reduce width if modular addition can't cause collisions w.r.t to the compared value
-        print(f"compared_value = {compared_value}") # TODO REMOVE
         if compared_value is not None:
             if max_sum - compared_value < compared_value and width > len(bin(compared_value)[2:]):
                 width -= 1
-
-        print(f"width reduced = {width}") # TODO REMOVE
+                
         return width
 
 
