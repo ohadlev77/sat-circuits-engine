@@ -194,27 +194,33 @@ class GroverConstraintsOperator(QuantumCircuit):
             intermidate_flag = True
 
             # First constraint
-            if count == 0:    
+            if count == 0:
                 qargs.append(self.out_reg[count])
                 self.append(instruction=constraint_block, qargs=qargs)
-                intermidate_flag = False
+                
+                # Only one constraint
+                if self.out_qubits_amount == 1:
+                    qc_dagger = self.inverse()
+                    qc_dagger.name = 'Uncomputation'
+
+                    self.cx(self.out_reg[count], self.ancilla)
 
             # Last constraint
-            if count == len(self.single_constraints_objects) - 1:
+            elif count == len(self.single_constraints_objects) - 1:
                 qargs.append(self.out_reg[count])
                 self.append(instruction=constraint_block, qargs=qargs)
 
                 # TODO NEED TO FIX INEFFICIENCIES IN TRANSPILATION CAUSED BY BARRIERES
                 if self.barriers:
                     self.barrier()
+
                 qc_dagger = self.inverse()
                 qc_dagger.name = 'Uncomputation'
                 
                 self.ccx(self.out_reg[count - 1], self.out_reg[count], self.ancilla)
-                intermidate_flag = False
                 
             # Intermidate constraints
-            if intermidate_flag:
+            else:
                 qargs.append(self.out_reg[count + 1])
 
                 self.append(instruction=constraint_block, qargs=qargs)

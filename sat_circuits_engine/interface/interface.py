@@ -63,6 +63,7 @@ class SATInterface:
         num_input_qubits: Optional[int] = None,
         constraints_string: Optional[str] = None,
         name: Optional[str] = None,
+        save_data: Optional[bool] = True
     ) -> None:
         """
         Args:
@@ -80,19 +81,20 @@ class SATInterface:
             self.name = f"SAT"
 
         # Creating a directory for data to be saved
-        self.time_created = timestamp(datetime.now())
-        self.dir_path = f"{DATA_PATH}{self.time_created}_{self.name}/"
-        os.mkdir(self.dir_path)
-        print(f"Data will be saved into '{self.dir_path}'.")
+        if save_data:
+            self.time_created = timestamp(datetime.now())
+            self.dir_path = f"{DATA_PATH}{self.time_created}_{self.name}/"
+            os.mkdir(self.dir_path)
+            print(f"Data will be saved into '{self.dir_path}'.")
 
-        # Initial metadata, more to be added by this class' `save_XXX` methods
-        self.metadata = {
-            "name": self.name,
-            "datetime": self.time_created,
-            "num_input_qubits": num_input_qubits,
-            "constraints_string": constraints_string,
-        }
-        self.update_metadata()
+            # Initial metadata, more to be added by this class' `save_XXX` methods
+            self.metadata = {
+                "name": self.name,
+                "datetime": self.time_created,
+                "num_input_qubits": num_input_qubits,
+                "constraints_string": constraints_string,
+            }
+            self.update_metadata()
 
         self.identify_platform()
 
@@ -407,7 +409,7 @@ class SATInterface:
         # Displaying the concise circuit to user
         if display:
             self.output_to_platform(
-                title=f"The high level circuit contains multiple iterations of the following form:",
+                title=f"The high level circuit may contain multiple iterations of the following form:",
                 output_terminal=concise_circuit.draw("text"),
                 output_jupyter=concise_circuit_fig_path
             )

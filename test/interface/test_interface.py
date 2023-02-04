@@ -2,6 +2,7 @@ import json
 from unittest import TestCase, main
 
 from sat_circuits_engine.interface import SATInterface
+from sat_circuits_engine.util.settings import BACKENDS
 
 class SATInterfaceTest(TestCase):
 
@@ -17,11 +18,13 @@ class SATInterfaceTest(TestCase):
 
                 interface = SATInterface(
                     num_input_qubits=example['num_input_qubits'],
-                    constraints_string=example['constraints_string']
+                    constraints_string=example['constraints_string'],
+                    save_data=False
                 )
 
-                qc = interface.obtain_overall_sat_circuit(example['num_solutions'])
-                distilled_solutions = interface.run_overall_sat_circuit(qc, 1024)['distilled_solutions']
+                operator = interface.obtain_grover_operator()['operator']
+                qc = interface.obtain_overall_sat_circuit(operator, example['num_solutions'])['circuit']
+                distilled_solutions = interface.run_overall_sat_circuit(qc, BACKENDS(0) ,1024)['distilled_solutions']
                 error_message = (
                     f"\nFor {example_name} - distilled solutions are different from data:\n" \
                     f"Data solutions = {example['solutions']}\n" \

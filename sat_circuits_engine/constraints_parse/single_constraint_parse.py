@@ -98,7 +98,7 @@ class SingleConstraintParsed:
         """
         
         # Stripping off parentheses
-        stripped_string = self.constraint_string.strip('()')
+        stripped_string = self.constraint_string.strip('() ')
         
         # Splitting the constraint into its two sides
         splitted_equation = stripped_string.split(self.operator)
