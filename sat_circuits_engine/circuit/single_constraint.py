@@ -478,7 +478,7 @@ class InnerConstraintArithmetic(QuantumCircuit):
         """
 
         # TODO ORGANIZE AND FORMAT
-        # TODO IS REVERSED NEEDED IN HERE? AND WHY?
+        # TODO THE REVERSED STATEMENT IS HERE DUE TO QUBIT ORDERING ISSUES
         for control_index, control_q in enumerate(reversed(qubits_to_add)):
             for target_index, target_q in enumerate(target_qubits):
 

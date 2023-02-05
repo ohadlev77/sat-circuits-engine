@@ -248,7 +248,7 @@
 
     "example_25": {
         "num_input_qubits": 8,
-        "num_total_qubits": "TODO COMPLETE",
+        "num_total_qubits": 16,
         "constraints_string": "([3][2] + [7][6][5] == 9),([4] == [2]),([7] || ~[1] || ~[0])",
         "num_solutions": 8,
         "num_iterations": 4,
@@ -258,11 +258,11 @@
 
     "example_26": {
         "num_input_qubits": 8,
-        "num_total_qubits": "TODO COMPLETE",
+        "num_total_qubits": 16,
         "constraints_string": "([3][2] + [7][6][5] == 9),([4] == [2]),([7] && ~[1] && ~[0])",
-        "num_solutions": "TODO COMPLETE",
-        "num_iterations": "TODO COMPLETE",
-        "solutions": ["TODO COMPLETE"],
+        "num_solutions": 2,
+        "num_iterations": 8,
+        "solutions": ["11101000", "11011100"],
         "perform_test": true
     }
 }

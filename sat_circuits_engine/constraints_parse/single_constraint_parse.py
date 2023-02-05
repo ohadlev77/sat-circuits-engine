@@ -61,25 +61,40 @@ class SingleConstraintParsed:
         elif "!=" in self.constraint_string:
             self.operator = "!="
         elif "||" in self.constraint_string:
-            self.parse_boolean_constraint()
+            self.parse_boolean_constraint("||")
+        elif "&&" in self.constraint_string:
+            self.parse_boolean_constraint("&&")
         else:
             raise ValueError("Not a valid constraint string - an operator is missing.")
             
-    def parse_boolean_constraint(self) -> None:
+    def parse_boolean_constraint(self, boolean_operator: str) -> None:
         """
         TODO COMPLETE
         """
 
-        splitted_constraint = self.constraint_string.split("||")
-        not_equal_to_string = 0
+        splitted_constraint = self.constraint_string.split(boolean_operator)
+        compared_value = 0
 
         for bit_index, var in enumerate(splitted_constraint):
-            if "~" in var:
-                not_equal_to_string += 2 ** ((len(splitted_constraint) - 1) - bit_index)
+            if (
+                ("~" in var and boolean_operator == "||") or
+                ("~" not in var and boolean_operator == "&&")
+            ):
+                compared_value += 2 ** ((len(splitted_constraint) - 1) - bit_index)
 
-        self.constraint_string = f"{self.constraint_string.replace('||', '')} != {not_equal_to_string}"
+        if boolean_operator == "||":
+            comparison_operator = "!="
+        elif boolean_operator == "&&":
+            comparison_operator = "=="
+        else:
+            raise SyntaxError("The only supported binary boolean operators are '||' (OR) and '&&' (AND).")
+
+        self.constraint_string = (
+            f"{self.constraint_string.replace(boolean_operator, '')} " \
+            f"{comparison_operator} {compared_value}"
+        )
+
         self.parse_operator()
-
 
     def parse_sides(self) -> None:
         """

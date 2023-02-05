@@ -27,6 +27,9 @@ def solve_classically(num_input_qubits: int, constraints_string: str) -> Set[str
     # TODO COMPLETE
     parsed_constraints = ParsedConstraints(constraints_string)
     verifier = ClassicalVerifier(parsed_constraints)
+
+    #TODO REMOVE
+    print(parsed_constraints['([7] && ~[1] && ~[0])'].constraint_string)
     
     solutions = set()
     for decmial_num in range(N):
@@ -41,25 +44,25 @@ def solve_classically(num_input_qubits: int, constraints_string: str) -> Set[str
 ################# TODO CONSIDER WHAT TO LEAVE IN THE END ################
 if __name__ == "__main__":
     
-    with open(TEST_DATA_PATH, 'r') as f:
-        test_data = json.load(f)
+    # with open(TEST_DATA_PATH, 'r') as f:
+    #     test_data = json.load(f)
 
-    for example_name, example_data in test_data.items():
-        solutions_found_classically = solve_classically(
-            example_data['num_input_qubits'],
-            example_data['constraints_string']
-        )
-        solutions_equality = set(example_data['solutions']) == solutions_found_classically
+    # for example_name, example_data in test_data.items():
+    #     solutions_found_classically = solve_classically(
+    #         example_data['num_input_qubits'],
+    #         example_data['constraints_string']
+    #     )
+    #     solutions_equality = set(example_data['solutions']) == solutions_found_classically
 
-        print()
-        print(f"{example_name}:")
-        print(f"constraints_string = {example_data['constraints_string']}")
-        print(f"num_input_qubits = {example_data['num_input_qubits']}")
-        print(f"data_solutions = {example_data['solutions']}")
-        print(f"SOLUTIONS FOUND CLASSICALLY = {solutions_found_classically}")
-        print(f"VALID SOLUTIONS = {solutions_equality}")
+    #     print()
+    #     print(f"{example_name}:")
+    #     print(f"constraints_string = {example_data['constraints_string']}")
+    #     print(f"num_input_qubits = {example_data['num_input_qubits']}")
+    #     print(f"data_solutions = {example_data['solutions']}")
+    #     print(f"SOLUTIONS FOUND CLASSICALLY = {solutions_found_classically}")
+    #     print(f"VALID SOLUTIONS = {solutions_equality}")
 
-    # n = 6
-    # s = "([5][4] == [3][2][1]),([2][1] == 3)"
-    # solutions_found_classically = solve_classically(n, s)
-    # print(solutions_found_classically)
+    n = 8
+    s = "([3][2] + [7][6][5] == 9),([4] == [2]),([7] && ~[1] && ~[0])"
+    solutions_found_classically = solve_classically(n, s)
+    print(solutions_found_classically)
