@@ -17,9 +17,7 @@ def interactive_operator_inputs():
     num_input_qubits = int(input("Please enter the number of input qubits: "))
     
     # Taking a string of constraints
-    with open(CONSTRAINTS_FORMAT_PATH, "r") as constraints_format:
-        print()
-        print(constraints_format.read())
+    print()
     constraints_string = str(input("Please enter a string of constraints: "))
 
     return {

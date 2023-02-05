@@ -64,10 +64,13 @@ if __name__ == "__main__":
         'x2': 3,
         'x3': 4
     }
-    string = "(x0 != 4),(x1 + x2 == x0),(x3 + x0 + x1 + x2 != 27)"
+    high_level_string = "(x0 != 4),(x1 + x2 == x0),(x3 + x0 + x1 + x2 != 27)"
 
-    t = ConstraintsTranslator(string, vars)
+    translator = ConstraintsTranslator(high_level_string, vars)
+    low_level_string = translator.translate()
 
-    print(string)
-    print(t.translate())
-    print(vars)
+    print(low_level_string)
+    
+    # print(high_level_string)
+    # print(t.translate())
+    # print(vars)
