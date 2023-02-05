@@ -8,9 +8,22 @@ from typing import List
 from sat_circuits_engine.circuit import GroverConstraintsOperator
 
 # Those blocks sholdn't be decomposed any farther
-BLOCKS =  [
-    'x', 'h', 'mcx', 'cx', 'cp', 'ccx', 'rccx', 'rccx_dg', 'mcx_gray', 'Uncomputation', 'QFT', 'IQFT_dg'
-]
+BLOCKS =  {
+    'x',
+    'h',
+    'mcx',
+    'cx',
+    'cp',
+    'ccx',
+    'rccx',
+    'rccx_dg',
+    'rcccx',
+    'rcccx_dg',
+    'mcx_gray',
+    'Uncomputation',
+    'QFT',
+    'IQFT_dg'
+}
 
 def decompose_operator(operator: GroverConstraintsOperator) -> GroverConstraintsOperator:
     """

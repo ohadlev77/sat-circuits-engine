@@ -174,6 +174,8 @@ class SingleConstraintBlock(QuantumCircuit):
         # TODO IMPROVE MCX anc rccx hook
         if len(qubits_bundle) == 2:
             self.rccx(qubits_bundle[0], qubits_bundle[1], self.regs['out'][0])
+        elif len(qubits_bundle) == 3:
+            self.rcccx(qubits_bundle[0], qubits_bundle[1], qubits_bundle[2], self.regs['out'][0])
         else:
             self.mcx(qubits_bundle, self.regs['out'][0])
 
@@ -247,6 +249,8 @@ class SingleConstraintBlock(QuantumCircuit):
         q = left_trimmed_long + self.regs['comparison_aux'][0][:]
         if len(q) == 2:
             self.rccx(q[0], q[1], self.regs['out'][0])
+        elif len(q) == 3:
+            self.rcccx(q[0], q[1], q[2], self.regs['out'][0])
         else:
             self.mcx(q, self.regs['out'][0])
 
@@ -286,6 +290,8 @@ class SingleConstraintBlock(QuantumCircuit):
         if out_qubit is not None:
             if len(aux) == 2:
                 self.rccx(aux[0], aux[1], out_qubit)
+            elif len(aux) == 3:
+                self.rcccx(aux[0], aux[1], aux[2], out_qubit)
             else:
                 self.mcx(aux, out_qubit)
         
