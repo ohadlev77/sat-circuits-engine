@@ -27,9 +27,6 @@ def solve_classically(num_input_qubits: int, constraints_string: str) -> Set[str
     # TODO COMPLETE
     parsed_constraints = ParsedConstraints(constraints_string)
     verifier = ClassicalVerifier(parsed_constraints)
-
-    #TODO REMOVE
-    print(parsed_constraints['([7] && ~[1] && ~[0])'].constraint_string)
     
     solutions = set()
     for decmial_num in range(N):
@@ -62,7 +59,7 @@ if __name__ == "__main__":
     #     print(f"SOLUTIONS FOUND CLASSICALLY = {solutions_found_classically}")
     #     print(f"VALID SOLUTIONS = {solutions_equality}")
 
-    n = 8
-    s = "([3][2] + [7][6][5] == 9),([4] == [2]),([7] && ~[1] && ~[0])"
+    n = 4
+    s = "([3] && [2] && [1] && [0])"
     solutions_found_classically = solve_classically(n, s)
     print(solutions_found_classically)
