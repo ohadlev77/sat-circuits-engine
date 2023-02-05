@@ -22,7 +22,8 @@ class SATCircuit(QuantumCircuit):
         self,
         num_input_qubits: int,
         grover_constraints_operator: GroverConstraintsOperator,
-        iterations: Optional[int] = None
+        iterations: Optional[int] = None,
+        barriers: Optional[bool] = True
     ) -> None:
         """
         Args:
@@ -32,11 +33,13 @@ class SATCircuit(QuantumCircuit):
             iterations (Optional[int]) - number of required iterations over Grover's iterator.
                 # If `None` (default) - the number of iterations is unknown and a dynamic circuit approach
                 should be applied.
+            barriers (Optional[bool] = True): TODO COMPLETE.
         """
 
         # TODO COMPLETE
         self.num_input_qubits = num_input_qubits
         self.iterations = iterations
+        self.barriers = barriers
 
         # Building blocks
         self.sat_op = grover_constraints_operator
@@ -144,7 +147,8 @@ class SATCircuit(QuantumCircuit):
         self.h(self.input_reg)
         self.x(self.ancilla)
         self.h(self.ancilla)
-        self.barrier()
+        if self.barriers:
+            self.barrier()
     
     def add_iteration(self) -> None:
         """
@@ -153,7 +157,8 @@ class SATCircuit(QuantumCircuit):
 
         self.append(self.sat_op, qargs=self.qubits_with_ancilla)
         self.append(self.diffuser, qargs=self.input_reg)
-        self.barrier()
+        if self.barriers:
+            self.barrier()
 
     def add_input_reg_measurement(self) -> None:
         """

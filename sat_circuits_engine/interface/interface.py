@@ -236,14 +236,17 @@ class SATInterface:
             transpile_kwargs = {'basis_gates': ['u', 'cx'], 'optimization_level': 3}
         self.transpile_kwargs = transpile_kwargs
 
-        operator = GroverConstraintsOperator(self.parsed_constraints, self.num_input_qubits)
+        operator = GroverConstraintsOperator(self.parsed_constraints, self.num_input_qubits, barriers=False)
         decomposed_operator = decompose_operator(operator)
-        no_barriers_operator = GroverConstraintsOperator(
-            self.parsed_constraints,
-            self.num_input_qubits,
-            barriers=False
-        )
-        transpiled_operator = transpile(no_barriers_operator, **transpile_kwargs)
+
+        # TODO CONSIDER THAT
+        # no_barriers_operator = GroverConstraintsOperator(
+        #     self.parsed_constraints,
+        #     self.num_input_qubits,
+        #     barriers=False
+        # )
+
+        transpiled_operator = transpile(operator, **transpile_kwargs)
 
         return {
             'operator': operator,
@@ -379,7 +382,8 @@ class SATInterface:
             iterations = calc_iterations(self.num_input_qubits, solutions_num)
             print(f"\nFor {solutions_num} solutions, {iterations} iterations needed.")
 
-            circuit = SATCircuit(self.num_input_qubits, grover_operator, iterations)
+            # TODO DECIDE ON BARRIERS
+            circuit = SATCircuit(self.num_input_qubits, grover_operator, iterations, barriers=False)
             circuit.add_input_reg_measurement()
 
         # Obtaining a SATCircuit object with one iteration for concise representation
