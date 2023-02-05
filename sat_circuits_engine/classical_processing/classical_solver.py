@@ -58,3 +58,8 @@ if __name__ == "__main__":
         print(f"data_solutions = {example_data['solutions']}")
         print(f"SOLUTIONS FOUND CLASSICALLY = {solutions_found_classically}")
         print(f"VALID SOLUTIONS = {solutions_equality}")
+
+    # n = 6
+    # s = "([5][4] == [3][2][1]),([2][1] == 3)"
+    # solutions_found_classically = solve_classically(n, s)
+    # print(solutions_found_classically)

@@ -161,7 +161,8 @@
         "num_solutions": 1,
         "num_iterations": 12,
         "solutions": ["10010110"],
-        "perform_test": false
+        "perform_test": false,
+        "note": "*** WARNING - This example exploits 27 qubits and is heavy for a classical computer (and therefore not performing tests for this as default)***"
     },
 
     "example_17": {
@@ -240,7 +241,7 @@
         "num_total_qubits": 18,
         "constraints_string": "([3][2] + [0] + [1] + 5 == [7][6][5][4])",
         "num_solutions": 16,
-        "num_iterations": "TODO COMPLETE",
+        "num_iterations": 3,
         "solutions": ["10101111", "10011110", "01110011", "10011101", "10001001", "01010000", "01100001", "10011011", "01110110", "01110101", "10000111", "10001100", "01111000", "10001010", "01100100", "01100010"],
         "perform_test": true
     },
@@ -250,8 +251,18 @@
         "num_total_qubits": "TODO COMPLETE",
         "constraints_string": "([3][2] + [7][6][5] == 9),([4] == [2]),([7] || ~[1] || ~[0])",
         "num_solutions": 8,
-        "num_iterations": "TODO COMPLETE",
+        "num_iterations": 4,
         "solutions": ["11011110", "11101001", "11011100", "11101011", "11101000", "11011101", "11011111", "11101010"],
+        "perform_test": true
+    },
+
+    "example_26": {
+        "num_input_qubits": 8,
+        "num_total_qubits": "TODO COMPLETE",
+        "constraints_string": "([3][2] + [7][6][5] == 9),([4] == [2]),([7] && ~[1] && ~[0])",
+        "num_solutions": "TODO COMPLETE",
+        "num_iterations": "TODO COMPLETE",
+        "solutions": ["TODO COMPLETE"],
         "perform_test": true
     }
 }

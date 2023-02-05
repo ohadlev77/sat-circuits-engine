@@ -478,7 +478,8 @@ class InnerConstraintArithmetic(QuantumCircuit):
         """
 
         # TODO ORGANIZE AND FORMAT
-        for control_index, control_q in enumerate(qubits_to_add):
+        # TODO IS REVERSED NEEDED IN HERE? AND WHY?
+        for control_index, control_q in enumerate(reversed(qubits_to_add)):
             for target_index, target_q in enumerate(target_qubits):
 
                 k = len(target_qubits) - target_index
