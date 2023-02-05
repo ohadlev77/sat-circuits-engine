@@ -20,11 +20,10 @@ def BACKENDS(index: int) -> qiskit.providers.backend.Backend:
     else:
         raise ValueError(f"No backends are defined for index {index}.")
 
-# Path to a txt file contains explanation about the supported constraints input format
+# Paths constants
 CONSTRAINTS_FORMAT_PATH = "sat_circuits_engine/data/constraints_format.txt"
-
-# Path to data directory
 DATA_PATH = "sat_circuits_engine/data/generated_data/"
+TEST_DATA_PATH = "sat_circuits_engine/data/test_data.json"
 
 ##### Supported operators #####
 # TODO REMOVE
