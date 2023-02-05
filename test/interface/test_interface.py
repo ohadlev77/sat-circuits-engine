@@ -14,7 +14,9 @@ class SATInterfaceTest(TestCase):
 
         for example_name, example in self.test_data.items():
             if example['perform_test']:
-                print(f"\nTesting {example_name}:")
+                print()
+                print()
+                print(f"Testing {example_name}:")
 
                 interface = SATInterface(
                     num_input_qubits=example['num_input_qubits'],
@@ -24,7 +26,9 @@ class SATInterfaceTest(TestCase):
 
                 operator = interface.obtain_grover_operator()['operator']
                 qc = interface.obtain_overall_sat_circuit(operator, example['num_solutions'])['circuit']
-                distilled_solutions = interface.run_overall_sat_circuit(qc, BACKENDS(0) ,1024)['distilled_solutions']
+                distilled_solutions = interface.run_overall_sat_circuit(
+                    qc, BACKENDS(0) ,1024
+                )['distilled_solutions']
                 error_message = (
                     f"\nFor {example_name} - distilled solutions are different from data:\n" \
                     f"Data solutions = {example['solutions']}\n" \
