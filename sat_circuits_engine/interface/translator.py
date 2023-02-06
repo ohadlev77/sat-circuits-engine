@@ -9,20 +9,20 @@ class ConstraintsTranslator:
     TODO COMPLETE.
     """
 
-    def __init__(self, high_level_string: str, vars: Dict[str, int]) -> None:
+    def __init__(self, high_level_string: str, variables: Dict[str, int]) -> None:
         """
         Args:
             high_level_string (str): A string of constraints in a format defined in
             sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH - "High level format" section.
-            vars (Dict[str, int]): each key is a name of a variable, each value is its bits-length.
+            variables (Dict[str, int]): each key is a name of a variable, each value is its bits-length.
         """
 
         self.high_level_string = high_level_string
-        self.vars = vars
+        self.variables = variables
 
     def translate(self) -> str:
         """
-        Translates the combination of `self.high_level_string` and `vars` into a low-level
+        Translates the combination of `self.high_level_string` and `variables` into a low-level
         constraints string to the level of bits indexes.
         See `sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH` - "Low level format" section
         for information about the low level format.
@@ -34,7 +34,7 @@ class ConstraintsTranslator:
         low_level_string = self.high_level_string
 
         bits_sum = 0
-        for var, bits_needed in vars.items():
+        for var, bits_needed in self.variables.items():
             low_level_string = low_level_string.replace(
                 var,
                 self.generate_bits_bundle_string(bits_needed, bits_sum)
@@ -58,12 +58,7 @@ class ConstraintsTranslator:
 
 # TODO REMOVE
 if __name__ == "__main__":
-    vars = {
-        'x0': 3,
-        'x1': 1,
-        'x2': 3,
-        'x3': 4
-    }
+    vars = {'x0': 3, 'x1': 1, 'x2': 3, 'x3': 4}
     high_level_string = "(x0 != 4),(x1 + x2 == x0),(x3 + x0 + x1 + x2 != 27)"
 
     translator = ConstraintsTranslator(high_level_string, vars)

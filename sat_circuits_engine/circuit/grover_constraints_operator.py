@@ -20,7 +20,7 @@ class GroverConstraintsOperator(QuantumCircuit):
         self,
         parsed_constraints: ParsedConstraints,
         num_input_qubits: int,
-        barriers: Optional[bool] = True
+        insert_barriers: Optional[bool] = True
     ) -> None:
         """
         Args:
@@ -31,7 +31,7 @@ class GroverConstraintsOperator(QuantumCircuit):
 
         self.num_input_qubits = num_input_qubits
         self.parsed_constraints = list(parsed_constraints.values())
-        self.barriers = barriers
+        self.insert_barriers = insert_barriers
 
         # Transforming `constraints_string` into a list of `SingleConstraintBlock` objects. A few more
         # instance variables defined within `self.constraints_build`, see its docstrings for details.
@@ -211,7 +211,7 @@ class GroverConstraintsOperator(QuantumCircuit):
                 self.append(instruction=constraint_block, qargs=qargs)
 
                 # TODO NEED TO FIX INEFFICIENCIES IN TRANSPILATION CAUSED BY BARRIERES
-                if self.barriers:
+                if self.insert_barriers:
                     self.barrier()
 
                 qc_dagger = self.inverse()
@@ -228,7 +228,7 @@ class GroverConstraintsOperator(QuantumCircuit):
                 self.append(instruction=constraint_block.inverse(), qargs=qargs)
 
             # TODO NEED TO FIX INEFFICIENCIES IN TRANSPILATION CAUSED BY BARRIERES
-            if self.barriers:
+            if self.insert_barriers:
                 self.barrier()
             
             # Appending the entire constraint block

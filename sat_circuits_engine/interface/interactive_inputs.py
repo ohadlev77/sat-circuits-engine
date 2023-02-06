@@ -6,23 +6,47 @@ from typing import Dict, Union
 
 import qiskit
 
-from sat_circuits_engine.util.settings import CONSTRAINTS_FORMAT_PATH, BACKENDS
+from sat_circuits_engine.util.settings import BACKENDS
+from sat_circuits_engine.interface.translator import ConstraintsTranslator
 
 def interactive_operator_inputs():
     """
     """
 
-    # Taking number of input qubits
+    # Taking choice - high-level constraints setting or low-level constraints string input
     print()
-    num_input_qubits = int(input("Please enter the number of input qubits: "))
-    
-    # Taking a string of constraints
-    print()
-    constraints_string = str(input("Please enter a string of constraints: "))
+    high_level_setting = bool(int(input(
+        "For a low-level setting of constraints, enter '0'. For a high level setting, enter '1': "
+    )))
+
+    high_level_constraints_string = None
+    high_level_vars = None
+    if high_level_setting:
+        print()
+        high_level_constraints_string = input("Enter a high-level constraints string: ")
+
+        print()
+        high_level_vars = eval(input("Enter a dictionary of variables setting (Dict[var, num_bits]): "))
+
+        num_input_qubits = sum(high_level_vars.values())
+
+        translator = ConstraintsTranslator(high_level_constraints_string, high_level_vars)
+        constraints_string = translator.translate()
+
+    else:
+        # Taking number of input qubits
+        print()
+        num_input_qubits = int(input("Please enter the number of input qubits: "))
+        
+        # Taking a string of constraints
+        print()
+        constraints_string = str(input("Please enter a string of constraints: "))
 
     return {
         'num_input_qubits': num_input_qubits,
-        'constraints_string': constraints_string
+        'constraints_string': constraints_string,
+        'high_level_constraints_string': high_level_constraints_string,
+        'high_level_vars': high_level_vars
     }
 
 def interactive_solutions_num_input():
@@ -120,4 +144,14 @@ def interactive_inputs() -> Dict[str, Union[int, str, qiskit.providers.backend.B
                 - If None (default) = not defined by user.
     """
     
+    # TODO REMOVE THIS FUNCTION
+    
     pass
+
+
+# TODO REMOVE IN THE END
+if __name__ == "__main__":
+    print(interactive_operator_inputs())
+
+    # vars = {'x0': 3, 'x1': 1, 'x2': 3, 'x3': 4}
+    # high_level_string = "(x0 != 4),(x1 + x2 == x0),(x3 + x0 + x1 + x2 != 27)"

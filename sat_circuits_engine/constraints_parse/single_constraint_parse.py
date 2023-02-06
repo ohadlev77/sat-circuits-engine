@@ -2,7 +2,7 @@
 This module contains the `SingleConstraintParsed` class.
 """
 
-from typing import List, Union
+from typing import List, Union, Optional
 
 class SingleConstraintParsed:
     """
@@ -25,7 +25,12 @@ class SingleConstraintParsed:
             - True if either of the sides contains an addition operation, False otherwise
     """
     
-    def __init__(self, constraint_string: str, constraint_index: int) -> None:
+    def __init__(
+        self,
+        constraint_string: str,
+        constraint_index: int,
+        high_level_constraint_string: Optional[str] = None
+    ) -> None:
         """
         Args:
             constraint_index (int): the index number of the constraint.
@@ -34,8 +39,12 @@ class SingleConstraintParsed:
         """
         
         self.constraint_string = constraint_string
-        self.string_to_show = constraint_string
         self.constraint_index = constraint_index
+
+        if high_level_constraint_string is None:
+            self.string_to_show = constraint_string
+        else:
+            self.string_to_show = high_level_constraint_string
 
         # Parsing and setting `self.operator`
         self.parse_operator()

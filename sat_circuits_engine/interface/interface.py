@@ -13,6 +13,7 @@ from qiskit import transpile, QuantumCircuit, qpy
 from qiskit.result.counts import Counts
 from qiskit.visualization.circuit.text import TextDrawing
 from qiskit.providers.backend import Backend
+from qiskit.transpiler.passes import RemoveBarriers
 from IPython import display
 from matplotlib.figure import Figure
 
@@ -62,11 +63,14 @@ class SATInterface:
         self,
         num_input_qubits: Optional[int] = None,
         constraints_string: Optional[str] = None,
+        high_level_constraints_string: Optional[str] = None,
+        high_level_vars: Optional[Dict[str, int]] = None,
         name: Optional[str] = None,
         save_data: Optional[bool] = True
     ) -> None:
         """
         Args:
+            # TODO COMPLETE ARGS
             num_input_qubits (Optional[int] = None):
                 - Number of input qubits.
                 - If None (default) - it's a sign to launch an interactive user interface and
@@ -93,19 +97,29 @@ class SATInterface:
                 "datetime": self.time_created,
                 "num_input_qubits": num_input_qubits,
                 "constraints_string": constraints_string,
+                "high_level_constraints_string": high_level_constraints_string,
+                "high_level_vars": high_level_vars
             }
             self.update_metadata()
 
         self.identify_platform()
 
+        # TODO EXPLAIN WHAT NEEDED TO BE PROVIDED
         # If `num_input_qubits` or `constraints_string` aren't stated - 
         # Calling `interactive_inputs()` to take care of user inputs.
-        if num_input_qubits is None or constraints_string is None:
+        if (
+            (num_input_qubits is None or constraints_string is None)
+            and
+            (high_level_constraints_string is None or high_level_vars is None)
+        ):
             self.interactive_interface()
         else:
             self.num_input_qubits = num_input_qubits
             self.constraints_string = constraints_string
-            self.parsed_constraints = ParsedConstraints(constraints_string)
+            self.high_level_constraints_string = high_level_constraints_string
+            self.high_level_vars = high_level_vars
+
+            self.parsed_constraints = ParsedConstraints(constraints_string, high_level_constraints_string)
 
     def update_metadata(self, update_metadata: Optional[Dict[str, Any]] = None) -> None:
         """
@@ -173,11 +187,19 @@ class SATInterface:
         operator_inputs = interactive_operator_inputs()
         self.num_input_qubits = operator_inputs['num_input_qubits']
         self.constraints_string = operator_inputs['constraints_string']
-        self.parsed_constraints = ParsedConstraints(self.constraints_string)
+        self.high_level_constraints_string = operator_inputs['high_level_constraints_string']
+        self.high_level_vars = operator_inputs['high_level_vars']
 
+        self.parsed_constraints = ParsedConstraints(
+            self.constraints_string,
+            self.high_level_constraints_string
+        )
+        
         self.update_metadata({
             "num_input_qubits": self.num_input_qubits,
-            "constraints_string": self.constraints_string
+            "constraints_string": self.constraints_string,
+            "high_level_constraints_string": self.high_level_constraints_string,
+            "high_level_vars": self.high_level_vars
         })
 
         obtain_grover_operator_output = self.obtain_grover_operator()
@@ -236,7 +258,11 @@ class SATInterface:
             transpile_kwargs = {'basis_gates': ['u', 'cx'], 'optimization_level': 3}
         self.transpile_kwargs = transpile_kwargs
 
-        operator = GroverConstraintsOperator(self.parsed_constraints, self.num_input_qubits, barriers=False)
+        operator = GroverConstraintsOperator(
+            self.parsed_constraints,
+            self.num_input_qubits,
+            insert_barriers=True
+        )
         decomposed_operator = decompose_operator(operator)
 
         # TODO CONSIDER THAT
@@ -246,7 +272,25 @@ class SATInterface:
         #     barriers=False
         # )
 
-        transpiled_operator = transpile(operator, **transpile_kwargs)
+        # TODO REMOVE THIS DEBUGGING STARTS NOW
+        # print("====================")
+        # print("====================")
+        # print("====================")
+
+        # print(f"operator.count_ops() = {operator.count_ops()}")
+
+        no_baerriers_operator = RemoveBarriers()(operator)
+        # print(f"no_baerriers_operator.count_ops() = {no_baerriers_operator.count_ops()}")
+
+        transpiled_operator = transpile(no_baerriers_operator, **transpile_kwargs)
+        # print(f"transpiled_operator.count_ops() = {transpiled_operator.count_ops()}")
+
+        # print(f"transpile_kwargs = {transpile_kwargs}")
+        
+        # print("====================")
+        # print("====================")
+        # print("====================")
+        # TODO REMOVE THIS DEBUGGING ENDS NOW
 
         return {
             'operator': operator,
