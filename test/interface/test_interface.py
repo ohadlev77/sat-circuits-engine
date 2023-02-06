@@ -2,12 +2,12 @@ import json
 from unittest import TestCase, main
 
 from sat_circuits_engine.interface import SATInterface
-from sat_circuits_engine.util.settings import BACKENDS
+from sat_circuits_engine.util.settings import BACKENDS, TEST_DATA_PATH
 
 class SATInterfaceTest(TestCase):
 
     def setUp(self) -> None:
-        with open("sat_circuits_engine/data/test_data.json", 'r') as data_file:
+        with open(TEST_DATA_PATH, 'r') as data_file:
             self.test_data = json.load(data_file)
 
     def test_run_overall_sat_circuit(self):

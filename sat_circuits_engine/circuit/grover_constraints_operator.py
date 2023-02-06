@@ -208,8 +208,8 @@ class GroverConstraintsOperator(QuantumCircuit):
         # Applying uncomputation
         self.append(instruction=qc_dagger, qargs=self.qubits)
 
-# TODO REMOVE in the end
 
+# TODO REMOVE in the end
 if __name__ == "__main__":
 
     # pc = ParsedConstraints("([4][3][2] != [0]),([2] == [3]),([3] == [4]),([0] != [1]),([2] + [4] + 5 != 11 + [3]")
