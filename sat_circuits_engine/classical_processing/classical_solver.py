@@ -2,12 +2,10 @@
 TODO COMPLETE
 """
 
-import json
 from typing import Set
 
 from sat_circuits_engine.constraints_parse import ParsedConstraints
 from sat_circuits_engine.classical_processing.classical_verifier import ClassicalVerifier
-from sat_circuits_engine.util.settings import TEST_DATA_PATH
 
 def solve_classically(num_input_qubits: int, constraints_string: str) -> Set[str]:
     """
@@ -59,7 +57,24 @@ if __name__ == "__main__":
     #     print(f"SOLUTIONS FOUND CLASSICALLY = {solutions_found_classically}")
     #     print(f"VALID SOLUTIONS = {solutions_equality}")
 
-    n = 4
-    s = "([3] && [2] && [1] && [0])"
-    solutions_found_classically = solve_classically(n, s)
-    print(solutions_found_classically)
+    # n = 4
+    # s = "([3] && [2] && [1] && [0])"
+    # solutions_found_classically = solve_classically(n, s)
+    # print(solutions_found_classically)
+
+    # from sat_circuits_engine.interface.translator import ConstraintsTranslator
+
+    # vars = {'x0': 3, 'x1': 1, 'x2': 3, 'x3': 4}
+    # high_level_string = "(x0 != 4),(x1 + x2 == x0),(x3 + x0 + x1 + x2 != 27)"
+
+    # translator = ConstraintsTranslator(high_level_string, vars)
+    # low_level_string = translator.translate()
+
+    # print(low_level_string)
+
+    # n = sum(vars.values())
+    # s = low_level_string
+    # solutions_found_classically = solve_classically(n, s)
+    # print(solutions_found_classically)
+    # print()
+    # print(len(solutions_found_classically))

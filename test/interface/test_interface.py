@@ -26,9 +26,11 @@ class SATInterfaceTest(TestCase):
 
                 operator = interface.obtain_grover_operator()['operator']
                 qc = interface.obtain_overall_sat_circuit(operator, example['num_solutions'])['circuit']
+                shots = min(example['num_solutions'] * 50, 4000)
                 distilled_solutions = interface.run_overall_sat_circuit(
-                    qc, BACKENDS(0) ,1024
+                    qc, BACKENDS(0), shots
                 )['distilled_solutions']
+
                 error_message = (
                     f"\nFor {example_name} - distilled solutions are different from data:\n" \
                     f"Data solutions = {example['solutions']}\n" \
