@@ -6,6 +6,7 @@ from itertools import chain
 from typing import Optional
 
 from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.transpiler.passes import RemoveBarriers
 
 from sat_circuits_engine.constraints_parse import ParsedConstraints
 from sat_circuits_engine.circuit.single_constraint import SingleConstraintBlock
@@ -186,7 +187,7 @@ class GroverConstraintsOperator(QuantumCircuit):
                     self.barrier()
 
                 # Saving inverse for future uncomputation
-                qc_dagger = self.inverse()
+                qc_dagger = RemoveBarriers()(self.inverse())
                 qc_dagger.name = "Uncomputation"
                 
                 # "Marking" states by writing to ancilla

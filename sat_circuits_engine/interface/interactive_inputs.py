@@ -26,7 +26,10 @@ def interactive_operator_inputs():
         high_level_constraints_string = input("Enter a high-level constraints string: ")
 
         print()
-        high_level_vars = eval(input("Enter a dictionary of variables setting (Dict[var, num_bits]): "))
+        high_level_vars = eval(input(
+            "Enter a dictionary of variables setting in a Python syntax, " \
+            "while keys are variables-names and values are bits-lengths (Dict[var, num_bits]): "
+        ))
 
         num_input_qubits = sum(high_level_vars.values())
 

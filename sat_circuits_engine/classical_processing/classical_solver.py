@@ -57,10 +57,12 @@ if __name__ == "__main__":
     #     print(f"SOLUTIONS FOUND CLASSICALLY = {solutions_found_classically}")
     #     print(f"VALID SOLUTIONS = {solutions_equality}")
 
-    # n = 4
-    # s = "([3] && [2] && [1] && [0])"
-    # solutions_found_classically = solve_classically(n, s)
-    # print(solutions_found_classically)
+    n = 8
+    s = "([2][1][0] != 5),([3] == [4]),([2][1][0] + [3] + [4] + 2 == [7][6][5]),([7][6][5] != 7)"
+    solutions_found_classically = solve_classically(n, s)
+    print(solutions_found_classically)
+    print()
+    print(len(solutions_found_classically))
 
     # from sat_circuits_engine.interface.translator import ConstraintsTranslator
 

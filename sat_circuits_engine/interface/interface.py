@@ -23,6 +23,7 @@ from sat_circuits_engine.circuit import GroverConstraintsOperator, SATCircuit
 from sat_circuits_engine.constraints_parse import ParsedConstraints
 from sat_circuits_engine.interface.circuit_decomposition import decompose_operator
 from sat_circuits_engine.interface.counts_visualization import plot_histogram
+from sat_circuits_engine.interface.translator import ConstraintsTranslator
 from sat_circuits_engine.classical_processing import (
     find_iterations_unknown,
     calc_iterations,
@@ -82,7 +83,8 @@ class SATInterface:
         """
 
         if name is None:
-            self.name = f"SAT"
+            name = "SAT"
+        self.name = name
 
         # Creating a directory for data to be saved
         if save_data:
@@ -114,12 +116,31 @@ class SATInterface:
         ):
             self.interactive_interface()
         else:
-            self.num_input_qubits = num_input_qubits
-            self.constraints_string = constraints_string
             self.high_level_constraints_string = high_level_constraints_string
             self.high_level_vars = high_level_vars
 
-            self.parsed_constraints = ParsedConstraints(constraints_string, high_level_constraints_string)
+            if num_input_qubits is None or constraints_string is None:
+                self.num_input_qubits = sum(self.high_level_vars.values())
+                self.constraints_string = ConstraintsTranslator(
+                    self.high_level_constraints_string,
+                    self.high_level_vars
+                ).translate()
+
+            elif num_input_qubits is not None and constraints_string is not None:
+                self.num_input_qubits = num_input_qubits
+                self.constraints_string = constraints_string
+
+            else:
+                raise SyntaxError(
+                    "SATInterface accepts the combination of paramters:" \
+                    "(high_level_constraints_string + high_level_vars) or (num_input_qubits + constraints_string). "\
+                    "Exactly one combination is accepted, not both."
+                )
+
+            self.parsed_constraints = ParsedConstraints(
+                self.constraints_string,
+                self.high_level_constraints_string
+            )
 
     def update_metadata(self, update_metadata: Optional[Dict[str, Any]] = None) -> None:
         """
@@ -213,12 +234,12 @@ class SATInterface:
             if solutions_num == -1:
                 backend = interactive_backend_input()
 
-            overall_circuit, concise_overall_circuit = self.obtain_overall_sat_circuit(
+            overall_circuit_data = self.obtain_overall_sat_circuit(
                 obtain_grover_operator_output['operator'],
                 solutions_num,
                 backend
-            ).values()
-            self.save_display_overall_circuit(overall_circuit, concise_overall_circuit)
+            )
+            self.save_display_overall_circuit(overall_circuit_data)
 
             # Handling circuit execution part
             if interactive_run_input():
@@ -227,14 +248,13 @@ class SATInterface:
 
                 shots = interactive_shots_input()
 
-                counts_parsed = self.run_overall_sat_circuit(overall_circuit, backend, shots)
-
-                self.save_display_results(
-                    shots,
-                    counts_parsed['counts'],
-                    counts_parsed['counts_sorted'],
-                    counts_parsed['distilled_solutions'],
+                counts_parsed = self.run_overall_sat_circuit(
+                    overall_circuit_data['circuit'],
+                    backend,
+                    shots
                 )
+                self.save_display_results(counts_parsed)
+
         print()
         print(f"Done saving data into '{self.dir_path}'.")
 
@@ -264,33 +284,10 @@ class SATInterface:
             insert_barriers=True
         )
         decomposed_operator = decompose_operator(operator)
-
-        # TODO CONSIDER THAT
-        # no_barriers_operator = GroverConstraintsOperator(
-        #     self.parsed_constraints,
-        #     self.num_input_qubits,
-        #     barriers=False
-        # )
-
-        # TODO REMOVE THIS DEBUGGING STARTS NOW
-        # print("====================")
-        # print("====================")
-        # print("====================")
-
-        # print(f"operator.count_ops() = {operator.count_ops()}")
-
         no_baerriers_operator = RemoveBarriers()(operator)
-        # print(f"no_baerriers_operator.count_ops() = {no_baerriers_operator.count_ops()}")
-
         transpiled_operator = transpile(no_baerriers_operator, **transpile_kwargs)
-        # print(f"transpiled_operator.count_ops() = {transpiled_operator.count_ops()}")
 
-        # print(f"transpile_kwargs = {transpile_kwargs}")
-        
-        # print("====================")
-        # print("====================")
-        # print("====================")
-        # TODO REMOVE THIS DEBUGGING ENDS NOW
+        print("Done.")
 
         return {
             'operator': operator,
@@ -359,7 +356,8 @@ class SATInterface:
                 transpiled_operator_depth = op_obj.depth()
                 transpiled_operator_gates_count = op_obj.count_ops()
                 print(f"Transpiled operator depth: {transpiled_operator_depth}.")
-                print(f"Transpiled operator gates counts: {transpiled_operator_gates_count}.")
+                print(f"Transpiled operator gates count: {transpiled_operator_gates_count}.")
+                print(f"Total number of qubits: {op_obj.num_qubits}.")
 
                 # TODO NEED TO SOLVE QASM 2.0 empty registers issue
                 # Generating QASM 2.0 file only for the tranpsiled operator
@@ -434,17 +432,21 @@ class SATInterface:
         concise_circuit = SATCircuit(self.num_input_qubits, grover_operator, iterations=1)
         concise_circuit.add_input_reg_measurement()
 
+        self.iterations = iterations
+
         return {'circuit': circuit, 'concise_circuit': concise_circuit}
 
     def save_display_overall_circuit(
         self,
-        circuit: SATCircuit,
-        concise_circuit: SATCircuit,
+        obtain_overall_sat_circuit_output: Dict[str, SATCircuit],
         display: Optional[bool] = True
     ) -> None:
         """
         TODO COMPLETE
         """
+
+        circuit = obtain_overall_sat_circuit_output['circuit']
+        concise_circuit = obtain_overall_sat_circuit_output['concise_circuit']
 
         # Creating a directory to save overall circuit's data
         overall_circuit_dir_path = f"{self.dir_path}overall_circuit/"
@@ -457,7 +459,10 @@ class SATInterface:
         # Displaying the concise circuit to user
         if display:
             self.output_to_platform(
-                title=f"The high level circuit may contain multiple iterations of the following form:",
+                title= (
+                    f"The high level circuit contains {self.iterations}" \
+                    f"iterations of the following form:"
+                ),
                 output_terminal=concise_circuit.draw("text"),
                 output_jupyter=concise_circuit_fig_path
             )
@@ -495,11 +500,13 @@ class SATInterface:
 
         print()
         print(f"The system is running the circuit {shots} times on {backend}, please wait..")
+        print("This process might take a while.")
 
         job = backend.run(transpile(circuit, backend), shots=shots)
         counts = job.result().get_counts()
         parsed_counts = self.parse_counts(counts)
 
+        self.shots = shots
         return parsed_counts
 
     def parse_counts(self, counts):
@@ -526,15 +533,16 @@ class SATInterface:
     
     def save_display_results(
         self,
-        shots: int,
-        counts: Counts,
-        counts_sorted: List[Tuple[Union[str, int]]],
-        distilled_solutions: set,
+        run_overall_sat_circuit_output: Dict[str, Union[set, Counts, List[Tuple[Union[str, int]]]]],
         display: Optional[bool] = True
     ) -> None:
         """
         TODO COMPLETE
         """
+        
+        counts = run_overall_sat_circuit_output['counts']
+        counts_sorted = run_overall_sat_circuit_output['counts_sorted']
+        distilled_solutions = run_overall_sat_circuit_output['distilled_solutions']
 
         # Creating a directory to save results data
         results_dir_path = f"{self.dir_path}results/"
@@ -543,7 +551,7 @@ class SATInterface:
         histogram_path = f"{results_dir_path}histogram.pdf"
 
         # Defining custiom dimensions for the custom `plot_histogram` of this package
-        histogram_fig_width = (len(counts) * self.num_input_qubits * (10 / 72))
+        histogram_fig_width = max((len(counts) * self.num_input_qubits * (10 / 72)), 7)
         histogram_fig_height = 5
         histogram_figsize = (histogram_fig_width, histogram_fig_height)
 
@@ -555,10 +563,12 @@ class SATInterface:
         )
 
         if display:
-            output_text = f"\nDistilled solutions:\n{distilled_solutions}\n\n" \
+            output_text = f"\nDistilled solutions ({len(distilled_solutions)} total):\n" \
+                          f"{distilled_solutions}\n\n" \
                           f"All counts:\n{counts_sorted}"
+                          
             self.output_to_platform(
-                title=f"The results for {shots} shots are:",
+                title=f"The results for {self.shots} shots are:",
                 output_terminal=output_text,
                 output_jupyter=histogram_path,
                 display_both_on_jupyter=True
@@ -571,7 +581,7 @@ class SATInterface:
         self.update_metadata({
             "num_solutions": len(distilled_solutions),
             "backend": self.backend.__str__(),
-            "shots": shots
+            "shots": self.shots
         })
 
 ################  REMOVE
