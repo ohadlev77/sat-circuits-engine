@@ -1,12 +1,13 @@
 """
-Functions that finds the number of iterations over Grover's iterator (operator + diffuser),
-according to the number of input qubits nad the knonwn or unknown number of solutions. 
+`calc_iterations`, `find_iterations_unknown` functions.
+`is_circuit_match` and `randint_exclude` functions can be considered
+as sub-functions of `find_iterations_unknown`.
 """
 
 import random
 import copy
 import numpy as np
-from typing import Tuple, Optional, Union
+from typing import Tuple, Optional
 
 from qiskit import transpile, QuantumCircuit
 from qiskit.providers.backend import Backend
@@ -15,29 +16,151 @@ from sat_circuits_engine.util import timer_dec
 from sat_circuits_engine.util.settings import BACKENDS
 from sat_circuits_engine.circuit import SATCircuit, GroverConstraintsOperator
 from sat_circuits_engine.classical_processing.classical_verifier import ClassicalVerifier
-from sat_circuits_engine.constraints_parse import ParsedConstraints
+from sat_circuits_engine.constraints_parse import ParsedConstraints, SATNoSolutionError
 
 def calc_iterations(num_input_qubits: int, num_solutions: int) -> int:
     """
-    Simple classical calculation of the number of iterations when the number of solutions is known.
+    Simple classical calculation of the number of iterations over Grover's iterator
+    when the number of solutions for the SAT problem is known.
 
     Args:
-        num_input_qubits (int): number of qubits.
-        num_solutions (int): known number of solutions.
+        num_input_qubits (int): number of input qubits.
+        num_solutions (int): known number of solutions to the SAT problem.
 
     Returns:
         (int): the exact number of iterations needed for the given SAT problem.
     """
     
-    # N is the dimension of the Hilbert space spanned by `num_qubits`
+    # N is the dimension of the Hilbert space spanned by `num_input_qubits`
     N = 2 ** num_input_qubits
 
-    iterations = int(
-        (np.pi / 4) * np.sqrt(N / num_solutions)
-    )
+    # The formula for calculating the number of iterations
+    iterations = int((np.pi / 4) * np.sqrt(N / num_solutions))
+
     return iterations
 
-def is_qc_x_iterations_a_match(
+@timer_dec("Found number of iterations in ")
+def find_iterations_unknown(
+    num_input_qubits: int,
+    grover_constraints_operator: GroverConstraintsOperator,
+    parsed_constraints: ParsedConstraints,
+    precision: Optional[int] = 10,
+    backend: Optional[Backend] = BACKENDS(0),
+    step: Optional[float] = 6/5
+) -> Tuple[SATCircuit, int]:
+    """
+    Finds an adequate (optimal or near optimal) number of iterations suitable for a given SAT problem
+    when the number of "solutions" or "marked states" is unknown.
+    The method being used is described in https://arxiv.org/pdf/quant-ph/9605034.pdf (section 4).
+        - In short, the original method steps are:
+            * Drawing a random number of iterations which is smaller than some number M.
+            * Executing the circuit.
+            * If a solution has been found (easy to verify classically) - done.
+            * If not - M is being multiplied by a fixed step size.
+            * Repeat.
+        - Here we implement a variation of the described method above - with the goal of finding
+        ad adequate number of iterations for the SAT problem, and not just a single solution.
+            * Instead of exiting the process when finding a solution, we then
+            execute the circuit `precision` times.
+            * If `precision` execution shots gives 100% "good" solutions - done, we have found
+            a number of iterations precise enough.
+            * If not - we continue with the original method scheme.
+            * If we couldn't find an adequate number of iterations for the given `precision`,
+            the precision is decremented and we iterate over the process again with a lower precision.
+            * If `precision` has been decremented to 0 - then we halt,
+            and probably the SAT problem has no solution.
+        - `precision` can be thought as the degree of accuracy - for large values of `precision`
+        more optimal results will be obtained, in a price of extra computational overhead.
+
+    Args:
+        num_input_qubits (int): number of input qubits.
+        grover_constraints_operator (GroverConstraintsOperator): Grover's operator for the SAT problem.
+        parsed_constraints (ParsedConstraints): a series of constraints,
+        already parsed to a specific format.
+        precision (Optional[int] = 10): number of "valid solutions" which is
+        enough to determine ad adequate number of iterations for the SAT problem.
+        backend (Optional[Backend] = BACKENDS(0)): a backend to run the circuits upon.
+        Default is the local AerSimulator (BACKENDS(0)).
+        step (Optional[float] = 6/5): step size to increment M in each iteration.
+
+    Returns: Tuple[SATCircuit, int]:
+        (SATCircuit): the overall SAT circuit obtained after finding number of iterations.
+        (int): the calculated number of iterations for the given SAT problem.
+
+    Raises:
+        SATNoSolutionError - if no adequate number of iterations has been found for
+        any level of precision.
+    """
+
+    verifier = ClassicalVerifier(parsed_constraints)
+
+    # Diemnsion of the Hilbert space spanned by the input qubits
+    N = 2 ** num_input_qubits
+
+    # A container for SATCircuit objects with various numbers of iterations
+    qc_storage = {}
+
+    # If `precision == 0`` then probably there is no solution
+    while precision > 0:
+
+        # M is the upper limit for drawing a random number of iterations
+        M = 1
+
+        checked_iterations = set()
+
+        # For each level of precision we are looking for an adequate number of iterations
+        print(f"\nChecking iterations for precision = {precision}:")
+        while M <= np.sqrt(N):
+            
+            # Figuring a guess for the number of iterations
+            iterations = False
+            while iterations == False:
+                M = step * M
+                iterations = randint_exclude(start=0, end=int(M), exclude=checked_iterations)
+            print(f"    Checking iterations = {iterations}")
+
+            # Obtaining the necessary SATCircuit object (preferably from the `qc_storage`)
+            if iterations in qc_storage.keys():
+                qc = qc_storage[iterations]
+            else:
+                qc = SATCircuit(num_input_qubits, grover_constraints_operator, iterations)
+                qc.add_input_reg_measurement()
+                qc_storage[iterations] = copy.deepcopy(qc)
+
+            # Checking whether `qc` with `iterations` iterations gives 100% correct solutions (= match)
+            match = is_circuit_match(qc, verifier, precision, backend)
+            if match:
+                return qc, iterations
+
+            checked_iterations.add(iterations)
+        
+        # Degrading precision if failed to find an adequate number of iterations
+        precision -= 2
+
+        if precision <= 0:
+            raise SATNoSolutionError(
+                "Didn't find an suitable number of iterations." \
+                "Probably the SAT problem has no solution."
+            )
+  
+def randint_exclude(start, end, exclude):
+    """
+    Guessing a number of iterations which haven't been tried yet.
+    If it fails (`count >= 50`), returns False.
+    """
+
+    randint = random.randint(start, end)
+    count = 0
+
+    while randint in exclude:
+        randint = random.randint(start, end)
+        count += 1
+        if count >= 50:
+            return False
+
+    return randint
+
+def is_circuit_match(
     qc: QuantumCircuit,
     verifier: ClassicalVerifier,
     precision: int,
@@ -48,12 +171,13 @@ def is_qc_x_iterations_a_match(
     
     Args:
         qc (QuantumCircuit): the quantum circuit to run.
-        verifier (ClassicalVerifier): TODO COMPLETE.
+        verifier (ClassicalVerifier): classical verifier object to verify solutions with.
         precision (int): number of correct solutions required.
-        backend (Backend): TODO COMPLETE.
+        backend (Backend): backend to run circuits upon.
 
     Returns:
-        (bool): TODO COMPLETE.
+        (bool): True if the execution of `qc` yielded 100% correct solutions (`precision` times). 
+        False otherwise.
     """
 
     job = backend.run(transpile(qc, backend), shots=precision, memory=True)
@@ -67,114 +191,3 @@ def is_qc_x_iterations_a_match(
             break
 
     return match
-
-@timer_dec("Found number of iterations in ")
-def find_iterations_unknown(
-    num_input_qubits: int,
-    grover_constraints_operator: GroverConstraintsOperator,
-    parsed_constraints: ParsedConstraints,
-    precision: Optional[int] = 10,
-    backend: Optional[Backend] = BACKENDS(0)
-) -> Tuple[SATCircuit, int]:
-    """
-    Finds an adequate (optimal or near optimal) number of iterations suitable for a given SAT problem
-    when the number of "solutions" or "marked states" is unknown.
-    TODO IMPROVE THIS EXPLANATION AND MAYBE THE ENTIRE METHOD
-    The method being used is described in https://arxiv.org/pdf/quant-ph/9605034.pdf (section 4).
-        - The method isn't exactly the same - we intentionally iterate over the described method.
-        - We could have halt after finding one solution.
-        - Using the iterative method we can build a circuit that amplifies all solutions, but in a price
-        of a computational overhead.
-        - We demand `precision` good answers for any possible number of iterations being checked.
-        - If we can't find `precision` good answers - we decrement `precision`
-        and iterate over the process again.
-        - `precision` can be thought as the degree of accuracy - for large values of `precision`
-        more optimal results will be obtained.
-
-    Args:
-        num_input_qubits (int): number of input qubits.
-        grover_constraints_operator (GroverConstraintsOperator): TODO COMPLETE.
-        parsed_constraints (ParsedConstraints): TODO COMPLETE.
-        precision (Optional[int] = 10): number of "good answers" which is enough to determine the number of iterations.
-        backend (Optional[Backend] = BACKENDS(0)): TODO COMPLETE.
-
-    Returns: Tuple[SATCircuit, int]:
-        (SATCircuit): the overall SAT circuit obtained after optimizing the iterations.
-        (int): the calculated amount of iterations for the given SAT problem.
-
-    Raises:
-        TODO COMPLETE
-    """
-
-    # TODO EXPLAIN
-    verifier = ClassicalVerifier(parsed_constraints)
-
-    # TODO COMPLETE WHAT IS THIS
-    N = 2 ** num_input_qubits
-    step = 6 / 5 # In each attempt to find `iterations` we increment by a multiply of `step`.
-    qc_storage = {}
-
-    # If precision == 0 then probably there is no solution
-    while precision > 0:
-
-        # TODO COMPLETE WHAT IS THIS
-        m = 1
-
-        # For each level of precision we check all over again
-        checked_iterations = set()
-
-        # For each level of precision we are looking for an adequate number of iterations
-        # TODO COMPLETE WHY m <= np.sqrt(N)
-        print(f"\nChecking iterations for precision = {precision}:")
-        while m <= np.sqrt(N):
-            
-            # Figuring a guess for the number of iterations.
-            # TODO COMPLETE WHAT IS THIS
-            iterations = False
-            while iterations == False:
-                m = step * m
-                iterations = randint_exclude(start=0, end=int(m), exclude=checked_iterations)
-            print(f"    Checking iterations = {iterations}")
-
-            # Obtaining the necessary SATCircuit object (preferably from the `qc_storage`)
-            try:
-                qc = qc_storage[iterations]
-            except KeyError:
-                qc = SATCircuit(num_input_qubits, grover_constraints_operator, iterations)
-                qc.add_input_reg_measurement()
-                qc_storage[iterations] = copy.deepcopy(qc)
-
-            match = is_qc_x_iterations_a_match(qc, verifier, precision, backend)
-
-            if match:
-                return qc, iterations
-            checked_iterations.add(iterations)
-        
-        # Degrading precision if failed to find an adequate number of iterations.
-        precision -= 2
-        if precision <= 0:
-            raise Exception(
-                "Didn't find an suitable number of iterations." \
-                "Probably the SAT problem has no solution."
-            )
-  
-def randint_exclude(start, end, exclude):
-    """
-    Guessing a number of iterations which haven't been tried yet.
-    If it fails (`count >= 50`), returns False.
-    """
-
-    # TODO REMOVE
-    # print("=========")
-    # print(exclude)
-    # print("=========")
-
-    randint = random.randint(start, end)
-    count = 0
-    while randint in exclude:
-        randint = random.randint(start, end)
-        count += 1
-        if count >= 50:
-            return False
-
-    return randint

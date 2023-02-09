@@ -1,2 +1,2 @@
 from .single_constraint_parse import SingleConstraintParsed
-from .constraints_parse import ParsedConstraints
+from .constraints_parse import ParsedConstraints, SATNoSolutionError

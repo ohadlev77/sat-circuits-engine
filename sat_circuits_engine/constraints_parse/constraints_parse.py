@@ -4,7 +4,7 @@ TODO COMPLETE
 
 from typing import Optional
 
-from .single_constraint_parse import SingleConstraintParsed
+from sat_circuits_engine.constraints_parse.single_constraint_parse import SingleConstraintParsed
 
 class ParsedConstraints(dict):
     """
@@ -45,6 +45,14 @@ class ParsedConstraints(dict):
                 constraint_index=index,
                 high_level_constraint_string=single_high_level_string
             )
+
+class SATNoSolutionError(Exception):
+    """
+    Exception to be raised when the SAT problem has no solution.
+    """
+
+    def __init__(self, message) -> None:
+        super().__init__(message)
 
 # class ParsedConstraints(list):
 #     """
