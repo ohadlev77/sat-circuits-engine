@@ -91,7 +91,7 @@
         "solutions": ["00000100000", "00001100000", "00100100000", "00101100000", "01010011111", "01011011111",
                       "01110011111", "01111011111", "10000100000", "10001100000", "10100100000", "10101100000",
                       "11010011111", "11011011111", "11110011111", "11111011111"],
-        "perform_test": true,
+        "perform_test": false,
         "note": "*** WARNING - This example exploits 27 qubits and is heavy for a classical computer ***"
     },
 
@@ -171,7 +171,7 @@
         "num_solutions": 1,
         "num_iterations": 12,
         "solutions": ["10010110"],
-        "perform_test": true,
+        "perform_test": false,
         "note": "*** WARNING - This example exploits 26 qubits and is heavy for a classical computer ***"
     },
 
@@ -318,7 +318,7 @@
         "num_solutions": 1,
         "num_iterations": 12,
         "solutions": ["10010110"],
-        "perform_test": true,
+        "perform_test": false,
         "note": "*** WARNING - This example exploits 27 qubits and is heavy for a classical computer ***"
     }
 }

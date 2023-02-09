@@ -27,24 +27,27 @@ class InterfaceTest(unittest.TestCase):
     def test_find_iterations_unknown_k(self):
         for example_name, example_data in self.test_data.items():
 
-            print(f"Test find_iterations_unknown for {example_name}")
+            if example_data['perform_test']:
+                print(f"Test find_iterations_unknown for {example_name}")
 
-            parsed_constraints = ParsedConstraints(example_data['constraints_string'])
-            _, iterations = find_iterations_unknown(
-                num_input_qubits=example_data['num_input_qubits'],
-                grover_constraints_operator=GroverConstraintsOperator(
-                    parsed_constraints,
-                    example_data['num_input_qubits'],
-                    insert_barriers=False
-                ),
-                parsed_constraints=parsed_constraints
-            )
+                parsed_constraints = ParsedConstraints(example_data['constraints_string'])
+                _, iterations = find_iterations_unknown(
+                    num_input_qubits=example_data['num_input_qubits'],
+                    grover_constraints_operator=GroverConstraintsOperator(
+                        parsed_constraints,
+                        example_data['num_input_qubits'],
+                        insert_barriers=False
+                    ),
+                    parsed_constraints=parsed_constraints
+                )
 
-            self.assertAlmostEqual(
-                iterations,
-                example_data['num_iterations'],
-                delta=max(1, 0.1*example_data['num_iterations'])
-            )
+                self.assertAlmostEqual(
+                    iterations,
+                    example_data['num_iterations'],
+                    delta=max(1, 0.1*example_data['num_iterations'])
+                )
+            else:
+                print(f"Not testing {example_name} (`perform_test` is defined False).")
     
     def test_is_circuit_match(self):
         pass
