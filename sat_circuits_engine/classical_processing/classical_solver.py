@@ -58,7 +58,7 @@ if __name__ == "__main__":
     #     print(f"VALID SOLUTIONS = {solutions_equality}")
 
     n = 8
-    s = "([2][1][0] != 5),([3] == [4]),([2][1][0] + [3] + [4] + 2 == [7][6][5]),([7][6][5] != 7)"
+    s = "([0] != [1]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [7]),([5] != [7])"
     solutions_found_classically = solve_classically(n, s)
     print(solutions_found_classically)
     print()

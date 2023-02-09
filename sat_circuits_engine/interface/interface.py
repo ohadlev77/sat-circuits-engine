@@ -425,7 +425,12 @@ class SATInterface:
             print(f"\nFor {solutions_num} solutions, {iterations} iterations needed.")
 
             # TODO DECIDE ON BARRIERS
-            circuit = SATCircuit(self.num_input_qubits, grover_operator, iterations, barriers=False)
+            circuit = SATCircuit(
+                self.num_input_qubits,
+                grover_operator,
+                iterations,
+                insert_barriers=False
+            )
             circuit.add_input_reg_measurement()
 
         # Obtaining a SATCircuit object with one iteration for concise representation
@@ -550,7 +555,7 @@ class SATInterface:
 
         histogram_path = f"{results_dir_path}histogram.pdf"
 
-        # Defining custiom dimensions for the custom `plot_histogram` of this package
+        # Defining custom dimensions for the custom `plot_histogram` of this package
         histogram_fig_width = max((len(counts) * self.num_input_qubits * (10 / 72)), 7)
         histogram_fig_height = 5
         histogram_figsize = (histogram_fig_width, histogram_fig_height)

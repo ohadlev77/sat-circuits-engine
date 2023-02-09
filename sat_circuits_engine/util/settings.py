@@ -25,6 +25,9 @@ CONSTRAINTS_FORMAT_PATH = "sat_circuits_engine/data/constraints_format.md"
 DATA_PATH = "sat_circuits_engine/data/generated_data/"
 TEST_DATA_PATH = "sat_circuits_engine/data/test_data.json"
 
+# Default kwargs for Qiskit's transpile
+TRANSPILE_KWARGS = {'basis_gates': ['u', 'cx'], 'optimization_level': 3}
+
 ##### Supported operators #####
 # TODO REMOVE
 

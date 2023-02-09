@@ -41,12 +41,12 @@ class GroverConstraintsOperator(QuantumCircuit):
         self.constraints_blocks_build()
 
         # Initializing the quantum circuit that implements the Grover operator we seek for
-        self.input_reg = QuantumRegister(self.num_input_qubits, 'input_reg')
-        self.comparison_aux_reg = QuantumRegister(self.comparison_aux_width, 'comparison_aux_reg')
-        self.left_aux_reg = QuantumRegister(self.left_aux_width, 'left_aux_reg')
-        self.right_aux_reg = QuantumRegister(self.right_aux_width, 'right_aux_reg')
-        self.out_reg = QuantumRegister(self.out_qubits_amount, 'out_reg')
-        self.ancilla = QuantumRegister(1, 'ancilla')
+        self.input_reg = QuantumRegister(self.num_input_qubits, "input_reg")
+        self.comparison_aux_reg = QuantumRegister(self.comparison_aux_width, "comparison_aux_reg")
+        self.left_aux_reg = QuantumRegister(self.left_aux_width, "left_aux_reg")
+        self.right_aux_reg = QuantumRegister(self.right_aux_width, "right_aux_reg")
+        self.out_reg = QuantumRegister(self.out_qubits_amount, "out_reg")
+        self.ancilla = QuantumRegister(1, "ancilla")
 
         super().__init__(
             self.input_reg,
@@ -84,7 +84,7 @@ class GroverConstraintsOperator(QuantumCircuit):
             - `self.left_aux_width` (int): Total number of left aux qubits.
             - `self.right_aux_width` (int): Total number of right aux qubits.
             - `self.out_qubits_amount` (int): the number of "out qubits" needed, while each "out qubit"
-            is used to write the result of applying a single constraint into (|1> if the constraint is 
+            is used to write the result of applying a single constraint into (|1> if the constraint is
             satisfied, |0> otherwise).
         """
 
@@ -182,7 +182,7 @@ class GroverConstraintsOperator(QuantumCircuit):
                 qargs.append(self.out_reg[count])
                 self.append(instruction=constraint_block, qargs=qargs)
 
-                # TODO NEED TO FIX TRANSPILATION BUG WITH BARRIERS
+                # Barriers are used for visualization purposes and should be removed before transpiling
                 if self.insert_barriers:
                     self.barrier()
 
@@ -202,34 +202,9 @@ class GroverConstraintsOperator(QuantumCircuit):
                 self.rccx(self.out_reg[count + 1], self.out_reg[count - 1], self.out_reg[count])
                 self.append(instruction=constraint_block.inverse(), qargs=qargs)
 
-            # TODO NEED TO FIX TRANSPILATION BUG WITH BARRIERS
+            # Barriers are used for visualization purposes and should be removed before transpiling
             if self.insert_barriers:
                 self.barrier()
         
         # Applying uncomputation
         self.append(instruction=qc_dagger, qargs=self.qubits)
-
-
-# TODO REMOVE in the end
-if __name__ == "__main__":
-
-    # pc = ParsedConstraints("([4][3][2] != [0]),([2] == [3]),([3] == [4]),([0] != [1]),([2] + [4] + 5 != 11 + [3]")
-    # # pc = ParsedConstraints("([0] != [1]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)")
-    # pc = ParsedConstraints(
-    #     "([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6])," \
-    #     "([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2),([2] + [5] + [4][3] == 3)"
-    # )
-    # pc = ParsedConstraints(
-    #     "([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6])," \
-    #     "([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)"
-    # )
-    pc = ParsedConstraints("([0] != [1]),([2] + 2 != [4][3]),([4][3] != [5]),([1] != [4][3]),([4][3] != [6]),([6] != [7]),([0] != [2]),([1] != [6]),([5] != [7]),([4][3] == 2)")
-    # pc = ParsedConstraints("([4][3][2] == [1][0]),([2] + 2 != [4][3])")
-    # pc = ParsedConstraints("([2] + [5] + [4][3][1] == 9),(~[0] || ~[1])")
-
-    gco = GroverConstraintsOperator(pc, 8)
-    print(gco.draw())
-    print(gco.__repr__())
-    # decgco = gco.decompose(["([2] + [5] + [4][3] == 3)"])
-    # print(decgco.draw())
-    # print(decgco.decompose(["Addition:([2], [5], [4, 3]) + None"]).draw())

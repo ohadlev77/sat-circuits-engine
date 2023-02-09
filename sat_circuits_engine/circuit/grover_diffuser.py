@@ -1,5 +1,5 @@
 """
-TODO COMPLETE
+GroverDiffuser class.
 """
 
 import numpy as np
@@ -33,5 +33,5 @@ class GroverDiffuser(QuantumCircuit):
         self.x(self.qubits)
         self.h(self.qubits)
         
-        self.name = 'Diffuser'
-        self.to_gate() # TODO DECIDE
+        self.name = "Diffuser"
+        self.to_gate()
