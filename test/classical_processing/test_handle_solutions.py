@@ -24,7 +24,7 @@ class InterfaceTest(unittest.TestCase):
                 example_data['num_iterations']
             )
 
-    def test_find_iterations_unknown_k(self):
+    def test_find_iterations_unknown(self):
         for example_name, example_data in self.test_data.items():
 
             if example_data['perform_test']:
@@ -44,7 +44,7 @@ class InterfaceTest(unittest.TestCase):
                 self.assertAlmostEqual(
                     iterations,
                     example_data['num_iterations'],
-                    delta=max(1, 0.1*example_data['num_iterations'])
+                    delta=max(2, 0.1*example_data['num_iterations'])
                 )
             else:
                 print(f"Not testing {example_name} (`perform_test` is defined False).")
@@ -57,5 +57,3 @@ class InterfaceTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-

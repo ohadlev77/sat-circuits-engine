@@ -1,5 +1,5 @@
 """
-TODO COMPLETE
+`ParsedConstraints` and `SATNoSolutionError` classes.
 """
 
 from typing import Optional
@@ -8,12 +8,20 @@ from sat_circuits_engine.constraints_parse.single_constraint_parse import Single
 
 class ParsedConstraints(dict):
     """
-    TODO COMPLETE
+    A dictionary-like object to store `SingleConstraintParsed` objects as values,
+    and "low-level" constraints string as keys.
     """
 
-    def __init__(self, constraints_string: str, high_level_constraints_string: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        constraints_string: str,
+        high_level_constraints_string: Optional[str] = None
+    ) -> None:
         """
-        TODO COMPLETE
+        Args:
+            constraints_string (str): string of constraints in a "low-level" format.
+            high_level_constraints_string (str): string of constraints in a "high-level" format.
+                - this data is "piped" through this class for visualization purposes.
         """
 
         self.constraints_string = constraints_string
@@ -23,14 +31,14 @@ class ParsedConstraints(dict):
 
         self.constraints_string_to_dict()
     
-    def constraints_string_to_dict(
-        self,
-    ) -> None:
+    def constraints_string_to_dict(self) -> None:
         """
-            TODO COMPLETE
+        Fills the dictionary with low-level constraints strings as keys
+        and `SingleConstraintParsed` objects as values.
         """
 
         constraints_list = self.constraints_string.split(',')
+
         if self.high_level_constraints_string is not None:
             high_level_constraints_list = self.high_level_constraints_string.split(',')
         else:
@@ -53,40 +61,3 @@ class SATNoSolutionError(Exception):
 
     def __init__(self, message) -> None:
         super().__init__(message)
-
-# class ParsedConstraints(list):
-#     """
-#     TODO COMPLETE
-#     """
-
-#     def __init__(self, constraints_string: str) -> None:
-#         """
-#         TODO COMPLETE
-#         """
-
-#         self.constraints_string = constraints_string
-
-#         super().__init__()
-
-#         self.constraints_string_to_list()
-
-#     def __repr__(self):
-#         new_repr_string = "List of constraints:\n"
-
-#         for item in self:
-#             new_repr_string += f"{item} \n"
-
-#         return new_repr_string
-    
-#     def constraints_string_to_list(
-#         self,
-#     ) -> None:
-#         """
-#             TODO COMPLETE
-#         """
-
-#         for constraint_index, single_constraint_string in enumerate(self.constraints_string.split(',')):
-#             self.append({
-#                     f"{single_constraint_string}": \
-#                     SingleConstraintParsed(constraint_index, single_constraint_string)
-#             })
