@@ -19,8 +19,8 @@ class SingleConstraintParsed:
         operator (str): the comparison operator of the constraint.
         * For the following attributes index 0 is associated with the left side of the constraint's
         equation, and index 1 is associated with the right side of the constraint's equation.
-        sides_bit_indexes (List[Tuple[List[int]]]): A list whose elements are tuples that contain
-        lists of bit-indexes bundles, for each side of the constraint's equation. An empty tuple
+        sides_bit_indexes (List[List[List[int]]]): A list whose elements are lists that contain
+        lists of bit-indexes bundles, for each side of the constraint's equation. An empty list
         is generated for an expression without any bit-indexes bundles.
         sides_int_bitstrings (List[Optional[str] = None]): a list whose elements are bitstrings
         representations of integers, that may be found from both sides of the constraint's equation.
@@ -122,9 +122,14 @@ class SingleConstraintParsed:
                 compared_value += 2 ** ((num_operands - 1) - bit_index)
 
         # Transforming `self.constraint_string` from a boolean format to a comparison format
+        replaced_string = (
+            self.constraint_string.replace(boolean_operator, '') \
+            .replace('~', '') \
+            .replace(' ',  '') \
+            .replace(')', '')
+        )
         self.constraint_string = (
-            f"{self.constraint_string.replace(boolean_operator, '')} " \
-            f"{comparison_operator} {compared_value}"
+            f"{replaced_string} {comparison_operator} {compared_value})"
         )
 
         # Parsing the constraint's equation again, now in a comparison format
@@ -152,7 +157,7 @@ class SingleConstraintParsed:
             operands = side_string.split('+')
 
             # Extracting bit-indexes bundles operands
-            self.sides_bit_indexes.append(tuple(map(
+            self.sides_bit_indexes.append(list(map(
                 self.parse_operand,
                 filter(
                     lambda x: isinstance(self.parse_operand(x), list),
