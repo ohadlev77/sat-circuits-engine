@@ -15,7 +15,7 @@
 """
 Visualization functions for measurement counts.
 
-THE MODIFICATION IS VERY FOCUSED AND SINGULAR - the rotation of the x-labels in the
+NOTE: THE MODIFICATION IS VERY FOCUSED AND SINGULAR (line 366) - the rotation of the x-labels in the
 histogram generaged by `plot_histogram` has been chaned from 70 to nothing, and the font-size
 of the labels was changed from 14pt to 10pt.
 """
@@ -361,7 +361,10 @@ def _plotting_core(
                 )
         bar_center = (width / 2) * (length - 1)
         ax.set_xticks(all_inds[item] + bar_center)
+
+        # Modified by Ohad Lev (fontsize: 14 -> 10, rotation: 70 -> 0)
         ax.set_xticklabels(labels_dict.keys(), fontsize=10)
+
         # attach some text labels
         if bar_labels:
             for rect in rects:

@@ -1,5 +1,10 @@
 """
-Functions for decomposing QuantumCircuit objects into specific set of blocks.
+Functions for decomposing QuantumCircuit objects into a specific set of blocks:
+    1. decompose_operator.
+    2. gates_decomposition_sort.
+
+Constants:
+    1. BLOCKS.
 """
 
 from copy import deepcopy
@@ -7,8 +12,8 @@ from typing import List
 
 from sat_circuits_engine.circuit import GroverConstraintsOperator
 
-# Those blocks sholdn't be decomposed any farther
-BLOCKS =  {
+# These blocks shouldn't be decomposed any farther
+BLOCKS = {
     'x',
     'h',
     'mcx',
@@ -27,20 +32,26 @@ BLOCKS =  {
 
 def decompose_operator(operator: GroverConstraintsOperator) -> GroverConstraintsOperator:
     """
-    TODO COMPLETE
-    # Preparing the decomposed version of the operator's circuit
+    Generates the decomposed version of a QuantumCircuit object (for visualization purposes).
+    The function is decomposing a circuit to its basic building blocks until no further
+    decomposition is possible. The basic building blocks are those defined by Qiskit combined
+    with the building blocks defined byt the set constant `BLOCKS`.
+
+    Args:
+        operator (GroverConstraintsOperator): the object to decompose. can be any QuantumCircuit object
+        but intended for GroverConstraintsOperator objects (which are child-objects of QuantumCircuit).
+
+    Returns:
+        (GroverConstraintsOperator): the decomposed operator.
     """
     
     existing_gates = list(dict(operator.count_ops()))
-
-    # TODO IMPROVE AND REMOVE DOUBLING
     gates_to_decompose = gates_decomposition_sort(circuit_gates=deepcopy(existing_gates))
 
     while True:
         operator = operator.decompose(gates_to_decompose)
-
         existing_gates = list(dict(operator.count_ops()))
-        # TODO IMPROVE AND REMOVE DOUBLING
+        
         gates_to_decompose_1 = gates_decomposition_sort(
             circuit_gates=deepcopy(existing_gates)
         )
@@ -58,14 +69,13 @@ def gates_decomposition_sort(circuit_gates: List[str]) -> List[str]:
 
     Args:
         circuit_gates (list) - A list gate types.
-        do_not_decompose_gates (list) - A list of gate types to remove from `circuit_gates`.
         
     Returns:
         Altered `circuit_gates` list.
     """
     
-    for g in BLOCKS:
-        if g in circuit_gates:
-            circuit_gates.remove(g)
+    for gate in BLOCKS:
+        if gate in circuit_gates:
+            circuit_gates.remove(gate)
         
     return circuit_gates

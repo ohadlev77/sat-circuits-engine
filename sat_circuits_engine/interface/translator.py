@@ -1,12 +1,14 @@
 """
-TODO COMPLETE.
+`ConstraintsTranslator` class.
 """
 
 from typing import Dict
 
 class ConstraintsTranslator:
     """
-    TODO COMPLETE.
+    A translation interface - from "high-level" formats to a "low-level" (handleable) format.
+    Annotations about "high-level" and "low-level" formats may be found in:
+    sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH (a pointer to a markdown annotation file).
     """
 
     def __init__(self, high_level_string: str, variables: Dict[str, int]) -> None:
@@ -22,8 +24,8 @@ class ConstraintsTranslator:
 
     def translate(self) -> str:
         """
-        Translates the combination of `self.high_level_string` and `variables` into a low-level
-        constraints string to the level of bits indexes.
+        Translates the combination of `self.high_level_string` and `variables`
+        into a low-level constraints stringץ
         See `sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH` - "Low level format" section
         for information about the low level format.
 
@@ -44,28 +46,18 @@ class ConstraintsTranslator:
 
         return low_level_string
 
-    def generate_bits_bundle_string(self, num_bits: int, existing_bits: int) -> str:
+    def generate_bits_bundle_string(self, num_bits: int, first_bit_index: int) -> str:
         """
-        TODO COMPLETE
+        Generates a low-level format operand, a.k.a a bundle of bit-indexes in a little-endian style.
+
+        Args:
+            num_bits (int): number of bits in the bundle.
+            first_bit_index (int): index number to start from.
         """
 
         string = ""
 
         for i in reversed(range(num_bits)):
-            string += f"[{existing_bits + i}]"
+            string += f"[{first_bit_index + i}]"
 
         return string
-
-# TODO REMOVE
-if __name__ == "__main__":
-    vars = {'x0': 3, 'x1': 1, 'x2': 3, 'x3': 4}
-    high_level_string = "(x0 != 4),(x1 + x2 == x0),(x3 + x0 + x1 + x2 != 27)"
-
-    translator = ConstraintsTranslator(high_level_string, vars)
-    low_level_string = translator.translate()
-
-    print(low_level_string)
-    
-    # print(high_level_string)
-    # print(t.translate())
-    # print(vars)

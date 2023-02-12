@@ -10,11 +10,16 @@ class ConstraintsTranslatorTest(unittest.TestCase):
         with open(TEST_DATA_PATH, 'r') as data_file:
             self.test_data = json.load(data_file)
         
-        self.examples_to_test = filter(lambda x: "high_level_vars" in x[1].keys(), self.test_data.items())
+        self.examples_to_test = filter(
+            lambda x: "high_level_vars" in x[1].keys(),
+            self.test_data.items()
+        )
 
     def test_translate(self):
         
         for example_name, example in self.examples_to_test:
+            
+            print(f"Tests {example_name}.")
             
             translator = ConstraintsTranslator(
                 example['high_level_constraints_string'],

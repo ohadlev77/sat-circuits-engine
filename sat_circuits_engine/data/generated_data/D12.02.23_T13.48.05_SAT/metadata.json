@@ -1,0 +1,26 @@
+{
+    "name": "SAT",
+    "datetime": "D12.02.23_T13.48.05",
+    "num_input_qubits": 5,
+    "constraints_string": "([4] == [3]),([2][1][0] == 6)",
+    "high_level_constraints_string": null,
+    "high_level_vars": null,
+    "transpile_kwargs": {
+        "basis_gates": [
+            "u",
+            "cx"
+        ],
+        "optimization_level": 3
+    },
+    "transpiled_operator_depth": 36,
+    "transpiled_operator_gates_count": {
+        "u": 27,
+        "cx": 22
+    },
+    "operator_qpy_sha256": "0ec269db07a11bcc8e7a4a1e8fac2a9a199e12f04179839f3aa0d9d6d851b589",
+    "num_total_qubits": 8,
+    "num_iterations": 2,
+    "num_solutions": 2,
+    "backend": "aer_simulator",
+    "shots": 400
+}

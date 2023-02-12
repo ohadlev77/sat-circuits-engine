@@ -1,3 +1,7 @@
+"""
+The `interface` sub-package contains modules, classes and functions that intended
+to provide convenient user interfaces for the package's features and capabilities.
+"""
+
 from .interface import SATInterface
-from .interactive_inputs import interactive_inputs
 from .translator import ConstraintsTranslator

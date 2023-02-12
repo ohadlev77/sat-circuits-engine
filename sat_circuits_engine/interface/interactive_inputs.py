@@ -1,19 +1,36 @@
 """
-`interactive_inputs` function.
+interactive_XXXX_inputs functions, to be used by the SATInterface class:
+    1. interactive_operator_inputs.
+    2. interactive_solutions_num_input.
+    3. interactive_run_input.
+    4. interactive_backend_input.
+    5. interactive_shots_input.
 """
 
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 
-import qiskit
+from qiskit.providers.backend import Backend
 
 from sat_circuits_engine.util.settings import BACKENDS
 from sat_circuits_engine.interface.translator import ConstraintsTranslator
 
-def interactive_operator_inputs():
+def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int]]]:
     """
+    In an interactive interface manner, taking the necessary inputs for constructing
+    GroverConstraintsOperator from the user - either in a high-level format or a low-level format.
+    Annotations about "high-level" and "low-level" formats may be found in:
+    sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH (a pointer to a markdown annotation file).
+
+    Returns:
+        (Dict[str, Union[int, str, Dict[str, int]]]):
+            'num_input_qubits' (int): number of input qubits.
+            'constraints_string' (str): a string of constraints in a "low-level" format.
+            'high_level_constraints_string' (Optional[str] = None): a string of constraints
+            in a "high-level" format, default is None.
+            'high_level_vars' (Optional[Dict[str, int]] = None): a dictionary that configures
+            the high-level variables - keys are names and values are bits-lengths. Default is None.
     """
 
-    # Taking choice - high-level constraints setting or low-level constraints string input
     print()
     high_level_setting = bool(int(input(
         "For a low-level setting of constraints, enter '0'. For a high level setting, enter '1': "
@@ -21,6 +38,8 @@ def interactive_operator_inputs():
 
     high_level_constraints_string = None
     high_level_vars = None
+
+    # High-level constraints input
     if high_level_setting:
         print()
         high_level_constraints_string = input("Enter a high-level constraints string: ")
@@ -31,17 +50,16 @@ def interactive_operator_inputs():
             "while keys are variables-names and values are bits-lengths (Dict[var, num_bits]): "
         ))
 
+        # Translating high-level format into handleable low-level format
         num_input_qubits = sum(high_level_vars.values())
-
         translator = ConstraintsTranslator(high_level_constraints_string, high_level_vars)
         constraints_string = translator.translate()
 
+    # Low-level constraints input
     else:
-        # Taking number of input qubits
         print()
         num_input_qubits = int(input("Please enter the number of input qubits: "))
         
-        # Taking a string of constraints
         print()
         constraints_string = str(input("Please enter a string of constraints: "))
 
@@ -52,8 +70,16 @@ def interactive_operator_inputs():
         'high_level_vars': high_level_vars
     }
 
-def interactive_solutions_num_input():
+def interactive_solutions_num_input() -> Optional[int]:
     """
+    In an interactive interface manner, finds out whether the user is interested in
+    obtatining the overall circuit for the SAT problem. If so, takes user's input for the
+    expected number of solutions to the SAT problem.
+
+    Returns:
+        (Optional[int]):
+            - If None - that means the user isn't interested in the overall SAT cirucit.
+            - (int): user's input for number of solutions the the SAT problem.
     """
 
     print()
@@ -64,7 +90,6 @@ def interactive_solutions_num_input():
 
     if obtain_overall_circuit:
 
-        # Taking expected amount of solutions
         print()
         print(
             "If the expected amount of solutions is known, please enter it" \
@@ -82,11 +107,14 @@ def interactive_solutions_num_input():
 
         return solutions_num
 
-def interactive_run_input():
+def interactive_run_input() -> bool:
     """
+    Finds out whether the user is intersted in running the overall circuit.
+
+    Returns:
+        (bool): True if the user is intersted, False otherwise.
     """
 
-    # Finding out whether the user is intersted in running the overall circuit
     print()
     run_circuit = bool(int(input(
         "To stop here, enter '0'. " \
@@ -95,8 +123,16 @@ def interactive_run_input():
 
     return bool(int(run_circuit))
 
-def interactive_backend_input():
+def interactive_backend_input() -> Backend:
     """
+    Takes user's input for the desired backend to run the circuit upon.
+    The interface defined by this function limits the user to choose from
+    backends that are recognized by the BACKENDS (global-constant-like) function.
+    For full flexibility a user should use the API provided by `SATInterface` rather
+    than this interactive CLI.
+
+    Returns:
+        (Backend): backend object to run the circuit upon.
     """
 
     print()
@@ -113,48 +149,15 @@ def interactive_backend_input():
 
     return backend
 
-def interactive_shots_input():
+def interactive_shots_input() -> int:
     """
+    Takes user's input for the desired number of execution shots.
+
+    Returns:
+        (int): user's input for number of shots.
     """
 
     print()
-    shots = int(input('Please enter the number of shots desired: '))
+    shots = int(input("Please enter the number of shots desired: "))
 
     return shots
-
-def interactive_inputs() -> Dict[str, Union[int, str, qiskit.providers.backend.Backend, None]]:
-    """
-    Taking inputs from a user, in an interactive (though somewhat limited) manner.
-    For no limits at all a user should use the API of `sat_circuits_engine.interface.SATInterface`.
-
-    Returns:
-        (Dict[str, Union[int, str, qiskit.providers.backend.Backend]]):
-            'num_input_qubits' (int): number of input qubits.
-            'constraints_string' (str): a string of constraints following a specific format.
-                - The format is defined in `sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH`.
-            'solutions_num' (Optional[int] = None):
-                - Expected number of solutions.
-                - Can take also specific negative values, that indicates that the number of solutions
-                is unknown, and:
-                    `-1` = Solve the problem using a classical iterative stochastic process.
-                    See `sat_circuits_engine.classical_processing.handle_solutions` for more details.
-                - If None (default) = not defined by user.
-            'backend' (Optional[qiskit.providers.backend.Backend] = None):
-                - Backend to run the circuit onto.
-                - If None (default) = not defined by user.
-            'shots' (Optional[int] = None):
-                - Number of shots to run the circuit.
-                - If None (default) = not defined by user.
-    """
-    
-    # TODO REMOVE THIS FUNCTION
-    
-    pass
-
-
-# TODO REMOVE IN THE END
-if __name__ == "__main__":
-    print(interactive_operator_inputs())
-
-    # vars = {'x0': 3, 'x1': 1, 'x2': 3, 'x3': 4}
-    # high_level_string = "(x0 != 4),(x1 + x2 == x0),(x3 + x0 + x1 + x2 != 27)"
