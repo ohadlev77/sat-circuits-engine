@@ -1,3 +1,8 @@
+"""
+Contains utility functions to be used throughout the package:
+    1. timestamp.
+"""
+
 from datetime import datetime
 
 def timestamp(datetime_obj: datetime) -> str:

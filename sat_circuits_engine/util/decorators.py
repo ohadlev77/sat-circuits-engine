@@ -1,4 +1,7 @@
-""" This module contains decorator functions to be used throughout the package. """
+"""
+Contains decorator functions to be used throughout the package:
+    1. timer_dec.
+"""
 
 import time
 from typing import Optional, Any 
@@ -31,19 +34,3 @@ def timer_dec(message_prefix: Optional[str] = None) -> Any:
 
         return wrapper
     return decorator
-
-# def timer_dec(func_to_measure):
-#     """
-#     Measures exection time of a function `func_to_measure` and prints it.
-#     To be used as a decorator.
-
-#     Returns: (None).
-#     """
-
-#     def wrapper(*args, **kwargs):
-#         start_time = time.time()
-#         value = func_to_measure(*args, **kwargs)
-#         print(f"Execution time = {time.time() - start_time} seconds")
-#         return value
-
-#     return wrapper
