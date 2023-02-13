@@ -1,0 +1,34 @@
+{
+    "name": "demo_1",
+    "datetime": "D13.02.23_T14.45.03",
+    "num_input_qubits": null,
+    "constraints_string": null,
+    "high_level_constraints_string": "(x0 != x1),(x2 + 2 != x3),(x3 != x4),(x3 != x1),(x5 != x6),(x0 != x2),(x1 != x5),(x4 != x6),(x3 == 2),(x2 + x4 + x3 == 3)",
+    "high_level_vars": {
+        "x0": 1,
+        "x1": 1,
+        "x2": 1,
+        "x3": 2,
+        "x4": 1,
+        "x5": 1,
+        "x6": 1
+    },
+    "transpile_kwargs": {
+        "basis_gates": [
+            "u",
+            "cx"
+        ],
+        "optimization_level": 3
+    },
+    "transpiled_operator_depth": 211,
+    "transpiled_operator_gates_count": {
+        "u": 208,
+        "cx": 194
+    },
+    "operator_qpy_sha256": "7de1d99fc85706e6e45fc2495311c7c7a880ada5164b70b43457da819c31f946",
+    "num_total_qubits": 27,
+    "num_iterations": 12,
+    "num_solutions": 1,
+    "backend": "aer_simulator",
+    "shots": 50
+}

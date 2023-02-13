@@ -20,7 +20,6 @@ with open("README.md", "r") as readme_file:
     readme = readme_file.read()
 
 # Installation requirements
-# TODO NEED TO EDIT requirements.txt, delete pip_freeze.txt and possibly create req-dev.txt
 with open("requirements.txt", "r") as req_file:
     requirements = req_file.read().split()
 
@@ -40,13 +39,11 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
     packages=find_packages(exclude=["test*"]),
     install_requires=requirements,
-    python_requires=">=3.7", # TODO VERIFY SUPPORT FOR 3.7, 3.8, 3.10, 3.11
+    python_requires=">=3.9"
 )
