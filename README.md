@@ -29,7 +29,7 @@ Recent evolvements in the field of quantum control (see [Fire Opal](https://q-ct
 ## Requirements and Instructions
 
 ### Installation:
-1. `git clone https://github.com/ohadlev77/sat_circuits_Engine.git.`
+1. `git clone https://github.com/ohadlev77/sat-circuits-engine.git`.
 2. From the main directory of the package - run `pip install .`.\
     a) All dependencies ([requirements.txt](requirements.txt)) will be installed automatically.\
     b) Now the package is available by running `import sat_cirucits_engine` from anywhere.
