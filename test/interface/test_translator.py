@@ -1,3 +1,5 @@
+"""Tests for `translator.py` module."""
+
 import unittest
 import json
 
@@ -5,8 +7,14 @@ from sat_circuits_engine.util.settings import TEST_DATA_PATH
 from sat_circuits_engine.interface.translator import ConstraintsTranslator
 
 class ConstraintsTranslatorTest(unittest.TestCase):
+    """Tests for `ConstraintsTranslator` class"""
 
-    def setUp(self) -> None:
+    def setUp(self):
+        """
+        Loads test data and filters just the examples with high-level constraints definitions.
+        Saves the filtered output to `self.examples_to_test`.
+        """
+
         with open(TEST_DATA_PATH, 'r') as data_file:
             self.test_data = json.load(data_file)
         
@@ -16,9 +24,10 @@ class ConstraintsTranslatorTest(unittest.TestCase):
         )
 
     def test_translate(self):
-        
-        for example_name, example in self.examples_to_test:
-            
+        """Test for the `translate` method."""
+
+        print("Tests `ConstraintsTranslator.translate` method:")
+        for example_name, example in self.examples_to_test:    
             print(f"Tests {example_name}.")
             
             translator = ConstraintsTranslator(

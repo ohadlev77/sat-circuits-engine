@@ -1,35 +1,28 @@
+"""Tests for the `single_constraints_parse` module.`"""
+
 import unittest
 import json
 
 from sat_circuits_engine.constraints_parse import SingleConstraintParsed
 
 class TestSingleConstraintParsed(unittest.TestCase):
-    """
-    TODO COMPLETE
+    """Tests for the SingleConstraintParsed class."""
 
-    Methods:
-        SingleConstraintParsed.__init__
-        SingleConstraintParsed.parse_format
-        SingleConstraintParsed.parse_equation
-        SingleConstraintParsed.parse_boolean_format
-        SingleConstraintParsed.parse_operand
-
-    """
-
-    @classmethod
-    def setUpClass(cls) -> None:
+    def setUp(self):
         """
-        TODO COMPLETE
+        Loads test data into `self.test_data`.
         """
 
         with open("test/constraints_parse/single_constraint_parse_test_data.json", "r") as data_file:
-            cls.test_data = json.load(data_file)
+            self.test_data = json.load(data_file)
         
     def test_init(self):
         """
-        TODO COMPLETE
+        The whole functionality of the `SingleConstraintParsed` class and its methods
+        is encapsulated in this test, due to the structure of the `SingleConstraintParsed` class.
         """
 
+        print("Tests `SingleConstraintParsed` class:")
         for test_name, test_case in self.test_data.items():
             print(f"Tests {test_name}.")
                 
