@@ -1,10 +1,10 @@
 import json
-from unittest import TestCase, main
+import unittest
 
 from sat_circuits_engine.interface import SATInterface
 from sat_circuits_engine.util.settings import BACKENDS, TEST_DATA_PATH
 
-class SATInterfaceTest(TestCase):
+class SATInterfaceTest(unittest.TestCase):
 
     def setUp(self) -> None:
         with open(TEST_DATA_PATH, 'r') as data_file:
@@ -47,5 +47,4 @@ class SATInterfaceTest(TestCase):
     
 
 if __name__ == "__main__":
-    # SATInterfaceTest()
-    main()
+    unittest.main()

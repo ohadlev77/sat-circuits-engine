@@ -11,43 +11,42 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import os
-import sys
+"""Setup file for sat-circuits-engine package."""
+
 from setuptools import setup, find_packages
 
-# Read long description from the README.md file
-# README_PATH = os.path.abspath(__file__)
-# print()
-# print(README_PATH)
-# print()
-# README = None
+# Reading long description from the README.md file
+with open("README.md", "r") as readme_file:
+    readme = readme_file.read()
 
-# print()
-# print(f"__file__ = {__file__}")
-# print(f"os.path.abspath(__file__) = {os.path.abspath(__file__)}")
-# print(f"os.path.basename(__file__) = {os.path.basename(__file__)}")
-# print(f"os.path.dirname(__file__) = {os.path.dirname(__file__)}")
-# print(f"os.path.realpath(__file__) = {os.path.realpath(__file__)}")
-# print(f"os.path.relpath(__file__) = {os.path.relpath(__file__)}")
-# print()
+# Installation requirements
+# TODO NEED TO EDIT requirements.txt, delete pip_freeze.txt and possibly create req-dev.txt
+with open("requirements.txt", "r") as req_file:
+    requirements = req_file.read().split()
 
-# print(sys.path)
-# print()
-# print(sys.meta_path)
+print(requirements)
 
 setup(
-    name="sat_circuits_engine",
-    version="2.0",
-    description="A Python-Qiskit package for creating qunatum circuits to satisfiability problems",
-    # long_description=README,
-    # long_description_content_type="text/markdown",
-    url="https://github.com/ohadlev77/SAT_Circuits_Engine",
+    name="sat-circuits-engine",
+    version="3.0",
+    description="A Python-Qiskit package for sythesizing quantum circuits to n-SAT problems",
+    long_description=readme,
+    long_description_content_type="text/markdown",
+    url="https://github.com/ohadlev77/sat_circuits_engine", # TODO VERIFY
     author="Ohad Lev",
     author_email="ohadlev77@gmail.com",
-    packages=find_packages(),
-    include_package_data=True
+    license="Apache 2.0",
+    classifiers=[
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+    ],
+    packages=find_packages(exclude=["test*"]),
+    install_requires=requirements,
+    python_requires=">=3.7", # TODO VERIFY SUPPORT FOR 3.7, 3.8, 3.10, 3.11
 )
-
-# print()
-# print(find_packages())
-# print()
