@@ -49,5 +49,5 @@ The output is:
 
 ## Important Notes
 
-1. Many examples may be found in [test_data.json](test_data.json).
+1. Many examples may be found in [test_data.json](sat_circuits_engine/data/test_data.json).
 2. The program usually naively assumes valid user inputs, i.e disobeying the defined format will probably lead to an error or wrong results.
