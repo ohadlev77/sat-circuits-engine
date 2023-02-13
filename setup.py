@@ -31,7 +31,7 @@ setup(
     description="A Python-Qiskit package for sythesizing quantum circuits to n-SAT problems",
     long_description=readme,
     long_description_content_type="text/markdown",
-    url="https://github.com/ohadlev77/sat_circuits_engine", # TODO VERIFY
+    url="https://github.com/ohadlev77/sat-circuits-engine",
     author="Ohad Lev",
     author_email="ohadlev77@gmail.com",
     license="Apache 2.0",
