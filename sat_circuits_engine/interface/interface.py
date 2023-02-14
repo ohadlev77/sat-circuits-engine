@@ -593,7 +593,7 @@ class SATInterface:
                 self.output_to_platform(
                     title= (
                         f"The high level circuit contains {self.iterations}" \
-                        f"iterations of the following form:"
+                        f" iterations of the following form:"
                     ),
                     output_terminal=concise_circuit.draw("text"),
                     output_jupyter=concise_circuit_fig_path
