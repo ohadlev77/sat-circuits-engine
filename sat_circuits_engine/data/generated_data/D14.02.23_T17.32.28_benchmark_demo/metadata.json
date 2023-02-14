@@ -1,6 +1,6 @@
 {
-    "name": "demo_1",
-    "datetime": "D13.02.23_T14.45.03",
+    "name": "benchmark_demo",
+    "datetime": "D14.02.23_T17.32.28",
     "num_input_qubits": null,
     "constraints_string": null,
     "high_level_constraints_string": "(x0 != x1),(x2 + 2 != x3),(x3 != x4),(x3 != x1),(x5 != x6),(x0 != x2),(x1 != x5),(x4 != x6),(x3 == 2),(x2 + x4 + x3 == 3)",

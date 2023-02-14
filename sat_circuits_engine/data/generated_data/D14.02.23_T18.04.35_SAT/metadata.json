@@ -1,6 +1,6 @@
 {
     "name": "SAT",
-    "datetime": "D13.02.23_T15.15.58",
+    "datetime": "D14.02.23_T18.04.35",
     "num_input_qubits": 5,
     "constraints_string": "([4] == [3]),([2][1][0] == 6)",
     "high_level_constraints_string": "(x2 == x1),(x0 == 6)",
@@ -23,8 +23,8 @@
     },
     "operator_qpy_sha256": "3d1194c2fdf1b584028043dd150f07a7fd7eddc042e6633c2df8303a01432cd2",
     "num_total_qubits": 8,
-    "num_iterations": 2,
+    "num_iterations": 3,
     "num_solutions": 2,
     "backend": "aer_simulator",
-    "shots": 1024
+    "shots": 512
 }
