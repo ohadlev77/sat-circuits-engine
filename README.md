@@ -30,13 +30,12 @@ Recent evolvements in the field of quantum control (see [Fire Opal](https://q-ct
 
 ### Installation:
 1. `git clone https://github.com/ohadlev77/sat-circuits-engine.git`.
-2. From the main directory of the package - run `pip install .`.\
+2. From the root directory of the package - run `pip install .`.\
     a) All dependencies ([requirements.txt](requirements.txt)) will be installed automatically.\
     b) Now the package is available by running `import sat_cirucits_engine` from anywhere.
-\
-Supported Python versions are: 3.9, 3.10, 3.11.
+3. Supported Python versions are: `3.9, 3.10, 3.11`.
 
-For testing run `python3 -m unittest` from the main directory.
+For testing run `python3 -m unittest` from the root directory.
 
 ### Usage
 
