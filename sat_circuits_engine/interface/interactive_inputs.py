@@ -117,8 +117,8 @@ def interactive_solutions_num_input() -> Optional[int]:
             "In this case the program will look for an adequate (optimal or near optimal)\n" \
             "number of iterations for the given SAT problem, using an iterative stochastic process.\n"\
             "This process might cause significant overheads and might take some time.\n" \
-            "Another option is using a dynamic circuit layout (this feature is in BETA version," \
-            "and suffers from bugs and poor scaling) - for this option enter the value '-2." \
+            "Another option is using a dynamic circuit layout (this feature is in BETA version,\n" \
+            "and suffers from bugs and poor scaling) - for this option enter the value '-2.\n" \
             "Please enter the expected number of solutions ('-1' or '-2' for unknown): "
         ))
 
