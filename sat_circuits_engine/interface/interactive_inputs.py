@@ -20,14 +20,14 @@ interactive_XXXX_inputs functions, to be used by the SATInterface class:
     5. interactive_shots_input.
 """
 
-from typing import Dict, Union, Optional
+from typing import Dict, Union, Optional, List
 
 from qiskit.providers.backend import Backend
 
 from sat_circuits_engine.util.settings import BACKENDS
 from sat_circuits_engine.interface.translator import ConstraintsTranslator
 
-def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int]]]:
+def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int], Dict[str, List[int]]]]:
     """
     In an interactive interface manner, taking the necessary inputs for constructing
     GroverConstraintsOperator from the user - either in a high-level format or a low-level format.
@@ -35,8 +35,10 @@ def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int]]]:
     sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH (a pointer to a markdown annotation file).
 
     Returns:
-        (Dict[str, Union[int, str, Dict[str, int]]]):
+        (Dict[str, Union[int, str, Dict[str, int], Dict[str, List[int]]]]):
             'num_input_qubits' (int): number of input qubits.
+            'high_to_low_map' (Dict[str, List[int]]): a map of high-level variables
+            with their allocated bit-indexes.
             'constraints_string' (str): a string of constraints in a "low-level" format.
             'high_level_constraints_string' (Optional[str] = None): a string of constraints
             in a "high-level" format, default is None.
@@ -66,7 +68,7 @@ def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int]]]:
         # Translating high-level format into handleable low-level format
         num_input_qubits = sum(high_level_vars.values())
         translator = ConstraintsTranslator(high_level_constraints_string, high_level_vars)
-        constraints_string = translator.translate()
+        high_to_low_map, constraints_string = translator.translate()
 
     # Low-level constraints input
     else:
@@ -78,6 +80,7 @@ def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int]]]:
 
     return {
         'num_input_qubits': num_input_qubits,
+        'high_to_low_map': high_to_low_map,
         'constraints_string': constraints_string,
         'high_level_constraints_string': high_level_constraints_string,
         'high_level_vars': high_level_vars
@@ -109,13 +112,14 @@ def interactive_solutions_num_input() -> Optional[int]:
             " (it is the easiest and optimal case)."
         )
         print()
-        # TODO REPHRASE THE FOLLOWING TEXT FOR DYNAMIC CIRCUIT OPTION
         solutions_num = int(input(
             "If the expected amount of solutions is unknown, please enter the value '-1'.\n" \
             "In this case the program will look for an adequate (optimal or near optimal)\n" \
             "number of iterations for the given SAT problem, using an iterative stochastic process.\n"\
             "This process might cause significant overheads and might take some time.\n" \
-            "Please enter the expected number of solutions ('-1' for unknown): "
+            "Another option is using a dynamic circuit layout (this feature is in BETA version," \
+            "and suffers from bugs and poor scaling) - for this option enter the value '-2." \
+            "Please enter the expected number of solutions ('-1' or '-2' for unknown): "
         ))
 
         return solutions_num
