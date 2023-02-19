@@ -43,13 +43,21 @@ class ConstraintsTranslatorTest(unittest.TestCase):
         for example_name, example in self.examples_to_test:    
             print(f"Tests {example_name}.")
             
-            translator = ConstraintsTranslator(
+            high_to_low_map, translated_constraints_string = ConstraintsTranslator(
                 example['high_level_constraints_string'],
                 example['high_level_vars']
+            ).translate()
+
+            self.assertEqual(
+                translated_constraints_string,
+                example['constraints_string'],
+                f"constraints_string fail in {example_name}."
             )
 
             self.assertEqual(
-                translator.translate(), example['constraints_string'], f"Fail in {example_name}."
+                high_to_low_map,
+                example['high_level_to_bit_indexes_map'],
+                f"high_level_to_bit_indexes_map fail in {example_name}."
             )
 
 if __name__ == "__main__":
