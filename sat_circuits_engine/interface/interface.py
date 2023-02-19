@@ -144,6 +144,9 @@ class SATInterface:
         # Identifying user's platform, for visualization purposes
         self.identify_platform()
 
+        # In the case of low-level constraints format, that is the default value
+        self.high_to_low_map = None
+
         # Case A - interactive interface
         if (
             (num_input_qubits is None or constraints_string is None)
@@ -160,7 +163,7 @@ class SATInterface:
             # Case B.1 - high-level format constraints inputs
             if num_input_qubits is None or constraints_string is None:
                 self.num_input_qubits = sum(self.high_level_vars.values())
-                self.constraints_string = ConstraintsTranslator(
+                self.high_to_low_map, self.constraints_string = ConstraintsTranslator(
                     self.high_level_constraints_string,
                     self.high_level_vars
                 ).translate()
@@ -285,6 +288,7 @@ class SATInterface:
         # Handling operator part
         operator_inputs = interactive_operator_inputs()
         self.num_input_qubits = operator_inputs['num_input_qubits']
+        self.high_to_low_map = operator_inputs['high_to_low_map']
         self.constraints_string = operator_inputs['constraints_string']
         self.high_level_constraints_string = operator_inputs['high_level_constraints_string']
         self.high_level_vars = operator_inputs['high_level_vars']
@@ -350,15 +354,20 @@ class SATInterface:
             The defualt is set to the global constant `TRANSPILE_KWARGS`.
 
         Returns:
-            (Dict[str, Union[GroverConstraintsOperator, QuantumCircuit]]):
-                - 'operator' - the high-level bloks operator.
-                - 'decomposed_operator' - decomposed to building-blocks operator.
+            (Dict[str, Union[GroverConstraintsOperator, QuantumCircuit, Dict[str, List[int]]]]):
+
+                - 'operator' (GroverConstraintsOperator):the high-level blocks operator.
+                - 'decomposed_operator' (QuantumCircuit): decomposed to building-blocks operator.
                     * For annotations regarding the decomposition method see the
                     `circuit_decomposition` module.
-                - 'transpiled_operator' - the transpiled operator.
+                - 'transpiled_operator' (QuantumCircuit): the transpiled operator.
+
                 *** The high-level operator and the decomposed operator are generated with barriers
                 between constraints as default for visualizations purposes. The barriers are stripped
                 off before transpiling so the the transpiled operator object contains no barriers. ***
+
+                - 'high_level_to_bit_indexes_map' (Optional[Dict[str, List[int]]] = None):
+                A map of high-level variables with their allocated bit-indexes in the input register.
         """
 
         print()
@@ -386,6 +395,7 @@ class SATInterface:
             'operator': operator,
             'decomposed_operator': decomposed_operator,
             'transpiled_operator': transpiled_operator,
+            'high_level_to_bit_indexes_map': self.high_to_low_map
         }
 
     def save_display_grover_operator(
@@ -459,6 +469,15 @@ class SATInterface:
                 # Generating QASM 2.0 file only for the tranpsiled operator
                 qasm_file_path = f"{files_path}.qasm"
                 op_obj.qasm(filename=qasm_file_path)
+
+                # Index 3 is 'high_level_to_bit_indexes_map' so it's time to break from the loop
+                break
+
+        # Mapping from high-level variables to bit-indexes will be displayed as well
+        mapping = obtain_grover_operator_output['high_level_to_bit_indexes_map']
+        if mapping:
+            print()
+            print(f"The high-level variables mapping to bit-indexes:\n{mapping}")
             
         print()
         print(
@@ -472,10 +491,11 @@ class SATInterface:
             operator_qpy_sha256 = sha256(qpy_file.read()).hexdigest()
 
         self.update_metadata({
+            "high_level_to_bit_indexes_map": self.high_to_low_map,
             "transpile_kwargs": self.transpile_kwargs,
             "transpiled_operator_depth": transpiled_operator_depth,
             "transpiled_operator_gates_count": transpiled_operator_gates_count,
-            "operator_qpy_sha256": operator_qpy_sha256,
+            "operator_qpy_sha256": operator_qpy_sha256
         })
 
     def obtain_overall_sat_circuit(
@@ -679,8 +699,8 @@ class SATInterface:
                 'counts' (Counts) - the original `Counts` object.
                 'counts_sorted' (List[Tuple[Union[str, int]]]) - results sorted in a descending order.
                 'distilled_solutions' (List[str]): list of solutions (bitstrings).
-                'high_level_vars_values' (List[Dict[str, int]]): list of solutions (dictionaries of
-                variable-names and their integer values).
+                'high_level_vars_values' (List[Dict[str, int]]): list of solutions (each solution is a
+                dictionary with variable-names as keys and their integer values as values).
         """
 
         # Sorting results in an a descending order
@@ -705,14 +725,15 @@ class SATInterface:
 
                 # Keys are variable-names and values are their integer values
                 solution_vars = {}
-                for index, (var, size) in enumerate(self.high_level_vars.items()):
+                for var, bits_bundle in self.high_to_low_map.items():
 
-                    # Defining the first and last bits
-                    start_index = sum(list(self.high_level_vars.values())[:index])
-                    end_index = start_index + size
+                    reversed_solution = solution[::-1]
+                    var_bitstring = ""
+                    for bit_index in bits_bundle:
+                        var_bitstring += reversed_solution[bit_index]
 
-                    # Translating to integer value while sticking to little-endian convention
-                    solution_vars[var] = int(solution[::-1][start_index:end_index][::-1], 2)
+                    # Translating to integer value
+                    solution_vars[var] = int(var_bitstring, 2)
 
                 high_level_vars_values.append(solution_vars)
 
@@ -769,9 +790,14 @@ class SATInterface:
                           f"\nDistilled solutions ({len(distilled_solutions)} total):\n" \
                           f"{distilled_solutions}"
 
-            # For a high-level constraints format, actual integer solutions will be displayed as well
+            # Additional outputs for a high-level constraints format
             if high_level_vars_values:
 
+                # Mapping from high-level variables to bit-indexes will be displayed as well
+                output_text += f"\n\nThe high-level variables mapping to bit-indexes:" \
+                               f"\n{self.high_to_low_map}"
+
+                # Actual integer solutions will be displayed as well
                 additional_text = ""
                 for solution_index, solution in enumerate(high_level_vars_values):
                     additional_text += f"Solution {solution_index + 1}: "
@@ -783,7 +809,6 @@ class SATInterface:
                             additional_text += ", "
                         else:
                             additional_text += "\n"
-
                 output_text += f"\n\nHigh-level format solutions: \n{additional_text}"
                           
             self.output_to_platform(
@@ -794,6 +819,7 @@ class SATInterface:
             )
 
         results_dict = {
+            'high_level_to_bit_indexes_map': self.high_to_low_map,
             'solutions': list(distilled_solutions),
             'high_level_solutions': high_level_vars_values,
             'counts': counts_sorted
