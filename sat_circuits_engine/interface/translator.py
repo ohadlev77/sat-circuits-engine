@@ -15,7 +15,7 @@
 `ConstraintsTranslator` class.
 """
 
-from typing import Dict
+from typing import Dict, Tuple, List
 
 class ConstraintsTranslator:
     """
@@ -28,49 +28,62 @@ class ConstraintsTranslator:
         """
         Args:
             high_level_string (str): A string of constraints in a format defined in
-            sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH - "High level format" section.
+            sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH - "High-level format" section.
             variables (Dict[str, int]): each key is a name of a variable, each value is its bits-length.
         """
 
         self.high_level_string = high_level_string
         self.variables = variables
 
-    def translate(self) -> str:
+    def translate(self) -> Tuple[Dict[str, List[int]], str]:
         """
         Translates the combination of `self.high_level_string` and `variables`
-        into a low-level constraints stringץ
-        See `sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH` - "Low level format" section
+        into a low-level constraints string.
+        See `sat_circuits_engine.util.settings.CONSTRAINTS_FORMAT_PATH` - "Low-level format" section
         for information about the low level format.
 
-        Returns:
+        Returns - Tuple[Dict[str, List[int]], str]:
+            (Dict[str, List[int]]): a map of high-level variables with their allocated bit-indexes.
             (str): a low-level constraints string.
         """
 
         low_level_string = self.high_level_string
-
+        high_to_low_map = {}
         bits_sum = 0
-        for var, bits_needed in self.variables.items():
-            low_level_string = low_level_string.replace(
-                var,
-                self.generate_bits_bundle_string(bits_needed, bits_sum)
-            )
+
+        # Iterating over the variables by their name-length, in a descending order. This way
+        # we handle the variables with the longer names first and avoiding misreplaces of strings.
+        for var, bits_needed in sorted(self.variables.items(), key=lambda x: len(x[0]), reverse=True):
+
+            bundle_list, bundle_string = self.generate_bits_bundle(bits_needed, bits_sum)
+
+            low_level_string = low_level_string.replace(var, bundle_string)
+            high_to_low_map[var] = bundle_list
 
             bits_sum += bits_needed
 
-        return low_level_string
+        return high_to_low_map, low_level_string
 
-    def generate_bits_bundle_string(self, num_bits: int, first_bit_index: int) -> str:
+    def generate_bits_bundle(self, num_bits: int, first_bit_index: int) -> Tuple[List[int], str]:
         """
         Generates a low-level format operand, a.k.a a bundle of bit-indexes in a little-endian style.
 
         Args:
             num_bits (int): number of bits in the bundle.
             first_bit_index (int): index number to start from.
+
+        Returns - Tuple[List[int], str]:
+            (List[int]) - The bit indexes that form the bundle, as a list.
+            (str) - The bit indexes that form the bundle, already in the low-level format string.
         """
 
-        string = ""
+        bundle_string = ""
+        bundle_list = []
 
         for i in reversed(range(num_bits)):
-            string += f"[{first_bit_index + i}]"
+            bit_index = first_bit_index + i
 
-        return string
+            bundle_string += f"[{bit_index}]"
+            bundle_list.append(bit_index)
+
+        return bundle_list, bundle_string
