@@ -76,9 +76,10 @@ class SATCircuit(QuantumCircuit):
             self.out_reg[:]
         )
 
+        diffuser_ancillas = len(self.input_aux_out_qubits) - num_input_qubits
         self.diffuser = GroverDiffuser(
             num_input_qubits=num_input_qubits,
-            num_ancilla_qubits=len(self.input_aux_out_qubits) - num_input_qubits
+            num_ancilla_qubits=diffuser_ancillas
         )
 
         # No `iterations` specified = dynamic circuit

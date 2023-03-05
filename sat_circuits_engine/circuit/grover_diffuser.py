@@ -61,5 +61,3 @@ class GroverDiffuser(QuantumCircuit):
         self.h(target_qubit)
         self.x(input_reg)
         self.h(input_reg)
-
-        self.to_gate()
