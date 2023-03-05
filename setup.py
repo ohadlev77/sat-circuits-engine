@@ -27,7 +27,7 @@ print(requirements)
 
 setup(
     name="sat-circuits-engine",
-    version="3.0",
+    version="3.1.0",
     description="A Python-Qiskit package for synthesizing quantum circuits to n-SAT problems",
     long_description=readme,
     long_description_content_type="text/markdown",
