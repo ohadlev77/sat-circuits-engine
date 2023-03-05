@@ -78,6 +78,8 @@ def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int], D
         print()
         constraints_string = str(input("Please enter a string of constraints: "))
 
+        high_to_low_map = None
+
     return {
         'num_input_qubits': num_input_qubits,
         'high_to_low_map': high_to_low_map,
