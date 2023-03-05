@@ -52,13 +52,10 @@ class SATCircuit(QuantumCircuit):
         """
 
         self.num_input_qubits = num_input_qubits
+        self.operator = grover_constraints_operator
         self.iterations = iterations
         self.insert_barriers = insert_barriers
 
-        # Building blocks of Grover's iterator
-        self.operator = grover_constraints_operator
-        self.diffuser = GroverDiffuser(num_input_qubits)
-        
         # Total number of auxiliary qubits (of all kinds)
         self.total_aux_width = (
             self.operator.comparison_aux_width +
@@ -66,12 +63,23 @@ class SATCircuit(QuantumCircuit):
             self.operator.right_aux_width
         )
 
-        # Initializing registers
         self.input_reg = QuantumRegister(num_input_qubits, "input_reg")
         self.aux_reg = QuantumRegister(self.total_aux_width, "aux_reg")
         self.out_reg = QuantumRegister(self.operator.out_qubits_amount, "out_reg")
         self.ancilla = QuantumRegister(1, "ancilla")
         self.results = ClassicalRegister(num_input_qubits, "results")
+
+        # Input, auxiliary and out Qubit objects stacked in one list
+        self.input_aux_out_qubits = (
+            self.input_reg[:] +
+            self.aux_reg[:] +
+            self.out_reg[:]
+        )
+
+        self.diffuser = GroverDiffuser(
+            num_input_qubits=num_input_qubits,
+            num_ancilla_qubits=len(self.input_aux_out_qubits) - num_input_qubits
+        )
 
         # No `iterations` specified = dynamic circuit
         # TODO this feature is not supported yet and shouldn't be used
@@ -120,16 +128,10 @@ class SATCircuit(QuantumCircuit):
         """
 
         condition = (self.probe_result, 0)
-
-        qargs_with_probe = (
-            self.input_reg[:] +
-            self.aux_reg[:] +
-            self.out_reg[:] +
-            self.probe[:]
-        )
+        qargs_with_probe = self.input_aux_out_qubits[:] + self.probe[:]
 
         with self.while_loop(condition):
-            self.append(self.diffuser, qargs=self.input_reg)
+            self.append(self.diffuser, qargs=self.input_aux_out_qubits)
             self.add_iteration()
             self.append(self.operator, qargs=qargs_with_probe)
             self.measure(self.probe, self.probe_result)
@@ -153,15 +155,10 @@ class SATCircuit(QuantumCircuit):
         Appends an iteration over Grover's iterator (`operator` + `diffuser`) to `self`.
         """
 
-        qargs_with_ancilla = (
-            self.input_reg[:] +
-            self.aux_reg[:] +
-            self.out_reg[:] +
-            self.ancilla[:]
-        )
+        qargs_with_ancilla = self.input_aux_out_qubits[:] + self.ancilla[:]
 
         self.append(self.operator, qargs=qargs_with_ancilla)
-        self.append(self.diffuser, qargs=self.input_reg)
+        self.append(self.diffuser, qargs=self.input_aux_out_qubits)
 
         if self.insert_barriers:
             self.barrier()
