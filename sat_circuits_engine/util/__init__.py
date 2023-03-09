@@ -17,4 +17,4 @@ for the sat_circuits_engine package.
 """
 
 from .decorators import timer_dec
-from .util import timestamp
+from .util import timestamp, flatten_circuit
