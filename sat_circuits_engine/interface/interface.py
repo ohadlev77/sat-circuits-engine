@@ -30,7 +30,7 @@ from qiskit.transpiler.passes import RemoveBarriers
 from IPython import display
 from matplotlib.figure import Figure
 
-from sat_circuits_engine.util import timer_dec, timestamp
+from sat_circuits_engine.util import timer_dec, timestamp, flatten_circuit
 from sat_circuits_engine.util.settings import DATA_PATH, TRANSPILE_KWARGS
 from sat_circuits_engine.circuit import GroverConstraintsOperator, SATCircuit
 from sat_circuits_engine.constraints_parse import ParsedConstraints
@@ -52,7 +52,7 @@ from sat_circuits_engine.interface.interactive_inputs import (
 
 # Local globlas for visualization of charts and diagrams
 IFRAME_WIDTH = "100%"
-IFRAME_HEIGHT = "500"
+IFRAME_HEIGHT = "700"
 
 class SATInterface:
     """
@@ -466,9 +466,9 @@ class SATInterface:
                 print(f"Transpiled operator gates count: {transpiled_operator_gates_count}.")
                 print(f"Total number of qubits: {op_obj.num_qubits}.")
 
-                # Generating QASM 2.0 file only for the tranpsiled operator
+                # Generating QASM 2.0 file only for the (flattened = no registers) tranpsiled operator
                 qasm_file_path = f"{files_path}.qasm"
-                op_obj.qasm(filename=qasm_file_path)
+                flatten_circuit(op_obj).qasm(filename=qasm_file_path)
 
                 # Index 3 is 'high_level_to_bit_indexes_map' so it's time to break from the loop
                 break
@@ -629,24 +629,43 @@ class SATInterface:
                     output_terminal=circuit.draw("text"),
                     output_jupyter=dynamic_circuit_fig_path
                 )
+        
+        if self.iterations:
+            transpiled_overall_circuit = transpile(flatten_circuit(circuit), **self.transpile_kwargs)
+
+            print()
+            print(f"The transpilation kwargs are: {self.transpile_kwargs}.")
+            transpiled_overall_circuit_depth = transpiled_overall_circuit.depth()
+            transpiled_overall_circuit_gates_count = transpiled_overall_circuit.count_ops()
+            print(f"Transpiled overall-circuit depth: {transpiled_overall_circuit_depth}.")
+            print(f"Transpiled overall-circuit gates count: {transpiled_overall_circuit_gates_count}.")
+            print(f"Total number of qubits: {transpiled_overall_circuit.num_qubits}.")
 
         print()
-        print("Exporting the full high-level overall SAT circuit object to a QPY file..")
-        qpy_file_path = f"{overall_circuit_dir_path}overall_circuit.qpy"
-        with open(qpy_file_path, "wb") as qpy_file:
+        print("Exporting the full overall SAT circuit object..")
+        export_files_path = f"{overall_circuit_dir_path}overall_circuit"
+        with open(f"{export_files_path}.qpy", "wb") as qpy_file:
             qpy.dump(circuit, qpy_file)
+        if self.iterations:
+            transpiled_overall_circuit.qasm(filename=f"{export_files_path}.qasm")
 
         print()
         print(
             f"Saved into '{overall_circuit_dir_path}':\n",
             f"  A concised (1 iteration) circuit diagram of the high-level overall SAT circuit.\n",
-            f"  QPY serialization export for the full overall SAT circuit object."
+            f"  QPY serialization export for the full overall SAT circuit object.",
         )
+        if self.iterations:
+            print("   QASM 2.0 export for the transpiled full overall SAT circuit object.")
 
-        self.update_metadata({
+        metadata_update = {
             "num_total_qubits": circuit.num_qubits,
             "num_iterations": circuit.iterations,
-        })
+        }
+        if self.iterations:
+            metadata_update["transpiled_overall_circuit_depth"] = transpiled_overall_circuit_depth,
+            metadata_update["transpiled_overall_circuit_gates_count"] = transpiled_overall_circuit_gates_count
+        self.update_metadata(metadata_update)
         
     @timer_dec("Circuit simulation execution time = ")
     def run_overall_sat_circuit(
