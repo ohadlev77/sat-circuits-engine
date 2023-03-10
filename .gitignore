@@ -5,4 +5,8 @@ build/
 dist/
 *.egg
 *.egg-info/
+htmlcov/
+.tox/
+__pycache__/
+.coverage
 DRAFT/
