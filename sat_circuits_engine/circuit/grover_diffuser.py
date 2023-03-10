@@ -18,6 +18,7 @@ GroverDiffuser class.
 from typing import Optional
 from qiskit import QuantumCircuit, QuantumRegister
 
+
 class GroverDiffuser(QuantumCircuit):
     """
     Implementation of Grover's diffuser operator.
@@ -38,7 +39,7 @@ class GroverDiffuser(QuantumCircuit):
         input_reg = QuantumRegister(num_input_qubits, "input_reg")
         ancilla_reg = QuantumRegister(num_ancilla_qubits, "ancilla_reg")
         super().__init__(input_reg, ancilla_reg, name="Diffuser")
-        
+
         # Pre-settings. Choosing the shallowest possible MCX decomposing mode
         target_qubit = input_reg[num_input_qubits - 1]
         if num_ancilla_qubits == 0:
@@ -50,13 +51,13 @@ class GroverDiffuser(QuantumCircuit):
 
         # Diffuser implementation
         self.h(input_reg)
-        self.x(input_reg)        
+        self.x(input_reg)
         self.h(target_qubit)
         self.mcx(
             control_qubits=input_reg[list(range(num_input_qubits - 1))],
             target_qubit=target_qubit,
             ancilla_qubits=ancilla_reg,
-            mode=mode
+            mode=mode,
         )
         self.h(target_qubit)
         self.x(input_reg)

@@ -27,6 +27,7 @@ from qiskit.providers.backend import Backend
 from sat_circuits_engine.util.settings import BACKENDS
 from sat_circuits_engine.interface.translator import ConstraintsTranslator
 
+
 def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int], Dict[str, List[int]]]]:
     """
     In an interactive interface manner, taking the necessary inputs for constructing
@@ -47,9 +48,14 @@ def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int], D
     """
 
     print()
-    high_level_setting = bool(int(input(
-        "For a low-level setting of constraints, enter '0'. For a high level setting, enter '1': "
-    )))
+    high_level_setting = bool(
+        int(
+            input(
+                "For a low-level setting of constraints, enter '0'."
+                "For a high level setting, enter '1': "
+            )
+        )
+    )
 
     high_level_constraints_string = None
     high_level_vars = None
@@ -60,10 +66,12 @@ def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int], D
         high_level_constraints_string = input("Enter a high-level constraints string: ")
 
         print()
-        high_level_vars = eval(input(
-            "Enter a dictionary of variables setting in a Python syntax, " \
-            "while keys are variables-names and values are bits-lengths (Dict[var, num_bits]): "
-        ))
+        high_level_vars = eval(
+            input(
+                "Enter a dictionary of variables setting in a Python syntax, "
+                "while keys are variables-names and values are bits-lengths (Dict[var, num_bits]): "
+            )
+        )
 
         # Translating high-level format into handleable low-level format
         num_input_qubits = sum(high_level_vars.values())
@@ -74,19 +82,20 @@ def interactive_operator_inputs() -> Dict[str, Union[int, str, Dict[str, int], D
     else:
         print()
         num_input_qubits = int(input("Please enter the number of input qubits: "))
-        
+
         print()
         constraints_string = str(input("Please enter a string of constraints: "))
 
         high_to_low_map = None
 
     return {
-        'num_input_qubits': num_input_qubits,
-        'high_to_low_map': high_to_low_map,
-        'constraints_string': constraints_string,
-        'high_level_constraints_string': high_level_constraints_string,
-        'high_level_vars': high_level_vars
+        "num_input_qubits": num_input_qubits,
+        "high_to_low_map": high_to_low_map,
+        "constraints_string": constraints_string,
+        "high_level_constraints_string": high_level_constraints_string,
+        "high_level_vars": high_level_vars,
     }
+
 
 def interactive_solutions_num_input() -> Optional[int]:
     """
@@ -101,30 +110,31 @@ def interactive_solutions_num_input() -> Optional[int]:
     """
 
     print()
-    obtain_overall_circuit = bool(int(input(
-        "To stop here, enter '0'. " \
-        "For obtaining also the overall circuit, enter '1': "
-    )))
+    obtain_overall_circuit = bool(
+        int(input("To stop here, enter '0'. For obtaining also the overall circuit, enter '1': "))
+    )
 
     if obtain_overall_circuit:
-
         print()
         print(
-            "If the expected amount of solutions is known, please enter it" \
+            "If the expected amount of solutions is known, please enter it"
             " (it is the easiest and optimal case)."
         )
         print()
-        solutions_num = int(input(
-            "If the expected amount of solutions is unknown, please enter the value '-1'.\n" \
-            "In this case the program will look for an adequate (optimal or near optimal)\n" \
-            "number of iterations for the given SAT problem, using an iterative stochastic process.\n"\
-            "This process might cause significant overheads and might take some time.\n" \
-            "Another option is using a dynamic circuit layout (this feature is in BETA version,\n" \
-            "and suffers from bugs and poor scaling) - for this option enter the value '-2'.\n" \
-            "Please enter the expected number of solutions ('-1' or '-2' for unknown): "
-        ))
+        solutions_num = int(
+            input(
+                "If the expected amount of solutions is unknown, please enter the value '-1'.\n"
+                "In this case the program will look for an adequate (optimal or near optimal)\n"
+                "number of iterations for the given SAT problem, using an iterative stochastic process."
+                "\nThis process might cause significant overheads and might take some time.\n"
+                "Another option is using a dynamic circuit layout (this feature is in BETA version,\n"
+                "and suffers from bugs and poor scaling) - for this option enter the value '-2'.\n"
+                "Please enter the expected number of solutions ('-1' or '-2' for unknown): "
+            )
+        )
 
         return solutions_num
+
 
 def interactive_run_input() -> bool:
     """
@@ -135,12 +145,17 @@ def interactive_run_input() -> bool:
     """
 
     print()
-    run_circuit = bool(int(input(
-        "To stop here, enter '0'. " \
-        "For running the overall circuit and obtain data, enter '1': "
-    )))
+    run_circuit = bool(
+        int(
+            input(
+                "To stop here, enter '0'. "
+                "For running the overall circuit and obtain data, enter '1': "
+            )
+        )
+    )
 
     return bool(int(run_circuit))
+
 
 def interactive_backend_input() -> Backend:
     """
@@ -155,18 +170,23 @@ def interactive_backend_input() -> Backend:
     """
 
     print()
-    backend = BACKENDS(int(input(
-        "For running the circuit on local `aer_simulator`, enter '0'.\n" \
-        "For running the circuit on `ibmq_qasm_simulator` via cloud, enter '1'.\n" \
-        "NOTE: A saved IBMQ API token need to be available on your machine for option '1'.\n" \
-        "For other custom backends please use the API and not this interactive interface.\n" \
-        "Your input: "
-    )))
+    backend = BACKENDS(
+        int(
+            input(
+                "For running the circuit on local `aer_simulator`, enter '0'.\n"
+                "For running the circuit on `ibmq_qasm_simulator` via cloud, enter '1'.\n"
+                "NOTE: A saved IBMQ API token need to be available on your machine for option '1'.\n"
+                "For other custom backends please use the API and not this interactive interface.\n"
+                "Your input: "
+            )
+        )
+    )
 
     print()
     print(f"Obtaining {backend}..")
 
     return backend
+
 
 def interactive_shots_input() -> int:
     """

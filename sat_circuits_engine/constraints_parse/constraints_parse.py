@@ -19,6 +19,7 @@ from typing import Optional
 
 from sat_circuits_engine.constraints_parse.single_constraint_parse import SingleConstraintParsed
 
+
 class ParsedConstraints(dict):
     """
     A dictionary-like object to store `SingleConstraintParsed` objects as values,
@@ -26,9 +27,7 @@ class ParsedConstraints(dict):
     """
 
     def __init__(
-        self,
-        constraints_string: str,
-        high_level_constraints_string: Optional[str] = None
+        self, constraints_string: str, high_level_constraints_string: Optional[str] = None
     ) -> None:
         """
         Args:
@@ -43,29 +42,29 @@ class ParsedConstraints(dict):
         super().__init__()
 
         self.constraints_string_to_dict()
-    
+
     def constraints_string_to_dict(self) -> None:
         """
         Fills the dictionary with low-level constraints strings as keys
         and `SingleConstraintParsed` objects as values.
         """
 
-        constraints_list = self.constraints_string.split(',')
+        constraints_list = self.constraints_string.split(",")
 
         if self.high_level_constraints_string is not None:
-            high_level_constraints_list = self.high_level_constraints_string.split(',')
+            high_level_constraints_list = self.high_level_constraints_string.split(",")
         else:
             high_level_constraints_list = [None for _ in range(len(constraints_list))]
 
-        for index, (single_string, single_high_level_string) in enumerate(zip(
-            constraints_list,
-            high_level_constraints_list
-        )):
+        for index, (single_string, single_high_level_string) in enumerate(
+            zip(constraints_list, high_level_constraints_list)
+        ):
             self[single_string] = SingleConstraintParsed(
                 constraint_string=single_string,
                 constraint_index=index,
-                high_level_constraint_string=single_high_level_string
+                high_level_constraint_string=single_high_level_string,
             )
+
 
 class SATNoSolutionError(Exception):
     """

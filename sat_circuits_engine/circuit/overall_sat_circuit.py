@@ -22,6 +22,7 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from sat_circuits_engine.circuit.grover_constraints_operator import GroverConstraintsOperator
 from sat_circuits_engine.circuit.grover_diffuser import GroverDiffuser
 
+
 class SATCircuit(QuantumCircuit):
     """
     Assembles an overall circuit for the given SAT problem from the building blocks:
@@ -37,7 +38,7 @@ class SATCircuit(QuantumCircuit):
         num_input_qubits: int,
         grover_constraints_operator: GroverConstraintsOperator,
         iterations: Optional[int] = None,
-        insert_barriers: Optional[bool] = True
+        insert_barriers: Optional[bool] = True,
     ) -> None:
         """
         Args:
@@ -58,9 +59,9 @@ class SATCircuit(QuantumCircuit):
 
         # Total number of auxiliary qubits (of all kinds)
         self.total_aux_width = (
-            self.operator.comparison_aux_width +
-            self.operator.left_aux_width +
-            self.operator.right_aux_width
+            self.operator.comparison_aux_width
+            + self.operator.left_aux_width
+            + self.operator.right_aux_width
         )
 
         self.input_reg = QuantumRegister(num_input_qubits, "input_reg")
@@ -70,22 +71,16 @@ class SATCircuit(QuantumCircuit):
         self.results = ClassicalRegister(num_input_qubits, "results")
 
         # Input, auxiliary and out Qubit objects stacked in one list
-        self.input_aux_out_qubits = (
-            self.input_reg[:] +
-            self.aux_reg[:] +
-            self.out_reg[:]
-        )
+        self.input_aux_out_qubits = self.input_reg[:] + self.aux_reg[:] + self.out_reg[:]
 
         diffuser_ancillas = len(self.input_aux_out_qubits) - num_input_qubits
         self.diffuser = GroverDiffuser(
-            num_input_qubits=num_input_qubits,
-            num_ancilla_qubits=diffuser_ancillas
+            num_input_qubits=num_input_qubits, num_ancilla_qubits=diffuser_ancillas
         )
 
         # No `iterations` specified = dynamic circuit
         # TODO this feature is not supported yet and shouldn't be used
         if iterations is None:
-
             # Register to apply weak measurements with
             self.probe = QuantumRegister(1, "probe")
             self.probe_result = ClassicalRegister(1, "probe_result")
@@ -97,7 +92,7 @@ class SATCircuit(QuantumCircuit):
                 self.ancilla,
                 self.probe,
                 self.results,
-                self.probe_result
+                self.probe_result,
             )
 
             # Initializing input state
@@ -105,7 +100,7 @@ class SATCircuit(QuantumCircuit):
 
             # Applying dynamic while loop over Grover's iterator coditioned by `probe`
             self.dynamic_loop()
-            
+
         # `iterations` specified = static circuit
         else:
             super().__init__(
@@ -150,7 +145,7 @@ class SATCircuit(QuantumCircuit):
 
         if self.insert_barriers:
             self.barrier()
-    
+
     def add_iteration(self) -> None:
         """
         Appends an iteration over Grover's iterator (`operator` + `diffuser`) to `self`.

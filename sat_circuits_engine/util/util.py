@@ -20,6 +20,7 @@ from datetime import datetime
 
 from qiskit import QuantumCircuit
 
+
 def timestamp(datetime_obj: datetime) -> str:
     """
     Defines a timestamp format to be used in this library.
@@ -34,6 +35,7 @@ def timestamp(datetime_obj: datetime) -> str:
 
     return datetime_obj.strftime("D%d.%m.%y_T%H.%M.%S")
 
+
 def flatten_circuit(circuit: QuantumCircuit) -> QuantumCircuit:
     """
     Transforms a QuantumCircuit object with multiple registers, into a QuantumCircuit object
@@ -41,7 +43,7 @@ def flatten_circuit(circuit: QuantumCircuit) -> QuantumCircuit:
 
     Args:
         circuit (QuantumCircuit): the QuantumCircuit object to "flatten".
-    
+
     Returns:
         (QuantumCircuit): the "flattened" circuit.
     """

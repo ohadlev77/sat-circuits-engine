@@ -17,6 +17,7 @@
 
 from typing import List, Union, Optional
 
+
 class SingleConstraintParsed:
     """
     Provides an interface for converting a string of a single constraint, written in a specific
@@ -39,12 +40,12 @@ class SingleConstraintParsed:
         representations of integers, that may be found from both sides of the constraint's equation.
         Defualt is None for each side that doesn't contain an integer.
     """
-    
+
     def __init__(
         self,
         constraint_string: str,
         constraint_index: int,
-        high_level_constraint_string: Optional[str] = None
+        high_level_constraint_string: Optional[str] = None,
     ) -> None:
         """
         Args:
@@ -54,7 +55,7 @@ class SingleConstraintParsed:
             high_level_constraint_string (Optional[str] = None): the constraint's equation,
             in a high-level format, if exists.
         """
-        
+
         self.constraint_string = constraint_string
         self.constraint_index = constraint_index
 
@@ -67,11 +68,11 @@ class SingleConstraintParsed:
         self.parse_format()
 
         # Parsing the constraint's equation and storing values to attributes of the defined API
-        self.parse_equation() 
-    
+        self.parse_equation()
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}('{self.string_to_show}')"
-    
+
     def parse_format(self) -> None:
         """
         Given a single "low-level" constraint string, this method parses its format.
@@ -80,11 +81,11 @@ class SingleConstraintParsed:
 
         If a boolean format is encountered this method calls for the `self.parse_boolean_format`
         method that parses it and calls for this method again with an equivalent comparison format.
-        
+
         Saves the parsed comparison operator into an attribute called `self.operator`.
         """
 
-         # The cases where the constraint string is in a comparison format        
+        # The cases where the constraint string is in a comparison format
         if "==" in self.constraint_string:
             self.operator = "=="
         elif "!=" in self.constraint_string:
@@ -99,7 +100,7 @@ class SingleConstraintParsed:
         # The cases where no operator present = a boolean format private case of 1 operand
         else:
             self.parse_boolean_format("&&")
-            
+
     def parse_boolean_format(self, boolean_operator: str) -> None:
         """
         Parses a constraint in a boolean format and transforms it into a comparison format.
@@ -122,28 +123,26 @@ class SingleConstraintParsed:
         elif boolean_operator == "&&":
             comparison_operator = "=="
         else:
-            raise SyntaxError("The only supported binary boolean operators are '||' (OR) and '&&' (AND).")
+            raise SyntaxError(
+                "The only supported binary boolean operators are '||' (OR) and '&&' (AND)."
+            )
 
         # Translating the boolean constraint to a comparison constraint with an integer
         compared_value = 0
         for bit_index, var in enumerate(splitted_constraint):
-            if (
-                ("~" in var and boolean_operator == "||")
-                or
-                ("~" not in var and boolean_operator == "&&")
+            if ("~" in var and boolean_operator == "||") or (
+                "~" not in var and boolean_operator == "&&"
             ):
                 compared_value += 2 ** ((num_operands - 1) - bit_index)
 
         # Transforming `self.constraint_string` from a boolean format to a comparison format
         replaced_string = (
-            self.constraint_string.replace(boolean_operator, '') \
-            .replace('~', '') \
-            .replace(' ',  '') \
-            .replace(')', '')
+            self.constraint_string.replace(boolean_operator, "")
+            .replace("~", "")
+            .replace(" ", "")
+            .replace(")", "")
         )
-        self.constraint_string = (
-            f"{replaced_string} {comparison_operator} {compared_value})"
-        )
+        self.constraint_string = f"{replaced_string} {comparison_operator} {compared_value})"
 
         # Parsing the constraint's equation again, now in a comparison format
         self.parse_format()
@@ -153,37 +152,38 @@ class SingleConstraintParsed:
         Parses a constraint's equation in a comparison format into attributes that form
         an API for this class as defined in the class' docstrings.
         """
-        
+
         # Stripping off parentheses and redundant edge-spaces
-        stripped_string = self.constraint_string.strip('() ')
-        
+        stripped_string = self.constraint_string.strip("() ")
+
         # Splitting the constraint into its two sides
         splitted_equation = stripped_string.split(self.operator)
 
         self.sides_bit_indexes = []
         self.sides_int_bitstrings = []
-        
+
         # Iterating over the 2-sides of the constraint's equation
         for side_string in splitted_equation:
-
             # Operands should be separated with '+' operators
-            operands = side_string.split('+')
+            operands = side_string.split("+")
 
             # Extracting bit-indexes bundles operands
-            self.sides_bit_indexes.append(list(map(
-                self.parse_operand,
-                filter(
-                    lambda x: isinstance(self.parse_operand(x), list),
-                    operands
+            self.sides_bit_indexes.append(
+                list(
+                    map(
+                        self.parse_operand,
+                        filter(lambda x: isinstance(self.parse_operand(x), list), operands),
+                    )
                 )
-            )))
+            )
 
             # Extracting integer bitstring operand (there should be 0 or 1 integer operands)
             try:
-                self.sides_int_bitstrings.append(self.parse_operand(next(filter(
-                    lambda x: isinstance(self.parse_operand(x), str),
-                    operands
-                ))))
+                self.sides_int_bitstrings.append(
+                    self.parse_operand(
+                        next(filter(lambda x: isinstance(self.parse_operand(x), str), operands))
+                    )
+                )
             except StopIteration:
                 self.sides_int_bitstrings.append(None)
 
@@ -205,13 +205,12 @@ class SingleConstraintParsed:
             return bin(int(operand_string))[2:]
 
         # The case where the operand is a collection of 1 or more bit indexes
-        else:
-            bit_indexes = []
+        bit_indexes = []
 
-            # Extracting all bit-indexes in the operand
-            for part in operand_string.split("["):
-                if len(part) > 1:
-                    end_index = part.index("]")
-                    bit_indexes.append(int(part[:end_index]))
-            
-            return bit_indexes
+        # Extracting all bit-indexes in the operand
+        for part in operand_string.split("["):
+            if len(part) > 1:
+                end_index = part.index("]")
+                bit_indexes.append(int(part[:end_index]))
+
+        return bit_indexes

@@ -45,5 +45,5 @@ setup(
     ],
     packages=find_packages(exclude=["test*"]),
     install_requires=requirements,
-    python_requires=">=3.9"
+    python_requires=">=3.9",
 )

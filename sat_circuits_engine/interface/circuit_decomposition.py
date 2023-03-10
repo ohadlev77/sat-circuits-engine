@@ -27,21 +27,22 @@ from sat_circuits_engine.circuit import GroverConstraintsOperator
 
 # These blocks shouldn't be decomposed any farther
 BLOCKS = {
-    'x',
-    'h',
-    'mcx',
-    'cx',
-    'cp',
-    'ccx',
-    'rccx',
-    'rccx_dg',
-    'rcccx',
-    'rcccx_dg',
-    'mcx_gray',
-    'Uncomputation',
-    'QFT',
-    'IQFT_dg'
+    "x",
+    "h",
+    "mcx",
+    "cx",
+    "cp",
+    "ccx",
+    "rccx",
+    "rccx_dg",
+    "rcccx",
+    "rcccx_dg",
+    "mcx_gray",
+    "Uncomputation",
+    "QFT",
+    "IQFT_dg",
 }
+
 
 def decompose_operator(operator: GroverConstraintsOperator) -> GroverConstraintsOperator:
     """
@@ -57,24 +58,23 @@ def decompose_operator(operator: GroverConstraintsOperator) -> GroverConstraints
     Returns:
         (GroverConstraintsOperator): the decomposed operator.
     """
-    
+
     existing_gates = list(dict(operator.count_ops()))
     gates_to_decompose = gates_decomposition_sort(circuit_gates=deepcopy(existing_gates))
 
     while True:
         operator = operator.decompose(gates_to_decompose)
         existing_gates = list(dict(operator.count_ops()))
-        
-        gates_to_decompose_1 = gates_decomposition_sort(
-            circuit_gates=deepcopy(existing_gates)
-        )
+
+        gates_to_decompose_1 = gates_decomposition_sort(circuit_gates=deepcopy(existing_gates))
 
         if gates_to_decompose_1 == gates_to_decompose:
             break
-        else:
-            gates_to_decompose = gates_to_decompose_1
+
+        gates_to_decompose = gates_to_decompose_1
 
     return operator
+
 
 def gates_decomposition_sort(circuit_gates: List[str]) -> List[str]:
     """
@@ -82,13 +82,13 @@ def gates_decomposition_sort(circuit_gates: List[str]) -> List[str]:
 
     Args:
         circuit_gates (list) - A list gate types.
-        
+
     Returns:
         Altered `circuit_gates` list.
     """
-    
+
     for gate in BLOCKS:
         if gate in circuit_gates:
             circuit_gates.remove(gate)
-        
+
     return circuit_gates

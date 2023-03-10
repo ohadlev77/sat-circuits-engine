@@ -25,6 +25,7 @@ from qiskit.circuit.library import QFT
 from sat_circuits_engine.constraints_parse import SingleConstraintParsed
 from sat_circuits_engine.util.settings import TRANSPILE_KWARGS
 
+
 class SingleConstraintBlock(QuantumCircuit):
     """
     A quantum circuit implementation of a single constraint.
@@ -32,9 +33,7 @@ class SingleConstraintBlock(QuantumCircuit):
     """
 
     def __init__(
-        self,
-        parsed_data: SingleConstraintParsed,
-        transpile_kwargs: Optional[Dict[str, Any]] = None
+        self, parsed_data: SingleConstraintParsed, transpile_kwargs: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Args:
@@ -44,7 +43,7 @@ class SingleConstraintBlock(QuantumCircuit):
             transpile_kwargs (Optional[Dict[str, Any]] = None): keyword arguments for self-transpilation
             that takes place in this class. If None (default) - `TRANSPILE_KWARGS` constant is used.
         """
-        
+
         self.parsed_data = parsed_data
         self.constraint_index = self.parsed_data.constraint_index
 
@@ -52,7 +51,7 @@ class SingleConstraintBlock(QuantumCircuit):
             transpile_kwargs = TRANSPILE_KWARGS
         self.transpile_kwargs = transpile_kwargs
 
-        # Handling arithmetic expressions and constructing a container with quantum register - `self.regs`
+        # Handling arithmetic expressions and constructing the container - `self.regs`
         self.handle_arithmetics()
 
         # Creating a unified list of registers to unpack as args for `super().__init__`
@@ -69,10 +68,9 @@ class SingleConstraintBlock(QuantumCircuit):
         # Saving a transpiled version of `self`.
         # Used by `GroverConstraintsOperator` to set the order of constraints.
         self.transpiled = transpile(self, **self.transpile_kwargs)
-    
+
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}" \
-               f"('{self.parsed_data.string_to_show}')"
+        return f"{self.__class__.__name__}" f"('{self.parsed_data.string_to_show}')"
 
     def handle_arithmetics(self) -> None:
         """
@@ -82,23 +80,19 @@ class SingleConstraintBlock(QuantumCircuit):
         Defines attributes:
             self.regs (Dict[str, List[QuantumRegister]]): container for quantum registers.
             self.arith_blocks (List[Optioanl[ArithmeticExprBlock] = None]): Indexed containter for
-            `ArithmeticExprBlock` objects. None (default) - if no artihmetic performed in a specific side.
+            `ArithmeticExprBlock` objects. None (default) - if no artihmetics in a specific side.
             self.integer_flags (List[bool]): Indexed container for boolean values. True for a side
             that contains bare integer only, otherwise False.
         """
 
         self.regs = {
             # Initializing empty input registers
-            'inputs': [
-                QuantumRegister(0, "input_left"),
-                QuantumRegister(0, "input_right")
-            ],
-
+            "inputs": [QuantumRegister(0, "input_left"), QuantumRegister(0, "input_right")],
             # Initializing empty auxiliary register for performing arithmetics
-            'sides_aux': [
+            "sides_aux": [
                 QuantumRegister(0, f"c{self.constraint_index}_aux_left"),
-                QuantumRegister(0, f"c{self.constraint_index}_aux_right")
-            ]
+                QuantumRegister(0, f"c{self.constraint_index}_aux_right"),
+            ],
         }
 
         self.arith_blocks = [None, None]
@@ -108,43 +102,35 @@ class SingleConstraintBlock(QuantumCircuit):
         for side, (bit_indexes, int_bitstring) in enumerate(
             zip(self.parsed_data.sides_bit_indexes, self.parsed_data.sides_int_bitstrings)
         ):
-
             # Case A - arithmetic expression
             if (len(bit_indexes) > 1) or (len(bit_indexes) == 1 and int_bitstring is not None):
-
                 # Case A.1 -the other side of the equations is a bare integer
                 compared_value = None
                 if (
                     not self.parsed_data.sides_bit_indexes[side ^ 1]
-                    and
-                    self.parsed_data.sides_int_bitstrings[side ^ 1]
+                    and self.parsed_data.sides_int_bitstrings[side ^ 1]
                 ):
                     compared_value = int(self.parsed_data.sides_int_bitstrings[side ^ 1], 2)
 
                 # Generating the arithmetic expression block
                 self.arith_blocks[side] = ArithmeticExprBlock(
-                    bit_indexes,
-                    int_bitstring,
-                    compared_value=compared_value
+                    bit_indexes, int_bitstring, compared_value=compared_value
                 )
 
                 # Creating an input register that fits with the arithmetic expression block
-                self.regs['inputs'][side] = QuantumRegister(
-                    self.arith_blocks[side].total_operands_width,
-                    self.regs['inputs'][side].name
+                self.regs["inputs"][side] = QuantumRegister(
+                    self.arith_blocks[side].total_operands_width, self.regs["inputs"][side].name
                 )
 
                 # Creating an auxiliary register for arithmetics
-                self.regs['sides_aux'][side] = QuantumRegister(
-                    self.arith_blocks[side].result_reg_width,
-                    self.regs['sides_aux'][side].name
+                self.regs["sides_aux"][side] = QuantumRegister(
+                    self.arith_blocks[side].result_reg_width, self.regs["sides_aux"][side].name
                 )
 
             # Case B - single variable expression
             elif len(bit_indexes) == 1 and int_bitstring is None:
-                self.regs['inputs'][side] = QuantumRegister(
-                    len(bit_indexes[0]),
-                    self.regs['inputs'][side].name
+                self.regs["inputs"][side] = QuantumRegister(
+                    len(bit_indexes[0]), self.regs["inputs"][side].name
                 )
 
             # Case C - bare integer expression
@@ -161,21 +147,18 @@ class SingleConstraintBlock(QuantumCircuit):
         # Figuring the compared operand for each of the contraint's equation sides
         for arith_block, input_reg, side_aux_reg, integer_flag, int_bitstring in zip(
             self.arith_blocks,
-            self.regs['inputs'],
-            self.regs['sides_aux'],
+            self.regs["inputs"],
+            self.regs["sides_aux"],
             self.integer_flags,
-            self.parsed_data.sides_int_bitstrings
+            self.parsed_data.sides_int_bitstrings,
         ):
-
             # Arithmetic block operand
             if arith_block is not None:
-
                 # Appeding the arithmetic block to the `self`
                 self.append(arith_block, qargs=input_reg[:] + side_aux_reg[::-1])
 
                 compare_operands.append(side_aux_reg)
             else:
-
                 # Integer bitstring operand
                 if integer_flag:
                     compare_operands.append(int_bitstring)
@@ -195,13 +178,13 @@ class SingleConstraintBlock(QuantumCircuit):
             self.qubits_int_comparison(
                 qubits_bundle=compare_operands[0],
                 int_bitstring=compare_operands[1],
-                operator=self.parsed_data.operator
+                operator=self.parsed_data.operator,
             )
         else:
             self.unbalanced_qubits_comparison(
                 qubits_bundle_1=compare_operands[0],
                 qubits_bundle_2=compare_operands[1],
-                operator=self.parsed_data.operator
+                operator=self.parsed_data.operator,
             )
 
     def qubits_int_comparison(
@@ -209,7 +192,7 @@ class SingleConstraintBlock(QuantumCircuit):
         qubits_bundle: Union[List[Union[Qubit, int]], QuantumRegister],
         int_bitstring: str,
         *,
-        operator: Optional[str] = "=="
+        operator: Optional[str] = "==",
     ) -> None:
         """
         Compares a bundle of qubits to an integer.
@@ -226,16 +209,17 @@ class SingleConstraintBlock(QuantumCircuit):
         """
 
         # Adding an "out" qubit to write the result into
-        self.add_out_reg() 
+        self.add_out_reg()
 
         # Creating pointers for convenience
         len_int = len(int_bitstring)
         len_qubits_bundle = len(qubits_bundle)
 
         # Catching non-logical input
-        assert len_int <= len_qubits_bundle, \
-        f"The integer ({int_bitstring}) length is longer than compared" \
-        f"qubits ({qubits_bundle}), no solution."
+        assert len_int <= len_qubits_bundle, (
+            f"The integer ({int_bitstring}) length is longer than compared"
+            f"qubits ({qubits_bundle}), no solution."
+        )
 
         # In the case the equation is unbalanced, filling the integer with zeros from the left
         if len_int < len_qubits_bundle:
@@ -247,24 +231,24 @@ class SingleConstraintBlock(QuantumCircuit):
         # Flipping bits in `qubits_bundle` in order to compare them to '0' digits in `int_bitstring`
         flipping_zeros = QuantumCircuit(len_int, name=f"{int_bitstring}_encoding")
         for digit, qubit in zip(int_bitstring, flipping_zeros.qubits):
-            if digit == '0':
+            if digit == "0":
                 flipping_zeros.x(qubit)
         self.append(flipping_zeros, qargs=qubits_bundle)
 
         # Writing results to the "out" qubit
         # TODO need to generalize RCCX and RCCCX to the n-control qubits case
         if len_qubits_bundle == 2:
-            self.rccx(qubits_bundle[0], qubits_bundle[1], self.regs['out'][0])
+            self.rccx(qubits_bundle[0], qubits_bundle[1], self.regs["out"][0])
         elif len_qubits_bundle == 3:
-            self.rcccx(qubits_bundle[0], qubits_bundle[1], qubits_bundle[2], self.regs['out'][0])
+            self.rcccx(qubits_bundle[0], qubits_bundle[1], qubits_bundle[2], self.regs["out"][0])
         else:
-            self.mcx(qubits_bundle, self.regs['out'][0])
+            self.mcx(qubits_bundle, self.regs["out"][0])
 
         # Flipping outcome in the case the operator is "!="
         if operator == "!=":
-            self.x(self.regs['out'][0])
+            self.x(self.regs["out"][0])
 
-        # Uncomputing flipped bits 
+        # Uncomputing flipped bits
         self.append(flipping_zeros, qargs=qubits_bundle)
 
     def unbalanced_qubits_comparison(
@@ -272,7 +256,7 @@ class SingleConstraintBlock(QuantumCircuit):
         qubits_bundle_1: Union[List[Union[Qubit, int]], QuantumRegister],
         qubits_bundle_2: Union[List[Union[Qubit, int]], QuantumRegister],
         *,
-        operator: Optional[str] = "=="
+        operator: Optional[str] = "==",
     ) -> None:
         """
         The most general case of comparing 2 bundles of qubits.
@@ -299,13 +283,10 @@ class SingleConstraintBlock(QuantumCircuit):
         # In this case, only 2 qubits comparison is needed, and then the method's execution halts
         if len_bundle_1 == 1 and len_bundle_2 == 1:
             self.two_qubits_comparison(
-                qubits_bundle_1,
-                qubits_bundle_2,
-                self.regs['out'][0],
-                operator=operator
+                qubits_bundle_1, qubits_bundle_2, self.regs["out"][0], operator=operator
             )
             return
-        
+
         # Setting short and long bundles and cutting the long bundle to 2 parts.
         # The right part of the long bundle is comparble to the short bundle.
         if len_bundle_1 > len_bundle_2:
@@ -319,32 +300,30 @@ class SingleConstraintBlock(QuantumCircuit):
 
         len_short = len(short)
         len_long = len(long)
-        long_left_cut = long[:len_long - len_short]
+        long_left_cut = long[: len_long - len_short]
 
         # Comparing the rightmost bits in the longer bundle to the bits of the shorter bundle
         self.balanced_qubits_comparison(
-            short,
-            long_right_cut,
-            self.regs['comparison_aux'][0][:len_short]
+            short, long_right_cut, self.regs["comparison_aux"][0][:len_short]
         )
-        
+
         # Flipping the left bits in the longer bundle (in order to check whether they all zeros)
         if long_left_cut:
             self.x(long_left_cut)
 
         # Writing results to the "out" qubit
         # TODO need to generalize RCCX and RCCCX to the n-control qubits case
-        q = long_left_cut + self.regs['comparison_aux'][0][:]
+        q = long_left_cut + self.regs["comparison_aux"][0][:]
         if len(q) == 2:
-            self.rccx(q[0], q[1], self.regs['out'][0])
+            self.rccx(q[0], q[1], self.regs["out"][0])
         elif len(q) == 3:
-            self.rcccx(q[0], q[1], q[2], self.regs['out'][0])
+            self.rcccx(q[0], q[1], q[2], self.regs["out"][0])
         else:
-            self.mcx(q, self.regs['out'][0])
+            self.mcx(q, self.regs["out"][0])
 
         # Flipping outcome in the case the operator is "!="
         if operator == "!=":
-            self.x(self.regs['out'][0])
+            self.x(self.regs["out"][0])
 
         # Uncomputing flipping left bits in the longer bundle
         if long_left_cut:
@@ -357,7 +336,7 @@ class SingleConstraintBlock(QuantumCircuit):
         aux_qubits: Union[List[Union[Qubit, int]], QuantumRegister],
         out_qubit: Optional[Union[Qubit, QuantumRegister, int]] = None,
         *,
-        operator: Optional[str] = "=="
+        operator: Optional[str] = "==",
     ) -> None:
         """
         Comparing 2 bundles of qubits.
@@ -385,7 +364,7 @@ class SingleConstraintBlock(QuantumCircuit):
             self.two_qubits_comparison(q1, q2, aux, operator="==")
 
         if out_qubit is not None:
-
+            print("============ CHECK CHECK CHECK CHECK CHECK ======================")
             # Writing overall outcome to the "out" qubit
             # TODO need to generalize RCCX and RCCCX to the n-control qubits case
             if len(aux) == 2:
@@ -394,7 +373,7 @@ class SingleConstraintBlock(QuantumCircuit):
                 self.rcccx(aux[0], aux[1], aux[2], out_qubit)
             else:
                 self.mcx(aux, out_qubit)
-        
+
             # Flipping outcome in the case the operator is "!="
             if operator == "!=":
                 self.x(out_qubit)
@@ -405,7 +384,7 @@ class SingleConstraintBlock(QuantumCircuit):
         qubit_2: Union[Qubit, QuantumRegister, int],
         qubit_result: Union[Qubit, QuantumRegister, int],
         *,
-        operator: Optional[str] = "=="
+        operator: Optional[str] = "==",
     ) -> None:
         """
         Compares values of 2 qubits.
@@ -438,17 +417,18 @@ class SingleConstraintBlock(QuantumCircuit):
 
         aux_reg = QuantumRegister(width, f"c{self.constraint_index}_aux_comparison")
         self.add_register(aux_reg)
-        self.regs['comparison_aux'] = [aux_reg]
+        self.regs["comparison_aux"] = [aux_reg]
 
     def add_out_reg(self) -> None:
         """
         Appends a single-qubit "out" register to this object.
         Adds it also to self.regs under the key "out" (accessible via `self.regs['out'][0]).
         """
-        
+
         out_reg = QuantumRegister(1, f"c{self.constraint_index}_out")
         self.add_register(out_reg)
-        self.regs['out'] = [out_reg]
+        self.regs["out"] = [out_reg]
+
 
 class ArithmeticExprBlock(QuantumCircuit):
     """
@@ -461,7 +441,7 @@ class ArithmeticExprBlock(QuantumCircuit):
         single_side_bits_indexes: List[List[int]],
         single_side_integer_bitstring: Optional[str] = None,
         compared_value: int = None,
-        block_name: Optional[str] = None
+        block_name: Optional[str] = None,
     ) -> None:
         """
         Args:
@@ -487,9 +467,7 @@ class ArithmeticExprBlock(QuantumCircuit):
 
         # Computing the necessary width for the results aux register
         self.result_reg_width = self.compute_addition_result_width(
-            self.operands_widths,
-            self.integer_bitstring,
-            compared_value
+            self.operands_widths, self.integer_bitstring, compared_value
         )
 
         # Defining registers
@@ -508,7 +486,7 @@ class ArithmeticExprBlock(QuantumCircuit):
         if block_name is None:
             block_name = f"Addition:{self.bits_indexes} + {self.integer_bitstring}"
         self.name = block_name
-        
+
     def add(self) -> None:
         """
         Performing addition of all operands.
@@ -517,11 +495,11 @@ class ArithmeticExprBlock(QuantumCircuit):
 
         # Assigning `default_bitstring` value to `results_qubits`
         if self.integer_bitstring is None:
-            self.integer_bitstring = ''.zfill(self.result_reg_width)
+            self.integer_bitstring = "".zfill(self.result_reg_width)
         else:
             self.integer_bitstring = self.integer_bitstring.zfill(self.result_reg_width)
             for digit, result_qubit in zip(reversed(self.integer_bitstring), self.result_reg):
-                if digit == '1':
+                if digit == "1":
                     self.x(result_qubit)
 
         # Performing "default addition" (= copying values of each bit with CNOTS) of one
@@ -533,14 +511,14 @@ class ArithmeticExprBlock(QuantumCircuit):
         if self.bundles_regs:
             # Transforming `results_qubits` to Fourier basis
             self.append(QFT(self.result_reg_width), qargs=self.result_reg)
-            
+
             # Fourier addition of all bundles
             for reg in self.bundles_regs:
                 self.fourier_add_single_bundle(reg, self.result_reg)
-            
+
             # Transforming `results_qubits` back to the computational basis
             self.append(QFT(self.result_reg_width, inverse=True), qargs=self.result_reg)
-    
+
     def default_addition(self) -> int:
         """
         Performs in bit-to-bit addition of one of the operands to `self.result_reg` if possible.
@@ -551,7 +529,7 @@ class ArithmeticExprBlock(QuantumCircuit):
 
         # Counting the number of trailing zeros (i.e, number of available bits to copy values into)
         try:
-            trailing_zeros_num = self.integer_bitstring[::-1].index('1')
+            trailing_zeros_num = self.integer_bitstring[::-1].index("1")
         except ValueError:
             trailing_zeros_num = self.result_reg_width
 
@@ -565,7 +543,7 @@ class ArithmeticExprBlock(QuantumCircuit):
                 break
             except ValueError:
                 pass
-        
+
         # If possible, performing the optimal bit-to-bit addition
         if operand_index is not None:
             self.cx(self.bundles_regs[operand_index], self.result_reg[:trailing_zeros_num][::-1])
@@ -575,7 +553,7 @@ class ArithmeticExprBlock(QuantumCircuit):
     def fourier_add_single_bundle(
         self,
         qubits_to_add: Union[List[Union[Qubit, int]], QuantumRegister],
-        target_qubits: Union[List[Union[Qubit, int]], QuantumRegister]
+        target_qubits: Union[List[Union[Qubit, int]], QuantumRegister],
     ) -> None:
         """
         Perform an addition in Fourier basis.
@@ -590,9 +568,8 @@ class ArithmeticExprBlock(QuantumCircuit):
         # `qubits_to_add` are reversed due to bits ordering issues (consistency with little-endian)
         for control_index, control_q in enumerate(reversed(qubits_to_add)):
             for target_index, target_q in enumerate(target_qubits):
-
                 k = len(target_qubits) - target_index
-                phase = (2 * np.pi * (2 ** control_index)) / (2 ** k)
+                phase = (2 * np.pi * (2**control_index)) / (2**k)
 
                 # Phase shifts of 2pi multiples are indistinguishable = Breaking from the inner loop
                 if phase == 2 * np.pi:
@@ -604,7 +581,7 @@ class ArithmeticExprBlock(QuantumCircuit):
     def compute_addition_result_width(
         regs_widths: List[int],
         default_bitstring: Optional[str] = None,
-        compared_value: Optional[int] = None
+        compared_value: Optional[int] = None,
     ) -> int:
         """
         Calculates `width` - the (minimal) width of the register that should
@@ -617,20 +594,20 @@ class ArithmeticExprBlock(QuantumCircuit):
             compared_value (Optional[int] = None):
                 - An integer value that the arithmetic expression is compared to (in the "other side"
                 of the constraint's equation).
-        
+
         Returns:
             (int) - `width`.
         """
 
         if default_bitstring is None:
-            default_bitstring = '0'
+            default_bitstring = "0"
 
         # Just 1 operand = no addition
-        if len(regs_widths) == 1 and default_bitstring == '0':
+        if len(regs_widths) == 1 and default_bitstring == "0":
             return 0
 
         # The maximum possible sum integer value
-        max_sum = sum(map(lambda x: (2 ** x) - 1, regs_widths)) + int(default_bitstring, 2)
+        max_sum = sum(map(lambda x: (2**x) - 1, regs_widths)) + int(default_bitstring, 2)
 
         # The bitstring length of the maximum possible sum
         width = len(bin(max_sum)[2:])
@@ -639,5 +616,5 @@ class ArithmeticExprBlock(QuantumCircuit):
         if compared_value is not None:
             if max_sum - compared_value < compared_value and width > len(bin(compared_value)[2:]):
                 width -= 1
-                
+
         return width

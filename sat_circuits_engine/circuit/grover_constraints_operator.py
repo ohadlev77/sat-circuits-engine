@@ -24,6 +24,7 @@ from qiskit.transpiler.passes import RemoveBarriers
 from sat_circuits_engine.constraints_parse import ParsedConstraints
 from sat_circuits_engine.circuit.single_constraint import SingleConstraintBlock
 
+
 class GroverConstraintsOperator(QuantumCircuit):
     """
     A quantum circuit implementation of Grover's operator constructed
@@ -34,7 +35,7 @@ class GroverConstraintsOperator(QuantumCircuit):
         self,
         parsed_constraints: ParsedConstraints,
         num_input_qubits: int,
-        insert_barriers: Optional[bool] = True
+        insert_barriers: Optional[bool] = True,
     ) -> None:
         """
         Args:
@@ -68,7 +69,7 @@ class GroverConstraintsOperator(QuantumCircuit):
             self.comparison_aux_reg,
             self.out_reg,
             self.ancilla,
-            name = "Operator"
+            name="Operator",
         )
 
         # Assembling `self` to a complete Grover operator
@@ -79,7 +80,7 @@ class GroverConstraintsOperator(QuantumCircuit):
             repr_string = self.parsed_constraints.high_level_constraints_string
         else:
             repr_string = self.parsed_constraints.constraints_string
-        
+
         return f"{self.__class__.__name__}('{repr_string}')"
 
     def constraints_blocks_build(self) -> None:
@@ -102,14 +103,13 @@ class GroverConstraintsOperator(QuantumCircuit):
         """
 
         # For each constraint we build a `SingleConstraintBlock` object
-        self.single_constraints_objects = list(map(
-            SingleConstraintBlock,
-            self.parsed_constraints.values()
-        ))
+        self.single_constraints_objects = list(
+            map(SingleConstraintBlock, self.parsed_constraints.values())
+        )
 
         # Sorting the constraints such that the most costly ones will be the first and last
         # (First and last constraint are not uncomputed - only when the whole operator is uncomputed).
-        self.single_constraints_objects.sort(key=lambda x: x.transpiled.count_ops()['cx'], reverse=True)
+        self.single_constraints_objects.sort(key=lambda x: x.transpiled.count_ops()["cx"], reverse=True)
         self.single_constraints_objects.append(self.single_constraints_objects[0])
         self.single_constraints_objects.pop(0)
 
@@ -119,15 +119,13 @@ class GroverConstraintsOperator(QuantumCircuit):
 
         # For each we count which and how many aux qubits are needed
         for constraint_block in self.single_constraints_objects:
-            if 'comparison_aux' in constraint_block.regs.keys():
-                self.comparison_aux_qubits_needed.append(len(
-                    constraint_block.regs['comparison_aux'][0]
-                ))
+            if "comparison_aux" in constraint_block.regs.keys():
+                self.comparison_aux_qubits_needed.append(len(constraint_block.regs["comparison_aux"][0]))
             else:
                 self.comparison_aux_qubits_needed.append(0)
-            
-            self.left_aux_qubits_needed.append(len(constraint_block.regs['sides_aux'][0]))
-            self.right_aux_qubits_needed.append(len(constraint_block.regs['sides_aux'][1]))
+
+            self.left_aux_qubits_needed.append(len(constraint_block.regs["sides_aux"][0]))
+            self.right_aux_qubits_needed.append(len(constraint_block.regs["sides_aux"][1]))
 
         # Total number of qubits for each type
         self.comparison_aux_width = sum(self.comparison_aux_qubits_needed)
@@ -149,7 +147,6 @@ class GroverConstraintsOperator(QuantumCircuit):
 
         # Iterating over constraints, appending one `SingleConstraintBlock` object in each iteration
         for count, constraint_block in enumerate(self.single_constraints_objects):
-
             # Defining the `qargs` paramater for the `constraint_block` to be appended to `self`
             qargs = []
 
@@ -166,11 +163,11 @@ class GroverConstraintsOperator(QuantumCircuit):
             for aux_tuple in [
                 (self.left_aux_qubits_needed, self.left_aux_reg),
                 (self.right_aux_qubits_needed, self.right_aux_reg),
-                (self.comparison_aux_qubits_needed, self.comparison_aux_reg)
+                (self.comparison_aux_qubits_needed, self.comparison_aux_reg),
             ]:
                 if aux_tuple[0][count] != 0:
                     aux_bottom_index = sum(aux_tuple[0][0:count])
-                    aux_top_index = (aux_bottom_index + aux_tuple[0][count])
+                    aux_top_index = aux_bottom_index + aux_tuple[0][count]
 
                     qargs += aux_tuple[1][aux_bottom_index:aux_top_index][::-1]
 
@@ -179,13 +176,12 @@ class GroverConstraintsOperator(QuantumCircuit):
             if count == 0:
                 qargs.append(self.out_reg[count])
                 self.append(instruction=constraint_block, qargs=qargs)
-                
+
                 # If there is only one constraint
                 if self.out_qubits_amount == 1:
-
                     # Saving inverse for future uncomputation
                     qc_dagger = self.inverse()
-                    qc_dagger.name = 'Uncomputation'
+                    qc_dagger.name = "Uncomputation"
 
                     # "Marking" states by writing to ancilla
                     self.cx(self.out_reg[count], self.ancilla)
@@ -202,10 +198,10 @@ class GroverConstraintsOperator(QuantumCircuit):
                 # Saving inverse for future uncomputation
                 qc_dagger = RemoveBarriers()(self.inverse())
                 qc_dagger.name = "Uncomputation"
-                
+
                 # "Marking" states by writing to ancilla
                 self.ccx(self.out_reg[count - 1], self.out_reg[count], self.ancilla)
-                
+
             # Intermidate constraints
             else:
                 qargs.append(self.out_reg[count + 1])
@@ -218,6 +214,6 @@ class GroverConstraintsOperator(QuantumCircuit):
             # Barriers are used for visualization purposes and should be removed before transpiling
             if self.insert_barriers:
                 self.barrier()
-        
+
         # Applying uncomputation
         self.append(instruction=qc_dagger, qargs=self.qubits)
