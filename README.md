@@ -52,4 +52,4 @@ For testing run `python3 -m unittest` from the root directory.
 * `tox -epy39` or `tox -epy310` or `tox -epy311` for the desired python version.
 * `tox -elint` for linting check by *pylint* (minimum rate reauired is 9.0).
 * `tox -eblack` for formatting check by *black*.
-* `tox -ecoverage` for tests-coverage check by *coverage (minimum 80% coverage is required).
+* `tox -ecoverage` for tests-coverage check by *coverage* (minimum 80% coverage is required).
