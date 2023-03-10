@@ -30,7 +30,7 @@ from qiskit.transpiler.passes import RemoveBarriers
 from IPython import display
 from matplotlib.figure import Figure
 
-from sat_circuits_engine.util import timer_dec, timestamp
+from sat_circuits_engine.util import timer_dec, timestamp, flatten_circuit
 from sat_circuits_engine.util.settings import DATA_PATH, TRANSPILE_KWARGS
 from sat_circuits_engine.circuit import GroverConstraintsOperator, SATCircuit
 from sat_circuits_engine.constraints_parse import ParsedConstraints
@@ -40,19 +40,20 @@ from sat_circuits_engine.interface.translator import ConstraintsTranslator
 from sat_circuits_engine.classical_processing import (
     find_iterations_unknown,
     calc_iterations,
-    ClassicalVerifier
+    ClassicalVerifier,
 )
 from sat_circuits_engine.interface.interactive_inputs import (
     interactive_operator_inputs,
     interactive_solutions_num_input,
     interactive_run_input,
     interactive_backend_input,
-    interactive_shots_input
+    interactive_shots_input,
 )
 
 # Local globlas for visualization of charts and diagrams
 IFRAME_WIDTH = "100%"
-IFRAME_HEIGHT = "500"
+IFRAME_HEIGHT = "700"
+
 
 class SATInterface:
     """
@@ -79,7 +80,7 @@ class SATInterface:
             - `run_overall_circuit`: executes the overall SAT circuit.
             - `save_display_results`: saves and displays data generated
             by the `run_overall_circuit` method.
-    
+
     It is very recommended to go through `demos.ipynb` that demonstrates the various optional uses
     of this class, in addition to reading `constraints_format.ipynb`, which is a must for using
     this package properly. Both notebooks are in ther main directory.
@@ -92,7 +93,7 @@ class SATInterface:
         high_level_constraints_string: Optional[str] = None,
         high_level_vars: Optional[Dict[str, int]] = None,
         name: Optional[str] = None,
-        save_data: Optional[bool] = True
+        save_data: Optional[bool] = True,
     ) -> None:
         """
         Accepts the combination of paramters:
@@ -137,7 +138,7 @@ class SATInterface:
                 "num_input_qubits": num_input_qubits,
                 "constraints_string": constraints_string,
                 "high_level_constraints_string": high_level_constraints_string,
-                "high_level_vars": high_level_vars
+                "high_level_vars": high_level_vars,
             }
             self.update_metadata()
 
@@ -148,10 +149,8 @@ class SATInterface:
         self.high_to_low_map = None
 
         # Case A - interactive interface
-        if (
-            (num_input_qubits is None or constraints_string is None)
-            and
-            (high_level_constraints_string is None or high_level_vars is None)
+        if (num_input_qubits is None or constraints_string is None) and (
+            high_level_constraints_string is None or high_level_vars is None
         ):
             self.interactive_interface()
 
@@ -164,8 +163,7 @@ class SATInterface:
             if num_input_qubits is None or constraints_string is None:
                 self.num_input_qubits = sum(self.high_level_vars.values())
                 self.high_to_low_map, self.constraints_string = ConstraintsTranslator(
-                    self.high_level_constraints_string,
-                    self.high_level_vars
+                    self.high_level_constraints_string, self.high_level_vars
                 ).translate()
 
             # Case B.2 - low-level format constraints inputs
@@ -176,15 +174,14 @@ class SATInterface:
             # Misuse
             else:
                 raise SyntaxError(
-                    "SATInterface accepts the combination of paramters:" \
-                    "(high_level_constraints_string + high_level_vars) or " \
-                    "(num_input_qubits + constraints_string). "\
+                    "SATInterface accepts the combination of paramters:"
+                    "(high_level_constraints_string + high_level_vars) or "
+                    "(num_input_qubits + constraints_string). "
                     "Exactly one combination is accepted, not both."
                 )
 
             self.parsed_constraints = ParsedConstraints(
-                self.constraints_string,
-                self.high_level_constraints_string
+                self.constraints_string, self.high_level_constraints_string
             )
 
     def update_metadata(self, update_metadata: Optional[Dict[str, Any]] = None) -> None:
@@ -198,7 +195,7 @@ class SATInterface:
         """
 
         if update_metadata is not None:
-            self.metadata.update(update_metadata)    
+            self.metadata.update(update_metadata)
 
         with open(f"{self.dir_path}metadata.json", "w") as metadata_file:
             json.dump(self.metadata, metadata_file, indent=4)
@@ -208,7 +205,7 @@ class SATInterface:
         Identifies user's platform.
         Writes True to `self.jupyter` for Jupyter notebook, False for terminal.
         """
-        
+
         # If True then the platform is a terminal/command line/shell
         if stdout.isatty():
             self.jupyter = False
@@ -223,7 +220,7 @@ class SATInterface:
         title: str,
         output_terminal: Union[TextDrawing, str],
         output_jupyter: Union[Figure, str],
-        display_both_on_jupyter: Optional[bool] = False
+        display_both_on_jupyter: Optional[bool] = False,
     ) -> None:
         """
         Displays output to user's platform.
@@ -246,15 +243,11 @@ class SATInterface:
 
         if self.jupyter:
             if isinstance(output_jupyter, str):
-                display.display(
-                    display.IFrame(output_jupyter, width=IFRAME_WIDTH, height=IFRAME_HEIGHT)
-                )
+                display.display(display.IFrame(output_jupyter, width=IFRAME_WIDTH, height=IFRAME_HEIGHT))
             elif isinstance(output_jupyter, Figure):
                 display.display(output_jupyter)
             else:
-                raise TypeError(
-                    "output_jupyter must be an str (path to image file) or a Figure object."
-                )
+                raise TypeError("output_jupyter must be an str (path to image file) or a Figure object.")
 
             if display_both_on_jupyter:
                 print(output_terminal)
@@ -287,23 +280,24 @@ class SATInterface:
 
         # Handling operator part
         operator_inputs = interactive_operator_inputs()
-        self.num_input_qubits = operator_inputs['num_input_qubits']
-        self.high_to_low_map = operator_inputs['high_to_low_map']
-        self.constraints_string = operator_inputs['constraints_string']
-        self.high_level_constraints_string = operator_inputs['high_level_constraints_string']
-        self.high_level_vars = operator_inputs['high_level_vars']
+        self.num_input_qubits = operator_inputs["num_input_qubits"]
+        self.high_to_low_map = operator_inputs["high_to_low_map"]
+        self.constraints_string = operator_inputs["constraints_string"]
+        self.high_level_constraints_string = operator_inputs["high_level_constraints_string"]
+        self.high_level_vars = operator_inputs["high_level_vars"]
 
         self.parsed_constraints = ParsedConstraints(
-            self.constraints_string,
-            self.high_level_constraints_string
+            self.constraints_string, self.high_level_constraints_string
         )
-        
-        self.update_metadata({
-            "num_input_qubits": self.num_input_qubits,
-            "constraints_string": self.constraints_string,
-            "high_level_constraints_string": self.high_level_constraints_string,
-            "high_level_vars": self.high_level_vars
-        })
+
+        self.update_metadata(
+            {
+                "num_input_qubits": self.num_input_qubits,
+                "constraints_string": self.constraints_string,
+                "high_level_constraints_string": self.high_level_constraints_string,
+                "high_level_vars": self.high_level_vars,
+            }
+        )
 
         obtain_grover_operator_output = self.obtain_grover_operator()
         self.save_display_grover_operator(obtain_grover_operator_output)
@@ -317,9 +311,7 @@ class SATInterface:
                 backend = interactive_backend_input()
 
             overall_circuit_data = self.obtain_overall_sat_circuit(
-                obtain_grover_operator_output['operator'],
-                solutions_num,
-                backend
+                obtain_grover_operator_output["operator"], solutions_num, backend
             )
             self.save_display_overall_circuit(overall_circuit_data)
 
@@ -331,9 +323,7 @@ class SATInterface:
                 shots = interactive_shots_input()
 
                 counts_parsed = self.run_overall_sat_circuit(
-                    overall_circuit_data['circuit'],
-                    backend,
-                    shots
+                    overall_circuit_data["circuit"], backend, shots
                 )
                 self.save_display_results(counts_parsed)
 
@@ -341,16 +331,15 @@ class SATInterface:
         print(f"Done saving data into '{self.dir_path}'.")
 
     def obtain_grover_operator(
-        self,
-        transpile_kwargs: Optional[Dict[str, Any]] = None
+        self, transpile_kwargs: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Union[GroverConstraintsOperator, QuantumCircuit]]:
         """
         Obtains the suitable `GroverConstraintsOperator` object for the constraints,
         decomposes it using the `circuit_decomposition.py` module and transpiles it
         according to `transpile_kwargs`.
-        
+
         Args:
-            transpile_kwargs (Optional[Dict[str, Any]]): keyword arguments for Qiskit's transpile function.
+            transpile_kwargs (Optional[Dict[str, Any]]): kwargs for Qiskit's transpile function.
             The defualt is set to the global constant `TRANSPILE_KWARGS`.
 
         Returns:
@@ -372,7 +361,7 @@ class SATInterface:
 
         print()
         print(
-            "The system synthesizes and transpiles a Grover's " \
+            "The system synthesizes and transpiles a Grover's "
             "operator for the given constraints. Please wait.."
         )
 
@@ -381,9 +370,7 @@ class SATInterface:
         self.transpile_kwargs = transpile_kwargs
 
         operator = GroverConstraintsOperator(
-            self.parsed_constraints,
-            self.num_input_qubits,
-            insert_barriers=True
+            self.parsed_constraints, self.num_input_qubits, insert_barriers=True
         )
         decomposed_operator = decompose_operator(operator)
         no_baerriers_operator = RemoveBarriers()(operator)
@@ -392,16 +379,16 @@ class SATInterface:
         print("Done.")
 
         return {
-            'operator': operator,
-            'decomposed_operator': decomposed_operator,
-            'transpiled_operator': transpiled_operator,
-            'high_level_to_bit_indexes_map': self.high_to_low_map
+            "operator": operator,
+            "decomposed_operator": decomposed_operator,
+            "transpiled_operator": transpiled_operator,
+            "high_level_to_bit_indexes_map": self.high_to_low_map,
         }
 
     def save_display_grover_operator(
         self,
         obtain_grover_operator_output: Dict[str, Union[GroverConstraintsOperator, QuantumCircuit]],
-        display: Optional[bool] = True
+        display: Optional[bool] = True,
     ) -> None:
         """
         Handles saving and displaying data generated by the `self.obtain_grover_operator` method.
@@ -420,21 +407,20 @@ class SATInterface:
         titles = [
             "The operator diagram - high level blocks:",
             "The operator diagram - decomposed:",
-            f"The transpiled operator diagram saved into '{operator_dir_path}'.\n" \
-            f"It's not presented here due to its complexity.\n" \
-            f"Please note that barriers appear in the high-level diagrams above only for convenient\n" \
-            f"visual separation between constraints.\n" \
-            f"Before transpilation all barriers are removed to avoid redundant inefficiencies."
+            f"The transpiled operator diagram saved into '{operator_dir_path}'.\n"
+            f"It's not presented here due to its complexity.\n"
+            f"Please note that barriers appear in the high-level diagrams above only for convenient\n"
+            f"visual separation between constraints.\n"
+            f"Before transpilation all barriers are removed to avoid redundant inefficiencies.",
         ]
 
         for index, (op_name, op_obj) in enumerate(obtain_grover_operator_output.items()):
-
             # Generic path and name for files to be saved
             files_path = f"{operator_dir_path}{op_name}"
 
             # Generating a circuit diagrams figure
             figure_path = f"{files_path}.pdf"
-            op_obj.draw('mpl', filename=figure_path, fold=-1)
+            op_obj.draw("mpl", filename=figure_path, fold=-1)
 
             # Generating a QPY serialization file for the circuit object
             qpy_file_path = f"{files_path}.qpy"
@@ -443,17 +429,13 @@ class SATInterface:
 
             # Original high-level operator and decomposed operator
             if index < 2 and display:
-
                 # Displaying to user
                 self.output_to_platform(
-                    title=titles[index],
-                    output_terminal=op_obj.draw('text'),
-                    output_jupyter=figure_path
+                    title=titles[index], output_terminal=op_obj.draw("text"), output_jupyter=figure_path
                 )
 
             # Transpiled operator
             elif index == 2:
-
                 # Output to user, not including the circuit diagram
                 print()
                 print(titles[index])
@@ -466,47 +448,49 @@ class SATInterface:
                 print(f"Transpiled operator gates count: {transpiled_operator_gates_count}.")
                 print(f"Total number of qubits: {op_obj.num_qubits}.")
 
-                # Generating QASM 2.0 file only for the tranpsiled operator
+                # Generating QASM 2.0 file only for the (flattened = no registers) tranpsiled operator
                 qasm_file_path = f"{files_path}.qasm"
-                op_obj.qasm(filename=qasm_file_path)
+                flatten_circuit(op_obj).qasm(filename=qasm_file_path)
 
                 # Index 3 is 'high_level_to_bit_indexes_map' so it's time to break from the loop
                 break
 
         # Mapping from high-level variables to bit-indexes will be displayed as well
-        mapping = obtain_grover_operator_output['high_level_to_bit_indexes_map']
+        mapping = obtain_grover_operator_output["high_level_to_bit_indexes_map"]
         if mapping:
             print()
             print(f"The high-level variables mapping to bit-indexes:\n{mapping}")
-            
+
         print()
         print(
             f"Saved into '{operator_dir_path}':\n",
-            f"  Circuit diagrams for all levels.\n",
-            f"  QPY serialization exports for all levels.\n",
-            f"  QASM 2.0 export only for the transpiled level."
+            "  Circuit diagrams for all levels.\n",
+            "  QPY serialization exports for all levels.\n",
+            "  QASM 2.0 export only for the transpiled level.",
         )
 
         with open(f"{operator_dir_path}operator.qpy", "rb") as qpy_file:
             operator_qpy_sha256 = sha256(qpy_file.read()).hexdigest()
 
-        self.update_metadata({
-            "high_level_to_bit_indexes_map": self.high_to_low_map,
-            "transpile_kwargs": self.transpile_kwargs,
-            "transpiled_operator_depth": transpiled_operator_depth,
-            "transpiled_operator_gates_count": transpiled_operator_gates_count,
-            "operator_qpy_sha256": operator_qpy_sha256
-        })
+        self.update_metadata(
+            {
+                "high_level_to_bit_indexes_map": self.high_to_low_map,
+                "transpile_kwargs": self.transpile_kwargs,
+                "transpiled_operator_depth": transpiled_operator_depth,
+                "transpiled_operator_gates_count": transpiled_operator_gates_count,
+                "operator_qpy_sha256": operator_qpy_sha256,
+            }
+        )
 
     def obtain_overall_sat_circuit(
         self,
         grover_operator: GroverConstraintsOperator,
         solutions_num: int,
-        backend: Optional[Backend] = None
+        backend: Optional[Backend] = None,
     ) -> Dict[str, SATCircuit]:
         """
         Obtains the suitable `SATCircuit` object (= the overall SAT circuit) for the SAT problem.
-        
+
         Args:
             grover_operator (GroverConstraintsOperator): Grover's operator for the SAT problem.
             solutions_num (int): number of solutions for the SAT problem. In the case the number
@@ -539,11 +523,11 @@ class SATInterface:
                 grover_operator,
                 self.parsed_constraints,
                 precision=10,
-                backend=backend
+                backend=backend,
             )
             print()
             print(f"An adequate number of iterations found = {iterations}.")
-        
+
         # -2 = Unknown number of solutions - implement a dynamic circuit
         # TODO this feature isn't fully implemented yet
         elif solutions_num == -2:
@@ -562,10 +546,7 @@ class SATInterface:
             print(f"\nFor {solutions_num} solutions, {iterations} iterations needed.")
 
             circuit = SATCircuit(
-                self.num_input_qubits,
-                grover_operator,
-                iterations,
-                insert_barriers=False
+                self.num_input_qubits, grover_operator, iterations, insert_barriers=False
             )
             circuit.add_input_reg_measurement()
 
@@ -573,19 +554,14 @@ class SATInterface:
 
         # Obtaining a SATCircuit object with one iteration for concise representation
         concise_circuit = SATCircuit(
-            self.num_input_qubits,
-            grover_operator,
-            iterations=1,
-            insert_barriers=True
+            self.num_input_qubits, grover_operator, iterations=1, insert_barriers=True
         )
         concise_circuit.add_input_reg_measurement()
 
-        return {'circuit': circuit, 'concise_circuit': concise_circuit}
+        return {"circuit": circuit, "concise_circuit": concise_circuit}
 
     def save_display_overall_circuit(
-        self,
-        obtain_overall_sat_circuit_output: Dict[str, SATCircuit],
-        display: Optional[bool] = True
+        self, obtain_overall_sat_circuit_output: Dict[str, SATCircuit], display: Optional[bool] = True
     ) -> None:
         """
         Handles saving and displaying data generated by the `self.obtain_overall_sat_circuit` method.
@@ -596,8 +572,8 @@ class SATInterface:
             display (Optional[bool] = True) - If true, displays objects to user's platform.
         """
 
-        circuit = obtain_overall_sat_circuit_output['circuit']
-        concise_circuit = obtain_overall_sat_circuit_output['concise_circuit']
+        circuit = obtain_overall_sat_circuit_output["circuit"]
+        concise_circuit = obtain_overall_sat_circuit_output["concise_circuit"]
 
         # Creating a directory to save overall circuit's data
         overall_circuit_dir_path = f"{self.dir_path}overall_circuit/"
@@ -605,55 +581,73 @@ class SATInterface:
 
         # Generating a figure of the overall SAT circuit with just 1 iteration (i.e "concise")
         concise_circuit_fig_path = f"{overall_circuit_dir_path}overall_circuit_1_iteration.pdf"
-        concise_circuit.draw('mpl', filename=concise_circuit_fig_path ,fold=-1)
+        concise_circuit.draw("mpl", filename=concise_circuit_fig_path, fold=-1)
 
         # Displaying the concise circuit to user
         if display:
             if self.iterations:
                 self.output_to_platform(
-                    title= (
-                        f"The high level circuit contains {self.iterations}" \
+                    title=(
+                        f"The high level circuit contains {self.iterations}"
                         f" iterations of the following form:"
                     ),
                     output_terminal=concise_circuit.draw("text"),
-                    output_jupyter=concise_circuit_fig_path
+                    output_jupyter=concise_circuit_fig_path,
                 )
-            
+
             # Dynamic circuit case - TODO NOT FULLY IMPLEMENTED YET
             else:
                 dynamic_circuit_fig_path = f"{overall_circuit_dir_path}overall_circuit_dynamic.pdf"
-                circuit.draw('mpl', filename=dynamic_circuit_fig_path ,fold=-1)
+                circuit.draw("mpl", filename=dynamic_circuit_fig_path, fold=-1)
 
                 self.output_to_platform(
                     title="The dynamic circuit diagram:",
                     output_terminal=circuit.draw("text"),
-                    output_jupyter=dynamic_circuit_fig_path
+                    output_jupyter=dynamic_circuit_fig_path,
                 )
 
+        if self.iterations:
+            transpiled_overall_circuit = transpile(flatten_circuit(circuit), **self.transpile_kwargs)
+
+            print()
+            print(f"The transpilation kwargs are: {self.transpile_kwargs}.")
+            transpiled_overall_circuit_depth = transpiled_overall_circuit.depth()
+            transpiled_overall_circuit_gates_count = transpiled_overall_circuit.count_ops()
+            print(f"Transpiled overall-circuit depth: {transpiled_overall_circuit_depth}.")
+            print(f"Transpiled overall-circuit gates count: {transpiled_overall_circuit_gates_count}.")
+            print(f"Total number of qubits: {transpiled_overall_circuit.num_qubits}.")
+
         print()
-        print("Exporting the full high-level overall SAT circuit object to a QPY file..")
-        qpy_file_path = f"{overall_circuit_dir_path}overall_circuit.qpy"
-        with open(qpy_file_path, "wb") as qpy_file:
+        print("Exporting the full overall SAT circuit object..")
+        export_files_path = f"{overall_circuit_dir_path}overall_circuit"
+        with open(f"{export_files_path}.qpy", "wb") as qpy_file:
             qpy.dump(circuit, qpy_file)
+        if self.iterations:
+            transpiled_overall_circuit.qasm(filename=f"{export_files_path}.qasm")
 
         print()
         print(
             f"Saved into '{overall_circuit_dir_path}':\n",
-            f"  A concised (1 iteration) circuit diagram of the high-level overall SAT circuit.\n",
-            f"  QPY serialization export for the full overall SAT circuit object."
+            "  A concised (1 iteration) circuit diagram of the high-level overall SAT circuit.\n",
+            "  QPY serialization export for the full overall SAT circuit object.",
         )
+        if self.iterations:
+            print("   QASM 2.0 export for the transpiled full overall SAT circuit object.")
 
-        self.update_metadata({
+        metadata_update = {
             "num_total_qubits": circuit.num_qubits,
             "num_iterations": circuit.iterations,
-        })
-        
+        }
+        if self.iterations:
+            metadata_update["transpiled_overall_circuit_depth"] = (transpiled_overall_circuit_depth,)
+            metadata_update[
+                "transpiled_overall_circuit_gates_count"
+            ] = transpiled_overall_circuit_gates_count
+        self.update_metadata(metadata_update)
+
     @timer_dec("Circuit simulation execution time = ")
     def run_overall_sat_circuit(
-        self,
-        circuit: QuantumCircuit,
-        backend: Backend,
-        shots: int
+        self, circuit: QuantumCircuit, backend: Backend, shots: int
     ) -> Dict[str, Union[Counts, List[Tuple[Union[str, int]]], List[str], List[Dict[str, int]]]]:
         """
         Executes a `circuit` on `backend` transpiled w.r.t backend, `shots` times.
@@ -685,8 +679,7 @@ class SATInterface:
         return parsed_counts
 
     def parse_counts(
-        self,
-        counts: Counts
+        self, counts: Counts
     ) -> Dict[str, Union[Counts, List[Tuple[Union[str, int]]], List[str], List[Dict[str, int]]]]:
         """
         Parses a `Counts` object into several desired datas (see 'Returns' section).
@@ -717,16 +710,13 @@ class SATInterface:
         # In the case of high-level format in use, translating `distilled_solutions` into integer values
         high_level_vars_values = None
         if self.high_level_constraints_string and self.high_level_vars:
-
             # Container for dictionaries with variables integer values
             high_level_vars_values = []
 
             for solution in distilled_solutions:
-
                 # Keys are variable-names and values are their integer values
                 solution_vars = {}
                 for var, bits_bundle in self.high_to_low_map.items():
-
                     reversed_solution = solution[::-1]
                     var_bitstring = ""
                     for bit_index in bits_bundle:
@@ -738,18 +728,18 @@ class SATInterface:
                 high_level_vars_values.append(solution_vars)
 
         return {
-            'counts': counts,
-            'counts_sorted': counts_sorted,
-            'distilled_solutions': distilled_solutions,
-            'high_level_vars_values': high_level_vars_values
+            "counts": counts,
+            "counts_sorted": counts_sorted,
+            "distilled_solutions": distilled_solutions,
+            "high_level_vars_values": high_level_vars_values,
         }
-    
+
     def save_display_results(
         self,
         run_overall_sat_circuit_output: Dict[
             str, Union[Counts, List[Tuple[Union[str, int]]], List[str], List[Dict[str, int]]]
         ],
-        display: Optional[bool] = True
+        display: Optional[bool] = True,
     ) -> None:
         """
         Handles saving and displaying data generated by the `self.run_overall_sat_circuit` method.
@@ -760,11 +750,11 @@ class SATInterface:
             the `self.run_overall_sat_circuit` method.
             display (Optional[bool] = True) - If true, displays objects to user's platform.
         """
-        
-        counts = run_overall_sat_circuit_output['counts']
-        counts_sorted = run_overall_sat_circuit_output['counts_sorted']
-        distilled_solutions = run_overall_sat_circuit_output['distilled_solutions']
-        high_level_vars_values = run_overall_sat_circuit_output['high_level_vars_values']
+
+        counts = run_overall_sat_circuit_output["counts"]
+        counts_sorted = run_overall_sat_circuit_output["counts_sorted"]
+        distilled_solutions = run_overall_sat_circuit_output["distilled_solutions"]
+        high_level_vars_values = run_overall_sat_circuit_output["high_level_vars_values"]
 
         # Creating a directory to save results data
         results_dir_path = f"{self.dir_path}results/"
@@ -776,26 +766,22 @@ class SATInterface:
         histogram_figsize = (histogram_fig_width, histogram_fig_height)
 
         histogram_path = f"{results_dir_path}histogram.pdf"
-        plot_histogram(
-            counts,
-            figsize=histogram_figsize,
-            sort='value_desc',
-            filename=histogram_path
-        )
+        plot_histogram(counts, figsize=histogram_figsize, sort="value_desc", filename=histogram_path)
 
         if display:
-
             # Basic output text
-            output_text = f"All counts:\n{counts_sorted}\n" \
-                          f"\nDistilled solutions ({len(distilled_solutions)} total):\n" \
-                          f"{distilled_solutions}"
+            output_text = (
+                f"All counts:\n{counts_sorted}\n"
+                f"\nDistilled solutions ({len(distilled_solutions)} total):\n"
+                f"{distilled_solutions}"
+            )
 
             # Additional outputs for a high-level constraints format
             if high_level_vars_values:
-
                 # Mapping from high-level variables to bit-indexes will be displayed as well
-                output_text += f"\n\nThe high-level variables mapping to bit-indexes:" \
-                               f"\n{self.high_to_low_map}"
+                output_text += (
+                    f"\n\nThe high-level variables mapping to bit-indexes:" f"\n{self.high_to_low_map}"
+                )
 
                 # Actual integer solutions will be displayed as well
                 additional_text = ""
@@ -810,25 +796,27 @@ class SATInterface:
                         else:
                             additional_text += "\n"
                 output_text += f"\n\nHigh-level format solutions: \n{additional_text}"
-                          
+
             self.output_to_platform(
                 title=f"The results for {self.shots} shots are:",
                 output_terminal=output_text,
                 output_jupyter=histogram_path,
-                display_both_on_jupyter=True
+                display_both_on_jupyter=True,
             )
 
         results_dict = {
-            'high_level_to_bit_indexes_map': self.high_to_low_map,
-            'solutions': list(distilled_solutions),
-            'high_level_solutions': high_level_vars_values,
-            'counts': counts_sorted
+            "high_level_to_bit_indexes_map": self.high_to_low_map,
+            "solutions": list(distilled_solutions),
+            "high_level_solutions": high_level_vars_values,
+            "counts": counts_sorted,
         }
         with open(f"{results_dir_path}results.json", "w") as results_file:
             json.dump(results_dict, results_file, indent=4)
 
-        self.update_metadata({
-            "num_solutions": len(distilled_solutions),
-            "backend": self.backend.__str__(),
-            "shots": self.shots
-        })
+        self.update_metadata(
+            {
+                "num_solutions": len(distilled_solutions),
+                "backend": str(self.backend),
+                "shots": self.shots,
+            }
+        )

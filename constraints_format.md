@@ -1,14 +1,14 @@
 
 # Constraints String Format
 
-The program accepts a string of constraints in a *low-level* defined format. It is also possible to generate low-level constraints string from a *high-level* setting.
+Under the hood, the program accepts a string of constraints in a *low-level* defined format. It is also possible to feed into the program a string of constraints in a *high-level* setting, and a translation layer will take care of the necessary conversion.
 
 ## Supported features
 The program accepts:
 
 * Multiple constraints combined into a single string. Each constraint must reside inside round brackets and must be separated from neighboring constraints by commas. A general description: __"(--CONSTRAINT_1--),(--CONSTRAINT_2--),...,(--CONSTRAINT_N--)"__.
-* Each single constraint can be either an *arithmetic constraint* or a *boolean constraint*.
-* An arithmetic constraint must contain one *comparison operator* - that is "==" (EQUAL) or "!=" (NOT EQUAL), and may contain the "+" (PLUS) *arithmetic operator* along with variables or natural numbers. A general description: __"(--LEFT_OPERAND-- --ARITHMETIC_OPERATOR-- --RIGHT_OPERAND--)"__. Each operand can possibly be a sum of sub-operands (variables or natural numbers).
+* Every single constraint can be either an *arithmetic constraint* or a *boolean constraint*.
+* An arithmetic constraint must contain one *comparison operator* - that is "==" (EQUAL) or "!=" (NOT EQUAL), and may contain the "+" (PLUS) *arithmetic operator* along with variables or natural numbers. A general description: __"(--LEFT_OPERAND-- --COMPARISON_OPERATOR-- --RIGHT_OPERAND--)"__. Each operand can possibly be a sum of sub-operands (variables or natural numbers).
 * A boolean constraint must contain *binary variables* (i.e single-bit long) only, along with *boolean operators*: that can be binary - "||" (OR) and "&&" (AND), or unary - "\~" (NOT). For now, a mixture of binary boolean operators is not allowed - i.e a single constraint can contain either "&&" or "||" operators. The "~" unary operator is always allowed. A general description: __"(--VAR_0-- && --~VAR_1-- && --VAR_2--)"__ or __"(--VAR_0-- || --~VAR_1-- || --VAR_2--)"__.
 
 The features listed above are accessible via a high-level setting or a low-level format.
@@ -46,6 +46,8 @@ For example, for the given code:
 The output is:
 
     ([2][1][0] != 4),([3] + [6][5][4] == [2][1][0]),([10][9][8][7] + [2][1][0] + [3] + [6][5][4] != 27)
+
+**NOTE:** The recommended way to use the *high-level* format is via `SATInterface`'s API, which seamlessly executes the translation as demonstrated above. To do so it is required to call `SATIntreface` with the arguments `high_level_constraints_string` and `high_level_vars`. For an example please see "demo 1" in the [demonstration notebook](https://ohadlev77.github.io/sat-circuits-engine/demos.html).
 
 ## Important Notes
 

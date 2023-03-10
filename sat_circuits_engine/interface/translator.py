@@ -17,6 +17,7 @@
 
 from typing import Dict, Tuple, List
 
+
 class ConstraintsTranslator:
     """
     A translation interface - from "high-level" formats to a "low-level" (handleable) format.
@@ -54,7 +55,6 @@ class ConstraintsTranslator:
         # Iterating over the variables by their name-length, in a descending order. This way
         # we handle the variables with the longer names first and avoiding misreplaces of strings.
         for var, bits_needed in sorted(self.variables.items(), key=lambda x: len(x[0]), reverse=True):
-
             bundle_list, bundle_string = self.generate_bits_bundle(bits_needed, bits_sum)
 
             low_level_string = low_level_string.replace(var, bundle_string)

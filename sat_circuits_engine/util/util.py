@@ -18,6 +18,9 @@ Contains utility functions to be used throughout the package:
 
 from datetime import datetime
 
+from qiskit import QuantumCircuit
+
+
 def timestamp(datetime_obj: datetime) -> str:
     """
     Defines a timestamp format to be used in this library.
@@ -31,3 +34,21 @@ def timestamp(datetime_obj: datetime) -> str:
     """
 
     return datetime_obj.strftime("D%d.%m.%y_T%H.%M.%S")
+
+
+def flatten_circuit(circuit: QuantumCircuit) -> QuantumCircuit:
+    """
+    Transforms a QuantumCircuit object with multiple registers, into a QuantumCircuit object
+    with exactly one QuantumRegister and one ClasicalRegister.
+
+    Args:
+        circuit (QuantumCircuit): the QuantumCircuit object to "flatten".
+
+    Returns:
+        (QuantumCircuit): the "flattened" circuit.
+    """
+
+    flat_circuit = QuantumCircuit(circuit.num_qubits, circuit.num_clbits)
+    flat_circuit.compose(circuit, inplace=True)
+
+    return flat_circuit

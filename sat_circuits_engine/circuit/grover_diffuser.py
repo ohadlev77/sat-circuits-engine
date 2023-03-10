@@ -15,36 +15,50 @@
 GroverDiffuser class.
 """
 
-import numpy as np
-from qiskit import QuantumCircuit
+from typing import Optional
+from qiskit import QuantumCircuit, QuantumRegister
+
 
 class GroverDiffuser(QuantumCircuit):
     """
     Implementation of Grover's diffuser operator.
     """
 
-    def __init__(self, num_input_qubits: int) -> None:
+    def __init__(self, num_input_qubits: int, num_ancilla_qubits: Optional[int] = 0) -> None:
         """
         Initializes a `QuantumCircuit` object.
         Implements the gate-combination needed for Grover's diffuser operator.
 
         Args:
             num_input_qubits (int): number of input qubits.
+            num_ancilla_qubits (Optional[int] = 0): number of ancilla qubits available, for the
+            purpose of decomposing the MCX gate needed for implementing Grover's diffuser, in
+            an efficient and shallow-as-possible manner.
         """
 
-        super().__init__(num_input_qubits)
-        
-        self.h(self.qubits)
-        self.x(self.qubits)
+        input_reg = QuantumRegister(num_input_qubits, "input_reg")
+        ancilla_reg = QuantumRegister(num_ancilla_qubits, "ancilla_reg")
+        super().__init__(input_reg, ancilla_reg, name="Diffuser")
 
-        self.mcp(
-            np.pi,
-            control_qubits=[q for q in range(num_input_qubits - 1)],
-            target_qubit=num_input_qubits - 1
+        # Pre-settings. Choosing the shallowest possible MCX decomposing mode
+        target_qubit = input_reg[num_input_qubits - 1]
+        if num_ancilla_qubits == 0:
+            mode = "noancilla"
+        elif num_ancilla_qubits < num_input_qubits - 2:
+            mode = "recursion"
+        else:
+            mode = "v-chain"
+
+        # Diffuser implementation
+        self.h(input_reg)
+        self.x(input_reg)
+        self.h(target_qubit)
+        self.mcx(
+            control_qubits=input_reg[list(range(num_input_qubits - 1))],
+            target_qubit=target_qubit,
+            ancilla_qubits=ancilla_reg,
+            mode=mode,
         )
-
-        self.x(self.qubits)
-        self.h(self.qubits)
-        
-        self.name = "Diffuser"
-        self.to_gate()
+        self.h(target_qubit)
+        self.x(input_reg)
+        self.h(input_reg)

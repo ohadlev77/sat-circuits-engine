@@ -1,3 +1,19 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 105
+target-version = ["py39", "py310", "py311"]
+
+[tool.pylint.format]
+max-line-length = 105
+
+[tool.pylint.MASTER]
+fail-under = '9.0'
+
+[tool.coverage.run]
+omit = [
+    "sat_circuits_engine/interface/counts_visualization.py", # Qiskit modified code
+    "sat_circuits_engine/interface/interactive_inputs.py" # Functions that interactively take inputs from a user
+]

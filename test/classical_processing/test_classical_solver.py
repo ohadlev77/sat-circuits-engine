@@ -23,6 +23,7 @@ import json
 from sat_circuits_engine.util.settings import TEST_DATA_PATH
 from sat_circuits_engine.classical_processing import solve_classically
 
+
 class ClassicalSolverTest(unittest.TestCase):
     """
     Tests for the `ClassicalSolver` class.
@@ -43,12 +44,12 @@ class ClassicalSolverTest(unittest.TestCase):
 
         print("Tests classical solver and verifier:")
         for example_name, example_data in self.test_data.items():
-
             print(f"Tests {example_name}.")
             self.assertEqual(
-                solve_classically(example_data['num_input_qubits'], example_data['constraints_string']),
-                set(example_data['solutions'])
+                solve_classically(example_data["num_input_qubits"], example_data["constraints_string"]),
+                set(example_data["solutions"]),
             )
+
 
 if __name__ == "__main__":
     unittest.main()

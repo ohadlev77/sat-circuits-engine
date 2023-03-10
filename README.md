@@ -19,7 +19,7 @@ The classical solution offers a time complexity of $O(N)$.
 
 ## Intention
 
-This program aspires to provide a full automatic quantum program synthesis solution for satisfiability problems.
+This program aspires to provide a fully automatic quantum program synthesis solution for satisfiability problems.
 For now (version 3.0) - the program offers a decent layer of abstraction along with various features. Yet, there are still many more factors to optimize and still some desired features are missing. These issues will be taken care of in the next releases.
 
 Grover's algorithm (much like all the other "pure" quantum algorithms - by "pure" I mean not classical-hybrid) is intractable for current NISQ devices, certainly at scale. Therefore the program relies solely on (noiseless) classical simulators and is aimed to use on a future fault-tolerant quantum computer.
@@ -44,3 +44,12 @@ For testing run `python3 -m unittest` from the root directory.
 3. In short (For full explanations see the demos files), all features are accessible via a class named `SATInterface` (`from sat_circuits_engine import SATInterface`). A bare call to an instance of this class (`SATInterface()`) will initiate an interactive user interface (an intuitive interface but also somewhat restrictive). For full flexibility one should use the API of `SATInterface` (recommended, but it is required to study the API, either via the docstrings of `SATInterface`, or by overviewing the demos, or both). Again, see [demos.html](https://ohadlev77.github.io/sat-circuits-engine/demos.html) or [demos.ipynb](demos.ipynb) for full annotations.
 4. It is a must to understand the constraints input format used in this package in order to use the package. That is explained in detail in [constraints_format.md](constraints_format.md).
 5. Many ready-to-use examples may be found in [test_data.json](sat_circuits_engine/data/test_data.json).
+
+## For Developers
+
+1. Development requirements are in [requirements-dev.txt](requirements-dev.txt) (`pip install -r requirements-dev.txt` from the root directory).
+2. Before pushing changes run `tox` from the root directory - tests in python 3.9-3.11, formatting, linting and coverage tests will be executed. Running a single specific *tox* configuration is also possible:
+* `tox -epy39` or `tox -epy310` or `tox -epy311` for the desired python version.
+* `tox -elint` for linting check by *pylint* (minimum rate reauired is 9.0).
+* `tox -eblack` for formatting check by *black*.
+* `tox -ecoverage` for tests-coverage check by *coverage (minimum 80% coverage is required).

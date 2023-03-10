@@ -19,8 +19,8 @@ as sub-functions of `find_iterations_unknown`.
 
 import random
 import copy
-import numpy as np
 from typing import Tuple, Optional
+import numpy as np
 
 from qiskit import transpile, QuantumCircuit
 from qiskit.providers.backend import Backend
@@ -30,6 +30,7 @@ from sat_circuits_engine.util.settings import BACKENDS
 from sat_circuits_engine.circuit import SATCircuit, GroverConstraintsOperator
 from sat_circuits_engine.classical_processing.classical_verifier import ClassicalVerifier
 from sat_circuits_engine.constraints_parse import ParsedConstraints, SATNoSolutionError
+
 
 def calc_iterations(num_input_qubits: int, num_solutions: int) -> int:
     """
@@ -43,14 +44,15 @@ def calc_iterations(num_input_qubits: int, num_solutions: int) -> int:
     Returns:
         (int): the exact number of iterations needed for the given SAT problem.
     """
-    
+
     # N is the dimension of the Hilbert space spanned by `num_input_qubits`
-    N = 2 ** num_input_qubits
+    N = 2**num_input_qubits
 
     # The formula for calculating the number of iterations
     iterations = int((np.pi / 4) * np.sqrt(N / num_solutions))
 
     return iterations
+
 
 @timer_dec("Found number of iterations in ")
 def find_iterations_unknown(
@@ -59,7 +61,7 @@ def find_iterations_unknown(
     parsed_constraints: ParsedConstraints,
     precision: Optional[int] = 10,
     backend: Optional[Backend] = BACKENDS(0),
-    step: Optional[float] = 6/5
+    step: Optional[float] = 6 / 5,
 ) -> Tuple[SATCircuit, int]:
     """
     Finds an adequate (optimal or near optimal) number of iterations suitable for a given SAT problem
@@ -108,14 +110,13 @@ def find_iterations_unknown(
     verifier = ClassicalVerifier(parsed_constraints)
 
     # Diemnsion of the Hilbert space spanned by the input qubits
-    N = 2 ** num_input_qubits
+    N = 2**num_input_qubits
 
     # A container for SATCircuit objects with various numbers of iterations
     qc_storage = {}
 
     # If `precision == 0`` then probably there is no solution
     while precision > 0:
-
         # M is the upper limit for drawing a random number of iterations
         M = 1
 
@@ -124,10 +125,9 @@ def find_iterations_unknown(
         # For each level of precision we are looking for an adequate number of iterations
         print(f"\nChecking iterations for precision = {precision}:")
         while M <= np.sqrt(N):
-            
             # Figuring a guess for the number of iterations
             iterations = False
-            while iterations == False:
+            while not iterations:
                 M = step * M
                 iterations = randint_exclude(start=0, end=int(M), exclude=checked_iterations)
             print(f"    Checking iterations = {iterations}")
@@ -146,16 +146,17 @@ def find_iterations_unknown(
                 return qc, iterations
 
             checked_iterations.add(iterations)
-        
+
         # Degrading precision if failed to find an adequate number of iterations
         precision -= 2
 
         if precision <= 0:
             raise SATNoSolutionError(
-                "Didn't find an suitable number of iterations." \
+                "Didn't find an suitable number of iterations."
                 "Probably the SAT problem has no solution."
             )
-  
+
+
 def randint_exclude(start, end, exclude):
     """
     Guessing a number of iterations which haven't been tried yet.
@@ -173,15 +174,13 @@ def randint_exclude(start, end, exclude):
 
     return randint
 
+
 def is_circuit_match(
-    qc: QuantumCircuit,
-    verifier: ClassicalVerifier,
-    precision: int,
-    backend: Backend
+    qc: QuantumCircuit, verifier: ClassicalVerifier, precision: int, backend: Backend
 ) -> bool:
     """
     Checks classically whether running `qc` `precision` times gives `precision` correct solutions.
-    
+
     Args:
         qc (QuantumCircuit): the quantum circuit to run.
         verifier (ClassicalVerifier): classical verifier object to verify solutions with.
@@ -189,7 +188,7 @@ def is_circuit_match(
         backend (Backend): backend to run circuits upon.
 
     Returns:
-        (bool): True if the execution of `qc` yielded 100% correct solutions (`precision` times). 
+        (bool): True if the execution of `qc` yielded 100% correct solutions (`precision` times).
         False otherwise.
     """
 

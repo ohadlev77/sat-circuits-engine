@@ -14655,7 +14655,7 @@ The user-defined constraints for the satisfiability problem should obey a specif
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># (1) Run this cell for obtaining the suitable Grover&#39;s operator for the defined satisfiability problem</span>
@@ -14715,7 +14715,7 @@ The user-defined constraints for the satisfiability problem should obey a specif
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Data will be saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo_1/&#39;.
+<pre>Data will be saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T12.24.45_demo_1/&#39;.
 
 The system synthesizes and transpiles a Grover&#39;s operator for the given constraints. Please wait..
 Done.
@@ -14734,8 +14734,8 @@ The operator diagram - high level blocks:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo_1/grover_operator/operator.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T12.24.45_demo_1/grover_operator/operator.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -14765,8 +14765,8 @@ The operator diagram - decomposed:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo_1/grover_operator/decomposed_operator.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T12.24.45_demo_1/grover_operator/decomposed_operator.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -14782,7 +14782,7 @@ The operator diagram - decomposed:
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>
-The transpiled operator diagram saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo_1/grover_operator/&#39;.
+The transpiled operator diagram saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T12.24.45_demo_1/grover_operator/&#39;.
 It&#39;s not presented here due to its complexity.
 Please note that barriers appear in the high-level diagrams above only for convenient
 visual separation between constraints.
@@ -14796,7 +14796,7 @@ Total number of qubits: 20.
 The high-level variables mapping to bit-indexes:
 {&#39;x0&#39;: [0], &#39;x1&#39;: [1], &#39;x2&#39;: [2], &#39;x3&#39;: [4, 3], &#39;x4&#39;: [5], &#39;x5&#39;: [6], &#39;x6&#39;: [7]}
 
-Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo_1/grover_operator/&#39;:
+Saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T12.24.45_demo_1/grover_operator/&#39;:
    Circuit diagrams for all levels.
    QPY serialization exports for all levels.
    QASM 2.0 export only for the transpiled level.
@@ -14813,7 +14813,7 @@ Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># (2) Run this cell for obtaining the overall SAT circuit:</span>
@@ -14874,8 +14874,8 @@ The high level circuit contains 5 iterations of the following form:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo_1/overall_circuit/overall_circuit_1_iteration.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T12.24.45_demo_1/overall_circuit/overall_circuit_1_iteration.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -14891,11 +14891,17 @@ The high level circuit contains 5 iterations of the following form:
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>
-Exporting the full high-level overall SAT circuit object to a QPY file..
+The transpilation kwargs are: {&#39;basis_gates&#39;: [&#39;u&#39;, &#39;cx&#39;], &#39;optimization_level&#39;: 3}.
+Transpiled overall-circuit depth: 1062.
+Transpiled overall-circuit gates count: OrderedDict([(&#39;u&#39;, 830), (&#39;cx&#39;, 790), (&#39;barrier&#39;, 45), (&#39;measure&#39;, 8)]).
+Total number of qubits: 20.
 
-Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo_1/overall_circuit/&#39;:
+Exporting the full overall SAT circuit object..
+
+Saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T12.24.45_demo_1/overall_circuit/&#39;:
    A concised (1 iteration) circuit diagram of the high-level overall SAT circuit.
    QPY serialization export for the full overall SAT circuit object.
+   QASM 2.0 export for the transpiled full overall SAT circuit object.
 </pre>
 </div>
 </div>
@@ -14909,7 +14915,7 @@ Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># (3) Run this cell for executing the overall SAT circuit and obtaining the results.</span>
@@ -14944,7 +14950,7 @@ Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo
 The system is running the circuit 300 times on aer_simulator, please wait..
 This process might take a while.
 Done.
-Circuit simulation execution time = 18.86 seconds.
+Circuit simulation execution time = 8.5 seconds.
 
 The results for 300 shots are:
 </pre>
@@ -14960,8 +14966,8 @@ The results for 300 shots are:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T11.33.55_demo_1/results/histogram.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T12.24.45_demo_1/results/histogram.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -14977,21 +14983,21 @@ The results for 300 shots are:
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>All counts:
-[(&#39;10010001&#39;, 57), (&#39;01110110&#39;, 53), (&#39;10001001&#39;, 53), (&#39;01111110&#39;, 47), (&#39;10011001&#39;, 45), (&#39;01100110&#39;, 43), (&#39;01111001&#39;, 1), (&#39;01100100&#39;, 1)]
+[(&#39;01111110&#39;, 60), (&#39;10001001&#39;, 51), (&#39;01110110&#39;, 48), (&#39;10010001&#39;, 47), (&#39;10011001&#39;, 46), (&#39;01100110&#39;, 44), (&#39;11000011&#39;, 1), (&#39;10101011&#39;, 1), (&#39;01001101&#39;, 1), (&#39;10100111&#39;, 1)]
 
 Distilled solutions (6 total):
-{&#39;10011001&#39;, &#39;10010001&#39;, &#39;01110110&#39;, &#39;01100110&#39;, &#39;10001001&#39;, &#39;01111110&#39;}
+{&#39;01111110&#39;, &#39;01110110&#39;, &#39;10010001&#39;, &#39;10011001&#39;, &#39;01100110&#39;, &#39;10001001&#39;}
 
 The high-level variables mapping to bit-indexes:
 {&#39;x0&#39;: [0], &#39;x1&#39;: [1], &#39;x2&#39;: [2], &#39;x3&#39;: [4, 3], &#39;x4&#39;: [5], &#39;x5&#39;: [6], &#39;x6&#39;: [7]}
 
 High-level format solutions: 
-Solution 1: x0 = 1, x1 = 0, x2 = 0, x3 = 3, x4 = 0, x5 = 0, x6 = 1
-Solution 2: x0 = 1, x1 = 0, x2 = 0, x3 = 2, x4 = 0, x5 = 0, x6 = 1
-Solution 3: x0 = 0, x1 = 1, x2 = 1, x3 = 2, x4 = 1, x5 = 1, x6 = 0
-Solution 4: x0 = 0, x1 = 1, x2 = 1, x3 = 0, x4 = 1, x5 = 1, x6 = 0
-Solution 5: x0 = 1, x1 = 0, x2 = 0, x3 = 1, x4 = 0, x5 = 0, x6 = 1
-Solution 6: x0 = 0, x1 = 1, x2 = 1, x3 = 3, x4 = 1, x5 = 1, x6 = 0
+Solution 1: x0 = 0, x1 = 1, x2 = 1, x3 = 3, x4 = 1, x5 = 1, x6 = 0
+Solution 2: x0 = 0, x1 = 1, x2 = 1, x3 = 2, x4 = 1, x5 = 1, x6 = 0
+Solution 3: x0 = 1, x1 = 0, x2 = 0, x3 = 2, x4 = 0, x5 = 0, x6 = 1
+Solution 4: x0 = 1, x1 = 0, x2 = 0, x3 = 3, x4 = 0, x5 = 0, x6 = 1
+Solution 5: x0 = 0, x1 = 1, x2 = 1, x3 = 0, x4 = 1, x5 = 1, x6 = 0
+Solution 6: x0 = 1, x1 = 0, x2 = 0, x3 = 1, x4 = 0, x5 = 0, x6 = 1
 
 </pre>
 </div>
@@ -15018,7 +15024,7 @@ Solution 6: x0 = 0, x1 = 1, x2 = 1, x3 = 3, x4 = 1, x5 = 1, x6 = 0
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># (1) Run this cell to obtain Grover&#39;s operator for the defined constraints</span>
@@ -15197,7 +15203,7 @@ Follow the instructions and enter the appropriate inputs.</p>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h2 id="Appendix-A">Appendix A<a class="anchor-link" href="#Appendix-A">&#182;</a></h2><p>This appendix provides a performance benchmark of the <em>sat-circuits-engine</em> open-source software compared to the synthesis engine offered by <a href="https://www.classiq.io/"><em>Classiq</em></a>.</p>
-<p>As explained <a href="https://www.classiq.io/insights/solving-sat-problems-with-classiq">here</a>, the problem to follow has been solved by <em>Classiq</em>'s synthesis engine, which generated a Grover operator with the following properties:</p>
+<p>As explained <a href="https://www.classiq.io/insights/solving-sat-problems-with-classiq">here</a>, the problem to follow (<em>example_29</em> from <a href="sat_circuits_engine/data/test_data.json">test_data.json</a>) has been solved by <em>Classiq</em>'s synthesis engine, which generated a Grover operator with the following properties:</p>
 <ul>
 <li>Width (number of qubits): 29.</li>
 <li>Depth: 197.</li>
@@ -15219,7 +15225,7 @@ Follow the instructions and enter the appropriate inputs.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># (1) Run this cell for obtaining the suitable Grover&#39;s operator for the defined satisfiability problem</span>
@@ -15273,7 +15279,7 @@ Follow the instructions and enter the appropriate inputs.</p>
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Data will be saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benchmark_demo/&#39;.
+<pre>Data will be saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T13.19.39_benchmark_demo/&#39;.
 
 The system synthesizes and transpiles a Grover&#39;s operator for the given constraints. Please wait..
 Done.
@@ -15292,8 +15298,8 @@ The operator diagram - high level blocks:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benchmark_demo/grover_operator/operator.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T13.19.39_benchmark_demo/grover_operator/operator.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -15323,8 +15329,8 @@ The operator diagram - decomposed:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benchmark_demo/grover_operator/decomposed_operator.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T13.19.39_benchmark_demo/grover_operator/decomposed_operator.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -15340,7 +15346,7 @@ The operator diagram - decomposed:
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>
-The transpiled operator diagram saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benchmark_demo/grover_operator/&#39;.
+The transpiled operator diagram saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T13.19.39_benchmark_demo/grover_operator/&#39;.
 It&#39;s not presented here due to its complexity.
 Please note that barriers appear in the high-level diagrams above only for convenient
 visual separation between constraints.
@@ -15354,7 +15360,7 @@ Total number of qubits: 27.
 The high-level variables mapping to bit-indexes:
 {&#39;x0&#39;: [0], &#39;x1&#39;: [1], &#39;x2&#39;: [2], &#39;x3&#39;: [4, 3], &#39;x4&#39;: [5], &#39;x5&#39;: [6], &#39;x6&#39;: [7]}
 
-Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benchmark_demo/grover_operator/&#39;:
+Saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T13.19.39_benchmark_demo/grover_operator/&#39;:
    Circuit diagrams for all levels.
    QPY serialization exports for all levels.
    QASM 2.0 export only for the transpiled level.
@@ -15371,7 +15377,7 @@ Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benc
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># (2) Run this cell for obtaining the overall SAT circuit:</span>
@@ -15424,8 +15430,8 @@ The high level circuit contains 12 iterations of the following form:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benchmark_demo/overall_circuit/overall_circuit_1_iteration.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T13.19.39_benchmark_demo/overall_circuit/overall_circuit_1_iteration.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -15441,11 +15447,17 @@ The high level circuit contains 12 iterations of the following form:
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>
-Exporting the full high-level overall SAT circuit object to a QPY file..
+The transpilation kwargs are: {&#39;basis_gates&#39;: [&#39;u&#39;, &#39;cx&#39;], &#39;optimization_level&#39;: 3}.
+Transpiled overall-circuit depth: 3734.
+Transpiled overall-circuit gates count: OrderedDict([(&#39;u&#39;, 3287), (&#39;cx&#39;, 2784), (&#39;barrier&#39;, 132), (&#39;measure&#39;, 8)]).
+Total number of qubits: 27.
 
-Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benchmark_demo/overall_circuit/&#39;:
+Exporting the full overall SAT circuit object..
+
+Saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T13.19.39_benchmark_demo/overall_circuit/&#39;:
    A concised (1 iteration) circuit diagram of the high-level overall SAT circuit.
    QPY serialization export for the full overall SAT circuit object.
+   QASM 2.0 export for the transpiled full overall SAT circuit object.
 </pre>
 </div>
 </div>
@@ -15459,7 +15471,7 @@ Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benc
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># (3) Run this cell for executing the overall SAT circuit and obtaining the results.</span>
@@ -15495,7 +15507,7 @@ Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benc
 The system is running the circuit 50 times on aer_simulator, please wait..
 This process might take a while.
 Done.
-Circuit simulation execution time = 1674.47 seconds.
+Circuit simulation execution time = 2108.04 seconds.
 
 The results for 50 shots are:
 </pre>
@@ -15511,8 +15523,8 @@ The results for 50 shots are:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T11.43.50_benchmark_demo/results/histogram.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T13.19.39_benchmark_demo/results/histogram.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -15564,7 +15576,7 @@ Solution 1: x0 = 0, x1 = 1, x2 = 1, x3 = 2, x4 = 0, x5 = 0, x6 = 1
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[13]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
      <div class="CodeMirror cm-s-jupyter">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">sat_circuits_engine</span> <span class="kn">import</span> <span class="n">SATInterface</span>
@@ -15589,9 +15601,9 @@ Solution 1: x0 = 0, x1 = 1, x2 = 1, x3 = 2, x4 = 0, x5 = 0, x6 = 1
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Data will be saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T12.13.09_SAT/&#39;.
+<pre>Data will be saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T13.02.21_SAT/&#39;.
 
-For a low-level setting of constraints, enter &#39;0&#39;. For a high level setting, enter &#39;1&#39;: 1
+For a low-level setting of constraints, enter &#39;0&#39;.For a high level setting, enter &#39;1&#39;: 1
 
 Enter a high-level constraints string: (x2 == x1),(x0 == 6)
 
@@ -15614,8 +15626,8 @@ The operator diagram - high level blocks:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T12.13.09_SAT/grover_operator/operator.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T13.02.21_SAT/grover_operator/operator.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -15645,8 +15657,8 @@ The operator diagram - decomposed:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T12.13.09_SAT/grover_operator/decomposed_operator.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T13.02.21_SAT/grover_operator/decomposed_operator.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -15662,7 +15674,7 @@ The operator diagram - decomposed:
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>
-The transpiled operator diagram saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T12.13.09_SAT/grover_operator/&#39;.
+The transpiled operator diagram saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T13.02.21_SAT/grover_operator/&#39;.
 It&#39;s not presented here due to its complexity.
 Please note that barriers appear in the high-level diagrams above only for convenient
 visual separation between constraints.
@@ -15676,7 +15688,7 @@ Total number of qubits: 8.
 The high-level variables mapping to bit-indexes:
 {&#39;x0&#39;: [2, 1, 0], &#39;x1&#39;: [3], &#39;x2&#39;: [4]}
 
-Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T12.13.09_SAT/grover_operator/&#39;:
+Saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T13.02.21_SAT/grover_operator/&#39;:
    Circuit diagrams for all levels.
    QPY serialization exports for all levels.
    QASM 2.0 export only for the transpiled level.
@@ -15689,7 +15701,9 @@ If the expected amount of solutions is unknown, please enter the value &#39;-1&#
 In this case the program will look for an adequate (optimal or near optimal)
 number of iterations for the given SAT problem, using an iterative stochastic process.
 This process might cause significant overheads and might take some time.
-Another option is using a dynamic circuit layout (this feature is in BETA version,and suffers from bugs and poor scaling) - for this option enter the value &#39;-2.Please enter the expected number of solutions (&#39;-1&#39; or &#39;-2&#39; for unknown): -1
+Another option is using a dynamic circuit layout (this feature is in BETA version,
+and suffers from bugs and poor scaling) - for this option enter the value &#39;-2&#39;.
+Please enter the expected number of solutions (&#39;-1&#39; or &#39;-2&#39; for unknown): -1
 
 For running the circuit on local `aer_simulator`, enter &#39;0&#39;.
 For running the circuit on `ibmq_qasm_simulator` via cloud, enter &#39;1&#39;.
@@ -15704,23 +15718,12 @@ Please wait while the system checks various solutions..
 Checking iterations for precision = 10:
     Checking iterations = 1
     Checking iterations = 2
-    Checking iterations = 5
-    Checking iterations = 7
+    Checking iterations = 3
+Found number of iterations in 0.77 seconds.
 
-Checking iterations for precision = 8:
-    Checking iterations = 1
-    Checking iterations = 2
-    Checking iterations = 5
-    Checking iterations = 6
+An adequate number of iterations found = 3.
 
-Checking iterations for precision = 6:
-    Checking iterations = 1
-    Checking iterations = 2
-Found number of iterations in 5.32 seconds.
-
-An adequate number of iterations found = 2.
-
-The high level circuit contains 2 iterations of the following form:
+The high level circuit contains 3 iterations of the following form:
 </pre>
 </div>
 </div>
@@ -15734,8 +15737,8 @@ The high level circuit contains 2 iterations of the following form:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T12.13.09_SAT/overall_circuit/overall_circuit_1_iteration.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T13.02.21_SAT/overall_circuit/overall_circuit_1_iteration.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -15751,11 +15754,17 @@ The high level circuit contains 2 iterations of the following form:
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>
-Exporting the full high-level overall SAT circuit object to a QPY file..
+The transpilation kwargs are: {&#39;basis_gates&#39;: [&#39;u&#39;, &#39;cx&#39;], &#39;optimization_level&#39;: 3}.
+Transpiled overall-circuit depth: 296.
+Transpiled overall-circuit gates count: OrderedDict([(&#39;u&#39;, 228), (&#39;cx&#39;, 174), (&#39;barrier&#39;, 13), (&#39;measure&#39;, 5)]).
+Total number of qubits: 8.
 
-Saved into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T12.13.09_SAT/overall_circuit/&#39;:
+Exporting the full overall SAT circuit object..
+
+Saved into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T13.02.21_SAT/overall_circuit/&#39;:
    A concised (1 iteration) circuit diagram of the high-level overall SAT circuit.
    QPY serialization export for the full overall SAT circuit object.
+   QASM 2.0 export for the transpiled full overall SAT circuit object.
 
 To stop here, enter &#39;0&#39;. For running the overall circuit and obtain data, enter &#39;1&#39;: 1
 
@@ -15764,7 +15773,7 @@ Please enter the number of shots desired: 512
 The system is running the circuit 512 times on aer_simulator, please wait..
 This process might take a while.
 Done.
-Circuit simulation execution time = 0.24 seconds.
+Circuit simulation execution time = 0.36 seconds.
 
 The results for 512 shots are:
 </pre>
@@ -15780,8 +15789,8 @@ The results for 512 shots are:
 
         <iframe
             width="100%"
-            height="500"
-            src="sat_circuits_engine/data/generated_data/D19.02.23_T12.13.09_SAT/results/histogram.pdf"
+            height="700"
+            src="sat_circuits_engine/data/generated_data/D10.03.23_T13.02.21_SAT/results/histogram.pdf"
             frameborder="0"
             allowfullscreen
             
@@ -15797,32 +15806,32 @@ The results for 512 shots are:
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>All counts:
-[(&#39;11110&#39;, 232), (&#39;00110&#39;, 231), (&#39;01000&#39;, 4), (&#39;10111&#39;, 4), (&#39;00000&#39;, 3), (&#39;11001&#39;, 3), (&#39;01111&#39;, 3), (&#39;10100&#39;, 3), (&#39;00001&#39;, 3), (&#39;00100&#39;, 3), (&#39;01010&#39;, 2), (&#39;01011&#39;, 2), (&#39;00011&#39;, 2), (&#39;00101&#39;, 2), (&#39;11011&#39;, 2), (&#39;01110&#39;, 1), (&#39;01101&#39;, 1), (&#39;11101&#39;, 1), (&#39;11100&#39;, 1), (&#39;10101&#39;, 1), (&#39;00111&#39;, 1), (&#39;10001&#39;, 1), (&#39;11010&#39;, 1), (&#39;10011&#39;, 1), (&#39;10000&#39;, 1), (&#39;00010&#39;, 1), (&#39;11111&#39;, 1), (&#39;11000&#39;, 1)]
+[(&#39;11110&#39;, 244), (&#39;00110&#39;, 244), (&#39;10000&#39;, 3), (&#39;10001&#39;, 3), (&#39;00101&#39;, 3), (&#39;00100&#39;, 2), (&#39;00000&#39;, 2), (&#39;01101&#39;, 1), (&#39;10011&#39;, 1), (&#39;01100&#39;, 1), (&#39;01010&#39;, 1), (&#39;11001&#39;, 1), (&#39;00011&#39;, 1), (&#39;10100&#39;, 1), (&#39;11000&#39;, 1), (&#39;10101&#39;, 1), (&#39;00001&#39;, 1), (&#39;01000&#39;, 1)]
 
 Distilled solutions (2 total):
-{&#39;00110&#39;, &#39;11110&#39;}
+{&#39;11110&#39;, &#39;00110&#39;}
 
 The high-level variables mapping to bit-indexes:
 {&#39;x0&#39;: [2, 1, 0], &#39;x1&#39;: [3], &#39;x2&#39;: [4]}
 
 High-level format solutions: 
-Solution 1: x0 = 6, x1 = 0, x2 = 0
-Solution 2: x0 = 6, x1 = 1, x2 = 1
+Solution 1: x0 = 6, x1 = 1, x2 = 1
+Solution 2: x0 = 6, x1 = 0, x2 = 0
 
 
-Done saving data into &#39;sat_circuits_engine/data/generated_data/D19.02.23_T12.13.09_SAT/&#39;.
+Done saving data into &#39;sat_circuits_engine/data/generated_data/D10.03.23_T13.02.21_SAT/&#39;.
 </pre>
 </div>
 </div>
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[13]:</div>
 
 
 
 
 <div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&lt;sat_circuits_engine.interface.interface.SATInterface at 0x7f5cad927a90&gt;</pre>
+<pre>&lt;sat_circuits_engine.interface.interface.SATInterface at 0x7f559407dac0&gt;</pre>
 </div>
 
 </div>

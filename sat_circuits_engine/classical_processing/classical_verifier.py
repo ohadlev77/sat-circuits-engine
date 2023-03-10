@@ -15,9 +15,9 @@
 `ClassicalVerifier` class.
 """
 
-from typing import List, Dict, Union
 
-from sat_circuits_engine.constraints_parse import ParsedConstraints, SingleConstraintParsed
+from sat_circuits_engine.constraints_parse import ParsedConstraints
+
 
 class ClassicalVerifier:
     """
@@ -45,7 +45,7 @@ class ClassicalVerifier:
             (bool): True if `bitstring` is indeed a solution, False otherwise.
         """
 
-        # Reversing the checked bitstring for little-endianess    
+        # Reversing the checked bitstring for little-endianess
         reversed_bitstring = bitstring[::-1]
 
         # A flag that indicates that all constraints checked so far (right now 0) are satisfied
@@ -55,31 +55,30 @@ class ClassicalVerifier:
             sides_sum = []
 
             # Summing values for each side of the constraint's equation
-            for bit_indexes, int_bitstring  in zip(
-                constraint.sides_bit_indexes,
-                constraint.sides_int_bitstrings
+            for bit_indexes, int_bitstring in zip(
+                constraint.sides_bit_indexes, constraint.sides_int_bitstrings
             ):
-                sum = 0
+                side_sum = 0
 
                 # Integer value
                 if int_bitstring is not None:
-                    sum += int(int_bitstring, 2)
+                    side_sum += int(int_bitstring, 2)
 
                 # Bits values
                 for bundle in bit_indexes:
-                    bits_values = ''.join(list(map(lambda x: reversed_bitstring[x], bundle)))
-                    sum += int(bits_values, 2)
-                
-                sides_sum.append(sum)
-            
+                    bits_values = "".join(list(map(lambda x: reversed_bitstring[x], bundle)))
+                    side_sum += int(bits_values, 2)
+
+                sides_sum.append(side_sum)
+
             # Writing True to still_satisfied if the constraint has been satisfied, False otherwise
             still_satisfied = sides_sum[0] == sides_sum[1]
-            if constraint.operator == '!=':
+            if constraint.operator == "!=":
                 still_satisfied = not still_satisfied
-            
+
             # Latest constraint is not satisfied
             if not still_satisfied:
                 return False
-        
+
         # Went over all constraints, all satisfied
         return True

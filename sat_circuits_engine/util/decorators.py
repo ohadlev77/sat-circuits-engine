@@ -17,7 +17,8 @@ Contains decorator functions to be used throughout the package:
 """
 
 import time
-from typing import Optional, Any 
+from typing import Optional, Any
+
 
 def timer_dec(message_prefix: Optional[str] = None) -> Any:
     """
@@ -46,4 +47,5 @@ def timer_dec(message_prefix: Optional[str] = None) -> Any:
             return func_value
 
         return wrapper
+
     return decorator

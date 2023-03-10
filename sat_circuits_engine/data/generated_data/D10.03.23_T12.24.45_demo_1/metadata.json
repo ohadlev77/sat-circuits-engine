@@ -1,0 +1,67 @@
+{
+    "name": "demo_1",
+    "datetime": "D10.03.23_T12.24.45",
+    "num_input_qubits": null,
+    "constraints_string": null,
+    "high_level_constraints_string": "(x0 != x1),(x3 != x4),(x1 != x3),(x3 != x5),(x5 != x6),(x0 != x2),(x1 != x6),(x4 != x6)",
+    "high_level_vars": {
+        "x0": 1,
+        "x1": 1,
+        "x2": 1,
+        "x3": 2,
+        "x4": 1,
+        "x5": 1,
+        "x6": 1
+    },
+    "high_level_to_bit_indexes_map": {
+        "x0": [
+            0
+        ],
+        "x1": [
+            1
+        ],
+        "x2": [
+            2
+        ],
+        "x3": [
+            4,
+            3
+        ],
+        "x4": [
+            5
+        ],
+        "x5": [
+            6
+        ],
+        "x6": [
+            7
+        ]
+    },
+    "transpile_kwargs": {
+        "basis_gates": [
+            "u",
+            "cx"
+        ],
+        "optimization_level": 3
+    },
+    "transpiled_operator_depth": 124,
+    "transpiled_operator_gates_count": {
+        "cx": 118,
+        "u": 102
+    },
+    "operator_qpy_sha256": "05fd477ee75c1fb0a52b779ed37fd994bc457191151c2a1a342291c4d691d9c3",
+    "num_total_qubits": 20,
+    "num_iterations": 5,
+    "transpiled_overall_circuit_depth": [
+        1062
+    ],
+    "transpiled_overall_circuit_gates_count": {
+        "u": 830,
+        "cx": 790,
+        "barrier": 45,
+        "measure": 8
+    },
+    "num_solutions": 6,
+    "backend": "aer_simulator",
+    "shots": 300
+}
