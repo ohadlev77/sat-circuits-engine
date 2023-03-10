@@ -58,14 +58,14 @@ notebook==6.5.2
 notebook_shim==0.2.2
 ntlm-auth==1.5.0
 numpy==1.23.5
-packaging==22.0
+packaging>=22.0
 pandocfilters==1.5.0
 parso==0.8.3
 pbr==5.11.0
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==9.3.0
-platformdirs==2.6.0
+platformdirs>=2.6.0
 ply==3.11
 prometheus-client==0.15.0
 prompt-toolkit==3.0.36
@@ -106,7 +106,6 @@ terminado==0.17.1
 tinycss2==1.2.1
 tornado==6.2
 traitlets==5.8.0
-tweedledum==1.1.1
 uri-template==1.2.0
 urllib3==1.26.13
 wcwidth==0.2.5
