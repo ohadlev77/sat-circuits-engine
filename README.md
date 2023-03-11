@@ -50,6 +50,6 @@ For testing run `python3 -m unittest` from the root directory.
 1. Development requirements are in [requirements-dev.txt](requirements-dev.txt) (`pip install -r requirements-dev.txt` from the root directory).
 2. Before pushing changes run `tox` from the root directory - tests in python 3.9-3.11, formatting, linting and coverage tests will be executed. Running a single specific *tox* configuration is also possible:
 * `tox -epy39` or `tox -epy310` or `tox -epy311` for the desired python version.
-* `tox -elint` for linting check by *pylint* (minimum rate reauired is 9.0).
+* `tox -elint` for linting check by *pylint* (minimum rate required is 9.0).
 * `tox -eblack` for formatting check by *black*.
 * `tox -ecoverage` for tests-coverage check by *coverage* (minimum 80% coverage is required).
