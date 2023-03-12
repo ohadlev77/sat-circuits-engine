@@ -20,7 +20,7 @@ The classical solution offers a time complexity of $O(N)$.
 ## Intention
 
 This program aspires to provide a fully automatic quantum program synthesis solution for satisfiability problems.
-For now (version 3.0) - the program offers a decent layer of abstraction along with various features. Yet, there are still many more factors to optimize and still some desired features are missing. These issues will be taken care of in the next releases.
+For now (version 3.1.1) - the program offers a decent layer of abstraction along with various features. Yet, there are still many more factors to optimize and still some desired features are missing. These issues will be taken care of in the next releases.
 
 Grover's algorithm (much like all the other "pure" quantum algorithms - by "pure" I mean not classical-hybrid) is intractable for current NISQ devices, certainly at scale. Therefore the program relies solely on (noiseless) classical simulators and is aimed to use on a future fault-tolerant quantum computer.
 
